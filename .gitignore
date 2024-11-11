@@ -1,0 +1,98 @@
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa]rm/
+[Aa]rm64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+
+# User-specific files
+.vscode/
+.vscode/*
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Mono Auto Generated Files
+mono_crash.*
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows shortcut files
+*.lnk
+
+# MacOS files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Files that might appear on external disk drives
+.Spotlight-V100
+.Trashes
+
+# macOS directory attributes
+*.db
+*.md5
+
+# Trashes
+.Spotlight-V100
+
+# Cache
+.DS_Store
+
+# Compiled source files
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Packages
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Logs
+*.log
+
+# IDEs
+.idea/
+# *.sln
+
+# dotnetcore
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+resharper-*.vs
+
+# Visual Studio Code
+.vscode/*
+.history/
+.fake
