@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\bleak.Martech.SalesforceMarketingCloud\bleak.Martech.SalesforceMarketingCloud.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="bleak.Api.Rest" Version="1.1.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+   <Target Name="CopyConfigFile" AfterTargets="Build">
+    <Copy SourceFiles="config.json.user" DestinationFiles="$(OutDir)config.json" />
+  </Target>
+
+</Project>

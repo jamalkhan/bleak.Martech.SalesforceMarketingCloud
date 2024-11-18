@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "bleak.Martech.SalesforceMar
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bleak.Martech.SalesforceMarketingCloud.Tests", "bleak.Martech.SalesforceMarketingCloud.Tests\bleak.Martech.SalesforceMarketingCloud.Tests.csproj", "{B82B8027-091E-47C5-976D-8099C23DEA7D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bleak.Martech.SalesforceMarketingCloud.Console", "bleak.Martech.SalesforceMarketingCloud.Console\bleak.Martech.SalesforceMarketingCloud.Console.csproj", "{737BFD30-B56C-422B-9C66-DC08A3946617}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{B82B8027-091E-47C5-976D-8099C23DEA7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B82B8027-091E-47C5-976D-8099C23DEA7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B82B8027-091E-47C5-976D-8099C23DEA7D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{737BFD30-B56C-422B-9C66-DC08A3946617}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{737BFD30-B56C-422B-9C66-DC08A3946617}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{737BFD30-B56C-422B-9C66-DC08A3946617}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{737BFD30-B56C-422B-9C66-DC08A3946617}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
