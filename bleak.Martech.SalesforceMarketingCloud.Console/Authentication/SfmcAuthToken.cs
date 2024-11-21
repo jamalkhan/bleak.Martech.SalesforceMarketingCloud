@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication
 {
-    public class AuthToken
+    public class SfmcAuthToken
     {
         public string access_token { get; set; } = string.Empty;
         public string token_type { get; set; } = "Bearer";
