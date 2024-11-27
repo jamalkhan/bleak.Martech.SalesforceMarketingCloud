@@ -58,61 +58,39 @@ namespace bleak.Martech.SalesforceMarketingCloud.ContentBuilder
         public int ParentId { get; set; }
         public string CategoryType { get; set; } = string.Empty;
         public string FullPath { get; set; } = string.Empty;
-        public List<FolderObject> SubFolders {get;set;}
+        public List<FolderObject> SubFolders { get; set; } = new();
+        public List<AssetObject> Assets { get; set; } = new();
 
         #region Helper Methods
          // Method to build the folder structure
-        public static List<FolderObject> BuildFolderTree(List<SfmcFolder> sfmcFolders)
-        {
-            const int root_folder = 0;
-
-            // Find root folders
-            var sfmcRoots = sfmcFolders.Where(f => f.parentId == root_folder).ToList();
-            var retval = new List<FolderObject>();
-            foreach (var sfmcRoot in sfmcRoots)
-            {
-                var folder = sfmcRoot.ToFolderObject();
-                folder.FullPath = "/";
-                AddChildren(folder, sfmcFolders);
-                retval.Add(folder);
-            }
-            
-
-            return retval;
-        }
-
-        private static void AddChildren(FolderObject parentFolder, List<SfmcFolder> sfmcFolders)
-        {
-            var sfmcFolders_w_MatchingParentId = sfmcFolders.Where(x => x.parentId == parentFolder.Id).ToList();
-            if (sfmcFolders_w_MatchingParentId.Any())
-            {
-                parentFolder.SubFolders = new List<FolderObject>();
-                foreach (var sfmcFolder in sfmcFolders_w_MatchingParentId)
-                {
-                    var subfolder = sfmcFolder.ToFolderObject();
-                    subfolder.FullPath = parentFolder.FullPath + "/" + subfolder.Name;
-                    AddChildren(subfolder, sfmcFolders);
-                    parentFolder.SubFolders.Add(subfolder);
-                }
-            }
-        }
+        
 
         // Helper method to print the structure for debugging (optional)
         public void PrintStructure(int indent = 0)
         {
             Console.WriteLine($"{FullPath}");
-            /*for (int i = 0; i < indent; i++)
-            {
-                Console.Write(" ");
-            }
-            Console.Write($"{Name}{Environment.NewLine}");
-            */
             if (SubFolders != null && SubFolders.Any())
             {
                 foreach (var subFolder in SubFolders)
                 {
                     subFolder.PrintStructure(indent + 1);
                 }
+            }
+        }
+
+        public void PrintChildren()
+        {
+            Console.WriteLine($"{FullPath}");
+            Console.WriteLine("-------- SubFolders ---------");
+            foreach (var subfolder in SubFolders)
+            {
+                Console.WriteLine(subfolder.FullPath);
+            }
+
+            Console.WriteLine("-------- Assets ---------");
+            foreach (var asset in Assets)
+            {
+                Console.WriteLine(asset.FullPath);
             }
         }
 

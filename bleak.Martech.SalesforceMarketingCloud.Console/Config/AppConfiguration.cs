@@ -33,8 +33,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration
                             if (_instance == null)
                             {
                                 var configText = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "config.json"));
-                                Console.WriteLine(configText);
-                                                    _instance = JsonSerializer.Deserialize<AppConfiguration>(configText, _options) 
+                                _instance = JsonSerializer.Deserialize<AppConfiguration>(configText, _options) 
                                 ?? throw new InvalidOperationException("Failed to deserialize AppConfiguration.");
                             }
                         }
