@@ -16,7 +16,6 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
         static JsonSerializer serializer = new JsonSerializer();
         static CoreRestManager rm = new CoreRestManager(serializer, serializer);
         static SfmcAuthToken token = new();
-        private static bool debug = false;
         private static int assetCounter = 0;
         private static int folderCounter = 0;
         private static HashSet<string> assetTypes = new HashSet<string>();
@@ -32,7 +31,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
             Console.WriteLine($"Getting Auth Token");
             ResolveAuthentication();
 
-            if (debug) Console.WriteLine($"Gotten Auth Token {token.access_token}");
+            if (AppConfiguration.Instance.Debug) Console.WriteLine($"Gotten Auth Token {token.access_token}");
 
             Console.WriteLine($"Getting Folder Tree");
             Console.WriteLine("---------------------");
@@ -58,9 +57,9 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
             Console.WriteLine("---------------------");
 
             var path = AppConfiguration.Instance.OutputFolder;
-            if (debug) Console.WriteLine($"Creating Directory {path}");
+            if (AppConfiguration.Instance.Debug) Console.WriteLine($"Creating Directory {path}");
             Directory.CreateDirectory(path);
-            if (debug) Console.WriteLine($"Directory Created {path}");
+            if (AppConfiguration.Instance.Debug) Console.WriteLine($"Directory Created {path}");
 
             foreach (var folder in folderTree)
             {
@@ -91,13 +90,13 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                 // Write Metadata to Named as Customer Key
                 var metaDataCustomerKey = AppConfiguration.Instance.OutputFolder + "/" + asset.FullPath + "/customerkey-" + asset.CustomerKey + ".metadata";
                 Directory.CreateDirectory(Path.GetDirectoryName(metaDataCustomerKey));
-                if (debug) { Console.WriteLine($"Writing Metadata file to to save {metaDataCustomerKey}"); }
+                if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Writing Metadata file to to save {metaDataCustomerKey}"); }
                 File.WriteAllText(metaDataCustomerKey, serializer.Serialize(asset));
 
                 // Write Metadata to Named as Id
                 var metaDataId = AppConfiguration.Instance.OutputFolder + "/" + asset.FullPath + "/id-" + asset.Id + ".metadata";
                 Directory.CreateDirectory(Path.GetDirectoryName(metaDataId));
-                if (debug) { Console.WriteLine($"Writing Metadata file to to save {metaDataId}"); }
+                if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Writing Metadata file to to save {metaDataId}"); }
                 File.WriteAllText(metaDataId, serializer.Serialize(asset));
 
                 string outputFileName = string.Empty;
@@ -105,11 +104,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                 {
                     case "codesnippetblock":
                         outputFileName = AppConfiguration.Instance.OutputFolder + "/" + asset.FullPath + "/customerkey-" + asset.CustomerKey + ".ampscript.html";
-                        if (debug) { Console.WriteLine($"Trying to save {outputFileName}"); }
+                        if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Trying to save {outputFileName}"); }
                         File.WriteAllText(outputFileName, asset.Content);
 
                         outputFileName = AppConfiguration.Instance.OutputFolder + "/" + asset.FullPath + "/id-" + asset.Id + ".ampscript.html";
-                        if (debug) { Console.WriteLine($"Trying to save {outputFileName}"); }
+                        if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Trying to save {outputFileName}"); }
                         File.WriteAllText(outputFileName, asset.Content);
                         break;
                     case "webpage":
@@ -117,11 +116,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                     case "htmlblock":
                     case "templatebasedemail":
                         outputFileName = AppConfiguration.Instance.OutputFolder + "/" + asset.FullPath + "/customerkey-" + asset.CustomerKey + ".ampscript.html";
-                        if (debug) { Console.WriteLine($"Trying to save {outputFileName}"); }
+                        if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Trying to save {outputFileName}"); }
                         File.WriteAllText(outputFileName, asset.Views.Html.Content);
 
                         outputFileName = AppConfiguration.Instance.OutputFolder + "/" + asset.FullPath + "/id-" + asset.Id + ".ampscript.html";
-                        if (debug) { Console.WriteLine($"Trying to save {outputFileName}"); }
+                        if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Trying to save {outputFileName}"); }
                         File.WriteAllText(outputFileName, asset.Views.Html.Content);
                         break;
                     default:
@@ -129,7 +128,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                 }
 
                 assetCounter++;
-                if (assetCounter % 500 == 0)
+                if (assetCounter % AppConfiguration.Instance.PageSize == 0)
                 {
                     Console.WriteLine($"Wrote {assetCounter} assets to the filesystem...");
                 }
@@ -187,9 +186,9 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                     File.Delete(authFile);
                     Console.WriteLine($"Authenticating");
                     token = Authenticate();
-                    if (debug) Console.WriteLine($"Authenticated: {token.access_token}");
+                    if (AppConfiguration.Instance.Debug) Console.WriteLine($"Authenticated: {token.access_token}");
                     string json = serializer.Serialize(token);
-                    if (debug) Console.WriteLine($"Writing file {authFile}");
+                    if (AppConfiguration.Instance.Debug) Console.WriteLine($"Writing file {authFile}");
                     File.WriteAllText(authFile, json);
                     Thread.Sleep(1000);
                 }
@@ -204,7 +203,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                 Console.WriteLine("No file exists");
                 Console.WriteLine($"Authenticating");
                 token = Authenticate();
-                if (debug) Console.WriteLine($"Authenticated: {token.access_token}");
+                if (AppConfiguration.Instance.Debug) Console.WriteLine($"Authenticated: {token.access_token}");
                 string json = serializer.Serialize(token);
                 Console.WriteLine($"Writing file {authFile}");
                 File.WriteAllText(authFile, json);
@@ -234,7 +233,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                 );
 
             //File.WriteAllBytes("temp.token", authResults.Results.)
-            if (debug) Console.WriteLine($"authResults.Value = {authResults.Results}");
+            if (AppConfiguration.Instance.Debug) Console.WriteLine($"authResults.Value = {authResults.Results}");
             if (authResults.Error != null) Console.WriteLine($"authResults.Error = {authResults.Error}");
 
             return authResults.Results;
@@ -242,19 +241,16 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
         private static List<FolderObject> GetFolderTree()
         {
-            // according to SFMC, max pagesize = 500;
-            const int pageSize = 500;
-
             int page = 1;
             int currentPageSize = 0;
             
             var sfmcFolders = new List<SfmcFolder>();
             do
             {
-                currentPageSize = LoadFolder(pageSize, page, sfmcFolders);
+                currentPageSize = LoadFolder(page, sfmcFolders);
                 page++;
             }
-            while (pageSize == currentPageSize);
+            while (AppConfiguration.Instance.PageSize == currentPageSize);
 
             if (sfmcFolders.Any())
             {
@@ -264,16 +260,16 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
             throw new Exception("Error Loading Folders");
         }
 
-        private static int LoadFolder(int pageSize, int page, List<SfmcFolder> sfmcFolders)
+        private static int LoadFolder(int page, List<SfmcFolder> sfmcFolders)
         {
             int currentPageSize;
             try
             {
-                if (debug) { Console.WriteLine($"Loading Folder Page #{page}"); }
+                if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Loading Folder Page #{page}"); }
                 // https://{{et_subdomain}}.rest.marketingcloudapis.com/asset/v1/content/categories?$pagesize=107&$page=4
-                string uri = $"https://{AppConfiguration.Instance.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/categories?$page={page}&$pagesize={pageSize}";
+                string uri = $"https://{AppConfiguration.Instance.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/categories?$page={page}&$pagesize={AppConfiguration.Instance.PageSize}";
                 //string uri = $"https://{AppConfiguration.Instance.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/categories?page={page}&pagesize={pageSize}$orderBy=name&$filter=parentId eq {parent_id}";
-                if (debug) { Console.WriteLine($"Trying to download to {uri} with {token.access_token}"); }
+                if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Trying to download to {uri} with {token.access_token}"); }
 
                 var results = rm.ExecuteRestMethod<SfmcRestWrapper<SfmcFolder>, string>(
                     uri: new Uri(uri),
@@ -302,16 +298,16 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                         );
                 }
 
-                if (debug) Console.WriteLine($"results.Value = {results.Results}");
+                if (AppConfiguration.Instance.Debug) Console.WriteLine($"results.Value = {results.Results}");
                 if (results.Error != null) Console.WriteLine($"results.Error = {results.Error}");
 
                 currentPageSize = results.Results.items.Count();
                 sfmcFolders.AddRange(results.Results.items);
-                if (debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {sfmcFolders.Count()} Total Folders Identified.");
+                if (AppConfiguration.Instance.Debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {sfmcFolders.Count()} Total Folders Identified.");
 
-                if (pageSize == currentPageSize)
+                if (AppConfiguration.Instance.PageSize == currentPageSize)
                 {
-                    if (debug) Console.WriteLine($"Running Loop Again");
+                    if (AppConfiguration.Instance.Debug) Console.WriteLine($"Running Loop Again");
                 }
 
             }
@@ -326,9 +322,6 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
         private static void GetAssetsByFolder(FolderObject folderObject)
         {
-            // according to SFMC, max pagesize = 500;
-            const int pageSize = 500;
-
             int page = 1;
             int currentPageSize = 0;
             
@@ -337,11 +330,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
             {
                 try
                 {
-                    if (debug) Console.WriteLine($"Loading Assets Page #{page}");
+                    if (AppConfiguration.Instance.Debug) Console.WriteLine($"Loading Assets Page #{page}");
                     //string url = $"https://{AppConfiguration.Instance.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/assets?$page=1&$pagesize=100&$orderBy=name asc&$filter=category.id=5843
-                    string uri = $"https://{AppConfiguration.Instance.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/assets?$page={page}&$pagesize={pageSize}&$orderBy=name&$filter=category.id eq {folderObject.Id}";
+                    string uri = $"https://{AppConfiguration.Instance.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/assets?$page={page}&$pagesize={AppConfiguration.Instance.PageSize}&$orderBy=name&$filter=category.id eq {folderObject.Id}";
 
-                    if (debug) Console.WriteLine($"Trying to download to {uri} with {token.access_token}");
+                    if (AppConfiguration.Instance.Debug) Console.WriteLine($"Trying to download to {uri} with {token.access_token}");
 
                     var results = rm.ExecuteRestMethod<SfmcRestWrapper<SfmcAsset>, string>(
                         uri: new Uri(uri),
@@ -371,15 +364,15 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                             );
                     }
 
-                    if (debug) Console.WriteLine($"results.Value = {results.Results}");
+                    if (AppConfiguration.Instance.Debug) Console.WriteLine($"results.Value = {results.Results}");
                     if (results.Error != null) Console.WriteLine($"results.Error = {results.Error}");
                     currentPageSize = results.Results.items.Count();
                     sfmcAssets.AddRange(results.Results.items);
-                    if (debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {sfmcAssets.Count()} Total Assets Identified in {folderObject.FullPath}.");
+                    if (AppConfiguration.Instance.Debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {sfmcAssets.Count()} Total Assets Identified in {folderObject.FullPath}.");
 
-                    if (pageSize == currentPageSize)
+                    if (AppConfiguration.Instance.PageSize == currentPageSize)
                     {
-                        if (debug) Console.WriteLine($"Running Loop Again");
+                        if (AppConfiguration.Instance.Debug) Console.WriteLine($"Running Loop Again");
                     }
 
                 }
@@ -391,7 +384,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                 }
                 page++;
             }
-            while (pageSize == currentPageSize);
+            while (AppConfiguration.Instance.PageSize == currentPageSize);
 
 
             if (sfmcAssets.Any())
