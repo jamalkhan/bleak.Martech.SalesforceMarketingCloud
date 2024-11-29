@@ -2,8 +2,9 @@
 using bleak.Api.Rest.Common;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Wsdl;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication;
+using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication.SfmcPocos;
 using bleak.Martech.SalesforceMarketingCloud.ContentBuilder;
+using bleak.Martech.SalesforceMarketingCloud.ContentBuilder.SfmcPocos;
 using System.Collections.Generic;
 using System;
 using System.Diagnostics;

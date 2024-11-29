@@ -1,7 +1,7 @@
 using System;
 using System.Text.Json;
 
-namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication
+namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication.SfmcPocos
 {
     public class SfmcAuthToken
     {
