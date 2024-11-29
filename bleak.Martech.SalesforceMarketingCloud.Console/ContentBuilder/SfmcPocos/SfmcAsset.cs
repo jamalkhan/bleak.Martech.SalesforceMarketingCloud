@@ -2,7 +2,7 @@ using bleak.Martech.SalesforceMarketingCloud.ContentBuilder;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ContentBuilder.SfmcPocos
 {
-    public partial class SfmcAsset
+    public partial class SfmcAsset:ISfmcPoco
     {
         public int id { get; set; }
         public string customerKey { get; set; } = string.Empty;

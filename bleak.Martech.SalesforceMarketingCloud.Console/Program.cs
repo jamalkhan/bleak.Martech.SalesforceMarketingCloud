@@ -275,7 +275,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                 //string uri = $"https://{AppConfiguration.Instance.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/categories?page={page}&pagesize={pageSize}$orderBy=name&$filter=parentId eq {parent_id}";
                 if (debug) { Console.WriteLine($"Trying to download to {uri} with {token.access_token}"); }
 
-                var results = rm.ExecuteRestMethod<SfmcFolderRestWrapper, string>(
+                var results = rm.ExecuteRestMethod<SfmcRestWrapper<SfmcFolder>, string>(
                     uri: new Uri(uri),
                     verb: Api.Rest.Common.HttpVerbs.GET,
                     headers:
@@ -290,7 +290,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                     Console.WriteLine($"Unauthenticated: {results.UnhandledError}");
                     ResolveAuthentication();
 
-                    results = rm.ExecuteRestMethod<SfmcFolderRestWrapper, string>(
+                    results = rm.ExecuteRestMethod<SfmcRestWrapper<SfmcFolder>, string>(
                         uri: new Uri(uri),
                         verb: Api.Rest.Common.HttpVerbs.GET,
                         headers:
@@ -343,7 +343,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
                     if (debug) Console.WriteLine($"Trying to download to {uri} with {token.access_token}");
 
-                    var results = rm.ExecuteRestMethod<SfmcAssetRestWrapper, string>(
+                    var results = rm.ExecuteRestMethod<SfmcRestWrapper<SfmcAsset>, string>(
                         uri: new Uri(uri),
                         verb: Api.Rest.Common.HttpVerbs.GET,
                         headers:
@@ -359,7 +359,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                         Console.WriteLine($"Unauthenticated: {results.UnhandledError}");
                         ResolveAuthentication();
 
-                        results = rm.ExecuteRestMethod<SfmcAssetRestWrapper, string>(
+                        results = rm.ExecuteRestMethod<SfmcRestWrapper<SfmcAsset>, string>(
                             uri: new Uri(uri),
                             verb: Api.Rest.Common.HttpVerbs.GET,
                             headers:

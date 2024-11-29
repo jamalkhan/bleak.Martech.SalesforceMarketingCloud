@@ -1,14 +1,8 @@
-
 using System.Collections.Generic;
 using System.Linq;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ContentBuilder
 {
-
-
-
-
-
     public class AssetObject
     {
         public int Id { get; set; }
