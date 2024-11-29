@@ -6,6 +6,7 @@ using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.ContentBuilder;
 using System.Collections.Generic;
 using System;
+using System.Diagnostics;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 {
@@ -13,16 +14,19 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
     {
         static JsonSerializer serializer = new JsonSerializer();
         static CoreRestManager rm = new CoreRestManager(serializer, serializer);
-        static SfmcAuthToken token = null;
+        static SfmcAuthToken token = new();
         private static bool debug = false;
         private static int assetCounter = 0;
         private static int folderCounter = 0;
         private static HashSet<string> assetTypes = new HashSet<string>();
 
-        private static string savePath = "SFMC_Downloader";
-
         private static void Main(string[] args)
         {
+            // Create a Stopwatch instance
+            Stopwatch stopwatch = new Stopwatch();
+
+            // Start measuring time
+            stopwatch.Start();
             // See https://aka.ms/new-console-template for more information
             Console.WriteLine($"Getting Auth Token");
             ResolveAuthentication();
@@ -35,11 +39,16 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
             Console.WriteLine($"Completed Building Folder Tree");
             Console.WriteLine("---------------------");
 
-            //PrintChildren(folderTree);
+            // PrintChildren(folderTree);
             // PrintFolders(folderTree);
             DownloadAllAssets(folderTree);
 
-            Console.WriteLine($"App over");
+            // Stop the Stopwatch
+            stopwatch.Stop();
+
+            // Display the elapsed time
+            Console.WriteLine($"Execution Time: {stopwatch.ElapsedMilliseconds} ms");
+        
         }
 
         private static void DownloadAllAssets(List<FolderObject> folderTree)
@@ -47,8 +56,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
             Console.WriteLine("Download All Assets");
             Console.WriteLine("---------------------");
 
-                        
-            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), savePath);
+            var path = AppConfiguration.Instance.OutputFolder;
             if (debug) Console.WriteLine($"Creating Directory {path}");
             Directory.CreateDirectory(path);
             if (debug) Console.WriteLine($"Directory Created {path}");
@@ -56,7 +64,6 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
             foreach (var folder in folderTree)
             {
                 assetCounter = DownloadAllAssetsForAFolder(folder);
-
                 folderCounter++;
                 Console.WriteLine($"Processed {folderCounter} folders...");
                 
@@ -81,13 +88,13 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                 assetTypes.Add(asset.AssetType.Name);
 
                 // Write Metadata to Named as Customer Key
-                var metaDataCustomerKey = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "/" + savePath + "/" + asset.FullPath + "/customerkey-" + asset.CustomerKey + ".metadata";
+                var metaDataCustomerKey = AppConfiguration.Instance.OutputFolder + "/" + asset.FullPath + "/customerkey-" + asset.CustomerKey + ".metadata";
                 Directory.CreateDirectory(Path.GetDirectoryName(metaDataCustomerKey));
                 if (debug) { Console.WriteLine($"Writing Metadata file to to save {metaDataCustomerKey}"); }
                 File.WriteAllText(metaDataCustomerKey, serializer.Serialize(asset));
 
                 // Write Metadata to Named as Id
-                var metaDataId = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "/" + savePath + "/" + asset.FullPath + "/id-" + asset.Id + ".metadata";
+                var metaDataId = AppConfiguration.Instance.OutputFolder + "/" + asset.FullPath + "/id-" + asset.Id + ".metadata";
                 Directory.CreateDirectory(Path.GetDirectoryName(metaDataId));
                 if (debug) { Console.WriteLine($"Writing Metadata file to to save {metaDataId}"); }
                 File.WriteAllText(metaDataId, serializer.Serialize(asset));
@@ -96,21 +103,23 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                 switch (asset.AssetType.Name)
                 {
                     case "codesnippetblock":
-                        outputFileName = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "/" + savePath + "/" + asset.FullPath + "/customerkey-" + asset.CustomerKey + ".ampscript.html";
+                        outputFileName = AppConfiguration.Instance.OutputFolder + "/" + asset.FullPath + "/customerkey-" + asset.CustomerKey + ".ampscript.html";
                         if (debug) { Console.WriteLine($"Trying to save {outputFileName}"); }
                         File.WriteAllText(outputFileName, asset.Content);
 
-                        outputFileName = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "/" + savePath + "/" + asset.FullPath + "/id-" + asset.Id + ".ampscript.html";
+                        outputFileName = AppConfiguration.Instance.OutputFolder + "/" + asset.FullPath + "/id-" + asset.Id + ".ampscript.html";
                         if (debug) { Console.WriteLine($"Trying to save {outputFileName}"); }
                         File.WriteAllText(outputFileName, asset.Content);
                         break;
                     case "webpage":
+                    case "htmlemail":
+                    case "htmlblock":
                     case "templatebasedemail":
-                        outputFileName = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "/" + savePath + "/" + asset.FullPath + "/customerkey-" + asset.CustomerKey + ".ampscript.html";
+                        outputFileName = AppConfiguration.Instance.OutputFolder + "/" + asset.FullPath + "/customerkey-" + asset.CustomerKey + ".ampscript.html";
                         if (debug) { Console.WriteLine($"Trying to save {outputFileName}"); }
                         File.WriteAllText(outputFileName, asset.Views.Html.Content);
 
-                        outputFileName = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "/" + savePath + "/" + asset.FullPath + "/id-" + asset.Id + ".ampscript.html";
+                        outputFileName = AppConfiguration.Instance.OutputFolder + "/" + asset.FullPath + "/id-" + asset.Id + ".ampscript.html";
                         if (debug) { Console.WriteLine($"Trying to save {outputFileName}"); }
                         File.WriteAllText(outputFileName, asset.Views.Html.Content);
                         break;
@@ -119,9 +128,9 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                 }
 
                 assetCounter++;
-                if (assetCounter % 10 == 0)
+                if (assetCounter % 500 == 0)
                 {
-                    Console.WriteLine($"Downloaded {assetCounter} assets...");
+                    Console.WriteLine($"Wrote {assetCounter} assets to the filesystem...");
                 }
             }
             if (folder.SubFolders != null && folder.SubFolders.Count > 0)

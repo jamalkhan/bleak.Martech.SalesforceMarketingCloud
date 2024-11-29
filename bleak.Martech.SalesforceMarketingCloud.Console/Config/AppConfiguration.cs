@@ -7,6 +7,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration
     public class AppConfiguration
     {
             //public List<Integration> Integrations { get; set; }
+            public string OutputFolder { get;set; } = string.Empty;
             public string Subdomain { get; set; } = string.Empty;
             public string ClientId { get; set; } = string.Empty;
             public string ClientSecret { get; set; } = string.Empty;
