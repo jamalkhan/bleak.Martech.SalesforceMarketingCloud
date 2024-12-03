@@ -1,5 +1,4 @@
 ﻿using bleak.Api.Rest;
-using bleak.Api.Rest.Common;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Wsdl;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication.SfmcPocos;
@@ -14,7 +13,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
     public static class Program
     {
         static JsonSerializer serializer = new JsonSerializer();
-        static CoreRestManager rm = new CoreRestManager(serializer, serializer);
+        static RestManager rm = new RestManager(serializer, serializer);
         static SfmcAuthToken token = new();
         private static int assetCounter = 0;
         private static int folderCounter = 0;
@@ -214,14 +213,14 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
         private static SfmcAuthToken Authenticate()
         {
             Console.WriteLine($"Authenticating...........");
-            RequestResponseSummary<SfmcAuthToken, string> authResults;
+            RestResults<SfmcAuthToken, string> authResults;
 
             string tokenUri = "https://" + AppConfiguration.Instance.Subdomain + ".auth.marketingcloudapis.com/v2/token";
             Console.WriteLine($"Trying to authenticate to {tokenUri}");
 
             authResults = rm.ExecuteRestMethod<SfmcAuthToken, string>(
                 uri: new Uri(tokenUri),
-                verb: Api.Rest.Common.HttpVerbs.POST,
+                verb: HttpVerbs.POST,
                 payload: new
                 {
                     grant_type = "client_credentials",
@@ -273,7 +272,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
                 var results = rm.ExecuteRestMethod<SfmcRestWrapper<SfmcFolder>, string>(
                     uri: new Uri(uri),
-                    verb: Api.Rest.Common.HttpVerbs.GET,
+                    verb: HttpVerbs.GET,
                     headers:
                         new List<Header>()
                         {
@@ -288,7 +287,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
                     results = rm.ExecuteRestMethod<SfmcRestWrapper<SfmcFolder>, string>(
                         uri: new Uri(uri),
-                        verb: Api.Rest.Common.HttpVerbs.GET,
+                        verb: HttpVerbs.GET,
                         headers:
                             new List<Header>()
                             {
@@ -338,7 +337,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
                     var results = rm.ExecuteRestMethod<SfmcRestWrapper<SfmcAsset>, string>(
                         uri: new Uri(uri),
-                        verb: Api.Rest.Common.HttpVerbs.GET,
+                        verb: HttpVerbs.GET,
                         headers:
                             new List<Header>()
                             { 
@@ -354,7 +353,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
                         results = rm.ExecuteRestMethod<SfmcRestWrapper<SfmcAsset>, string>(
                             uri: new Uri(uri),
-                            verb: Api.Rest.Common.HttpVerbs.GET,
+                            verb: HttpVerbs.GET,
                             headers:
                                 new List<Header>()
                                 { 
