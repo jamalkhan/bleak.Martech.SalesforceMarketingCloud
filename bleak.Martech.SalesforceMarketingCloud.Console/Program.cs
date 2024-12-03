@@ -297,8 +297,8 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                         );
                 }
 
-                if (AppConfiguration.Instance.Debug) Console.WriteLine($"results.Value = {results.Results}");
-                if (results.Error != null) Console.WriteLine($"results.Error = {results.Error}");
+                if (AppConfiguration.Instance.Debug) Console.WriteLine($"results.Value = {results?.Results}");
+                if (results?.Error != null) Console.WriteLine($"results.Error = {results.Error}");
 
                 currentPageSize = results.Results.items.Count();
                 sfmcFolders.AddRange(results.Results.items);
@@ -363,8 +363,8 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                             );
                     }
 
-                    if (AppConfiguration.Instance.Debug) Console.WriteLine($"results.Value = {results.Results}");
-                    if (results.Error != null) Console.WriteLine($"results.Error = {results.Error}");
+                    if (AppConfiguration.Instance.Debug) Console.WriteLine($"results.Value = {results?.Results}");
+                    if (results?.Error != null) Console.WriteLine($"results.Error = {results.Error}");
                     currentPageSize = results.Results.items.Count();
                     sfmcAssets.AddRange(results.Results.items);
                     if (AppConfiguration.Instance.Debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {sfmcAssets.Count()} Total Assets Identified in {folderObject.FullPath}.");
