@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration
 {
-    public partial class  AppConfiguration
+    public partial class AppConfiguration
     {
         private static JsonSerializerOptions _options = new JsonSerializerOptions()
         {
