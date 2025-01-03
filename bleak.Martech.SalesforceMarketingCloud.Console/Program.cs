@@ -19,34 +19,60 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
         private static void Main(string[] args)
         {
-            // Create a Stopwatch instance
-            Stopwatch stopwatch = new Stopwatch();
-
-            // Start measuring time
-            stopwatch.Start();
+            
             // See https://aka.ms/new-console-template for more information
             Console.WriteLine($"Getting Auth Token");
             authRepository.ResolveAuthentication();
 
             if (AppConfiguration.Instance.Debug) Console.WriteLine($"Gotten Auth Token {authRepository.Token.access_token}");
 
-            Console.WriteLine($"Getting Folder Tree");
-            Console.WriteLine("---------------------");
-            LoadFolders loadFolders = new LoadFolders(restManager: rm, authRepository: authRepository);
-            var folderTree = loadFolders. GetFolderTree();
-            Console.WriteLine($"Completed Building Folder Tree");
-            Console.WriteLine("---------------------");
+            Console.WriteLine("Which Operation?");
+            Console.WriteLine("1. Content");
+            Console.WriteLine("2. Data Extensions");
 
-            // PrintChildren(folderTree);
-            // PrintFolders(folderTree);
-            DownloadAllAssets(folderTree);
+            bool cont = true;
+            while (cont)
+            {
+                var input = Console.ReadLine();
 
-            // Stop the Stopwatch
-            stopwatch.Stop();
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
 
-            // Display the elapsed time
-            Console.WriteLine($"Execution Time: {stopwatch.ElapsedMilliseconds} ms");
-        
+                Console.WriteLine($"You have entered {input}");
+
+                switch (input)
+                {
+                    case "1":
+                        Console.WriteLine($"Getting Folder Tree");
+                        Console.WriteLine("---------------------");
+                        LoadFolders loadFolders = new LoadFolders(restManager: rm, authRepository: authRepository);
+                        var folderTree = loadFolders.GetFolderTree();
+                        Console.WriteLine($"Completed Building Folder Tree");
+                        Console.WriteLine("---------------------");
+                        // PrintChildren(folderTree);
+                        // PrintFolders(folderTree);
+                        DownloadAllAssets(folderTree);
+                        break;
+                        
+                    case "2":
+                        var lf2 = new LoadDataExtensionFolders(authRepository: authRepository);
+                        var ft2 = lf2.GetFolderTree();
+
+                        break;
+                    default:
+                        {
+                            Console.WriteLine("key not recognized. exiting...");
+                            cont = false;
+                            break;
+                        }
+                }
+            
+                // Stop the Stopwatch
+                stopwatch.Stop();
+
+                // Display the elapsed time
+                Console.WriteLine($"Execution Time: {stopwatch.ElapsedMilliseconds} ms");
+            }
         }
 
         private static void DownloadAllAssets(List<FolderObject> folderTree)
@@ -212,7 +238,8 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
                     if (AppConfiguration.Instance.Debug) Console.WriteLine($"results.Value = {results?.Results}");
                     if (results?.Error != null) Console.WriteLine($"results.Error = {results.Error}");
-                    currentPageSize = results.Results.items.Count();
+                    
+                    currentPageSize = results!.Results.items.Count();
                     sfmcAssets.AddRange(results.Results.items);
                     if (AppConfiguration.Instance.Debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {sfmcAssets.Count()} Total Assets Identified in {folderObject.FullPath}.");
 
