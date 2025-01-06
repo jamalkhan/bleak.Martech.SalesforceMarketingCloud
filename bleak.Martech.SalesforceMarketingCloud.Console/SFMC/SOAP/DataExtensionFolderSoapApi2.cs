@@ -1,35 +1,67 @@
 using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication.SfmcPocos;
-using bleak.Martech.SalesforceMarketingCloud.ContentBuilder;
-using bleak.Martech.SalesforceMarketingCloud.ContentBuilder.SfmcPocos;
-using System.Diagnostics;
-using System.ServiceModel;
-using System.Net.Http.Headers;
 using bleak.Martech.SalesforceMarketingCloud.Wsdl;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Soap;
+using System.ServiceModel;
+using System.ServiceModel.Channels;
 
-namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
+namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap.DataExtensions
 {
-    public partial class LoadDataExtensionFolders
+    public partial class DataExtensionFolderSoapApi2
     {
         AuthRepository _authRepository;
-        RestManager _restManager;
-        public LoadDataExtensionFolders(AuthRepository authRepository)
+        
+        SoapClient<Wsdl.DataFolder> soapClient;
+
+        public DataExtensionFolderSoapApi2(AuthRepository authRepository)
         {
             _authRepository = authRepository;
-            var soapSerializer = new SoapSerializer();
-            _restManager = new RestManager(soapSerializer, soapSerializer);
+            var endpointAddress = new EndpointAddress($"https://{AppConfiguration.Instance.Subdomain}.soap.marketingcloudapis.com/Service.asmx");
+            var binding = new BasicHttpBinding(BasicHttpSecurityMode.Transport);
+            soapClient = new SoapClient<Wsdl.DataFolder>(binding, endpointAddress);
         }
 
-        public List<FolderObject> GetFolderTree()
+        public string GetFolderTree()
         {
+            
+            // Assuming "SoapClient" is the generated class from the WSDL
+            
+
+            
+
+            // Add the access token to the HTTP header
+            using var scope = new OperationContextScope(soapClient.InnerChannel);
+            var httpRequestProperty = new HttpRequestMessageProperty();
+            httpRequestProperty.Headers["Authorization"] = "Bearer " + _authRepository.Token.access_token;
+            OperationContext.Current.OutgoingMessageProperties[HttpRequestMessageProperty.Name] = httpRequestProperty;
+
+            // Example SOAP request (e.g., retrieving data extensions)
+            var request = new RetrieveRequest1
+            {
+
+                RetrieveRequest = new RetrieveRequest()
+                {
+                    ObjectType = "DataFolder",
+                    Properties = new[] { "ID", "Name", "IsActive", "IsEditable", "ParentFolder" },
+                }
+            };
+
+
+            var response = soapClient.RetrieveAsync(request);
+            
+            foreach (var item in response.Result.Results)
+            {
+                Console.WriteLine(item);
+            }
+            return "x";
+/*
             int page = 1;
             int currentPageSize = 0;
 
             var sfmcFolders = new List<SfmcFolder>();
             do
             {
+                if (AppConfiguration.Instance.Debug) Console.WriteLine($"Loading Data Extension Folder Page {page}");
+
                 currentPageSize = LoadFolder(page, sfmcFolders);
                 page++;
             }
@@ -41,36 +73,42 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
             }
 
             throw new Exception("Error Loading Folders");
+            */
         }
 
+/*
         private int LoadFolder(int page, List<SfmcFolder> sfmcFolders)
         {
             int currentPageSize;
             try
             {
-                if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Loading Folder Page #{page}"); }
+                
                 
                 RestResults<string, string> results;
                 string url = $"https://{AppConfiguration.Instance.Subdomain}.soap.marketingcloudapis.com/Service.asmx";
 
+                if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Loading Folder Page #{page}, URL: {url}"); }
+
                 var envelope = new Envelope();
-                envelope.Header = new Soap.Header()
+                
+                envelope.Header = new Soap.DataExtensions.Pocos.Header()
                 {
-                    Action = new Soap.Action() { MustUnderstand=1, Value="Retrieve" },
-                    To = new To() { MustUnderstand=1, Value="https://mckg4sgmm8lcgdkc-h38b94l2bz0.soap.marketingcloudapis.com/Service.asmx" },
+                    Action = new Soap.DataExtensions.Pocos.Action() { //MustUnderstand=1, 
+                        Value="Retrieve" },
+                    //To = new To() { MustUnderstand=1, Value="https://mckg4sgmm8lcgdkc-h38b94l2bz0.soap.marketingcloudapis.com/Service.asmx" },
                     FuelOAuth = $"{_authRepository.Token.access_token}"
                 };
-                envelope.Body = new Soap.Body()
+                
+                envelope.Body = new Soap.DataExtensions.Pocos.Body()
                 {
                     RetrieveRequestMsg = new RetrieveRequestMsg()
                     {
-                        RetrieveRequest = new Soap.RetrieveRequest()
+                        RetrieveRequest = new Soap.DataExtensions.Pocos.RetrieveRequest()
                         {
                             ObjectType = "DataFolder",
                             Properties = new string[] { "ObjectID", "ParentFolder.ID", "Name", "Description", "ContentType", "IsActive", "IsEditable" },
-                            Filter = new Soap.Filter()
+                            Filter = new Soap.DataExtensions.Pocos.Filter()
                             { 
-                                XsiType="SimpleFilterPart",
                                 Property = "ContentType",
                                 SimpleOperator = "equals",
                                 Value   = "dataextension",
@@ -78,6 +116,10 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                         }
                     }
                 };
+                */
+                //envelope.XmlnsS="http://www.w3.org/2003/05/soap-envelope";
+                //envelope.XmlnsA="http://schemas.xmlsoap.org/ws/2004/08/addressing";
+                //envelope.XmlnsU="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd";
                 
                 /*results = ExecuteRestMethodWithRetry(
                     loadFolderApiCall: LoadFolderApiCall,
@@ -85,6 +127,8 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                     authenticationError: "401", 
                     resolveAuthentication: _authRepository.ResolveAuthentication
                 );*/
+                /*
+                if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Invoking SOAP Call."); }
                 results = _restManager.ExecuteRestMethod<string, string>(
                     uri: new Uri(url),
                     verb: HttpVerbs.POST, 
@@ -104,7 +148,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                     if (AppConfiguration.Instance.Debug) Console.WriteLine($"Running Loop Again");
                 }
                 */
-            }
+            /*}
             catch (System.Exception ex)
             {
                 Console.WriteLine($"{ex.Message}");
@@ -134,7 +178,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                 retval.Add(folderObject);
             }
             return retval;
-        }
+        }*/
     }
 
 }

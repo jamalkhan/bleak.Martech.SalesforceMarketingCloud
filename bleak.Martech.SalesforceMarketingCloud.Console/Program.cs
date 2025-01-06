@@ -11,8 +11,8 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
     public static class Program
     {
         static JsonSerializer serializer = new JsonSerializer();
-        static RestManager rm = new RestManager(serializer, serializer);
-        static AuthRepository authRepository = new AuthRepository(rm, serializer);
+        static RestManager _restManager = new RestManager(serializer, serializer);
+        static AuthRepository authRepository = new AuthRepository(_restManager, serializer);
         private static int assetCounter = 0;
         private static int folderCounter = 0;
         private static HashSet<string> assetTypes = new HashSet<string>();
@@ -45,7 +45,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                     case "1":
                         Console.WriteLine($"Getting Folder Tree");
                         Console.WriteLine("---------------------");
-                        LoadFolders loadFolders = new LoadFolders(restManager: rm, authRepository: authRepository);
+                        LoadFolders loadFolders = new LoadFolders(restManager: _restManager, authRepository: authRepository);
                         var folderTree = loadFolders.GetFolderTree();
                         Console.WriteLine($"Completed Building Folder Tree");
                         Console.WriteLine("---------------------");
@@ -55,7 +55,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                         break;
                         
                     case "2":
-                        var lf2 = new LoadDataExtensionFolders(authRepository: authRepository);
+                        var lf2 = new Sfmc.Soap.DataExtensions.DataExtensionFolderSoapApi(authRepository: authRepository);
                         var ft2 = lf2.GetFolderTree();
 
                         break;
@@ -208,7 +208,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
                     if (AppConfiguration.Instance.Debug) Console.WriteLine($"Trying to download to {uri} with {authRepository.Token.access_token}");
 
-                    var results = rm.ExecuteRestMethod<SfmcRestWrapper<SfmcAsset>, string>(
+                    var results = _restManager.ExecuteRestMethod<SfmcRestWrapper<SfmcAsset>, string>(
                         uri: new Uri(uri),
                         verb: HttpVerbs.GET,
                         headers:
@@ -224,7 +224,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                         Console.WriteLine($"Unauthenticated: {results.UnhandledError}");
                         authRepository.ResolveAuthentication();
 
-                        results = rm.ExecuteRestMethod<SfmcRestWrapper<SfmcAsset>, string>(
+                        results = _restManager.ExecuteRestMethod<SfmcRestWrapper<SfmcAsset>, string>(
                             uri: new Uri(uri),
                             verb: HttpVerbs.GET,
                             headers:
