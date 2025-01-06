@@ -21,9 +21,9 @@ namespace bleak.Martech.SalesforceMarketingCloud
 
         public static void Main()
         {
-            var client = new SoapClient();
-            var describeRequest = new DescribeRequest();
-            var response = client.DescribeAsync(describeRequest);
+            //var client = new SoapClient();
+            //var describeRequest = new DescribeRequest();
+            //var response = client.DescribeAsync(describeRequest);
             //var client = new SfmcServiceReference();
             //var response = await client.YourMethodAsync(yourRequestData);
         }

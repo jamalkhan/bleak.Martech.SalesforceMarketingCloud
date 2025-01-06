@@ -13,7 +13,8 @@ namespace bleak.Martech.SalesforceMarketingCloud.Wsdl
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
     [System.ServiceModel.ServiceContractAttribute(Namespace="http://exacttarget.com/wsdl/partnerAPI", ConfigurationName="bleak.Martech.SalesforceMarketingCloud.Wsdl.Soap")]
-    public interface Soap
+    public interface Soap<T>
+        where T :  bleak.Martech.SalesforceMarketingCloud.Wsdl.APIObject
     {
         
         // CODEGEN: Generating message contract since the operation has multiple return values.
@@ -62,7 +63,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Wsdl
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ValidationResult[]))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(Request[]))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExtractResult[]))]
-        System.Threading.Tasks.Task<bleak.Martech.SalesforceMarketingCloud.Wsdl.RetrieveResponse> RetrieveAsync(bleak.Martech.SalesforceMarketingCloud.Wsdl.RetrieveRequest1 request);
+        System.Threading.Tasks.Task<bleak.Martech.SalesforceMarketingCloud.Wsdl.RetrieveResponse<T>> RetrieveAsync(bleak.Martech.SalesforceMarketingCloud.Wsdl.RetrieveRequest1 request);
         
         // CODEGEN: Generating message contract since the operation has multiple return values.
         [System.ServiceModel.OperationContractAttribute(Action="Update", ReplyAction="*")]
@@ -32067,7 +32068,8 @@ namespace bleak.Martech.SalesforceMarketingCloud.Wsdl
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
     [System.ServiceModel.MessageContractAttribute(WrapperName="RetrieveResponseMsg", WrapperNamespace="http://exacttarget.com/wsdl/partnerAPI", IsWrapped=true)]
-    public partial class RetrieveResponse
+    public partial class RetrieveResponse<T>
+        where T :  bleak.Martech.SalesforceMarketingCloud.Wsdl.APIObject
     {
         
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://exacttarget.com/wsdl/partnerAPI", Order=0)]
@@ -32078,13 +32080,13 @@ namespace bleak.Martech.SalesforceMarketingCloud.Wsdl
         
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://exacttarget.com/wsdl/partnerAPI", Order=2)]
         [System.Xml.Serialization.XmlElementAttribute("Results")]
-        public bleak.Martech.SalesforceMarketingCloud.Wsdl.APIObject[] Results;
+        public T[] Results;
         
         public RetrieveResponse()
         {
         }
         
-        public RetrieveResponse(string OverallStatus, string RequestID, bleak.Martech.SalesforceMarketingCloud.Wsdl.APIObject[] Results)
+        public RetrieveResponse(string OverallStatus, string RequestID, T[] Results)
         {
             this.OverallStatus = OverallStatus;
             this.RequestID = RequestID;
@@ -32660,13 +32662,15 @@ namespace bleak.Martech.SalesforceMarketingCloud.Wsdl
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
-    public interface SoapChannel : bleak.Martech.SalesforceMarketingCloud.Wsdl.Soap, System.ServiceModel.IClientChannel
+    public interface SoapChannel<T> : bleak.Martech.SalesforceMarketingCloud.Wsdl.Soap<T>, System.ServiceModel.IClientChannel
+        where T : bleak.Martech.SalesforceMarketingCloud.Wsdl.APIObject
     {
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
-    public partial class SoapClient : System.ServiceModel.ClientBase<bleak.Martech.SalesforceMarketingCloud.Wsdl.Soap>, bleak.Martech.SalesforceMarketingCloud.Wsdl.Soap
+    public partial class SoapClient<T> : System.ServiceModel.ClientBase<bleak.Martech.SalesforceMarketingCloud.Wsdl.Soap<T>>, bleak.Martech.SalesforceMarketingCloud.Wsdl.Soap<T>
+        where T : bleak.Martech.SalesforceMarketingCloud.Wsdl.APIObject
     {
         
         /// <summary>
@@ -32677,28 +32681,28 @@ namespace bleak.Martech.SalesforceMarketingCloud.Wsdl
         static partial void ConfigureEndpoint(System.ServiceModel.Description.ServiceEndpoint serviceEndpoint, System.ServiceModel.Description.ClientCredentials clientCredentials);
         
         public SoapClient() : 
-                base(SoapClient.GetDefaultBinding(), SoapClient.GetDefaultEndpointAddress())
+                base(SoapClient<T>.GetDefaultBinding(), SoapClient<T>.GetDefaultEndpointAddress())
         {
             this.Endpoint.Name = EndpointConfiguration.Soap.ToString();
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
         
         public SoapClient(EndpointConfiguration endpointConfiguration) : 
-                base(SoapClient.GetBindingForEndpoint(endpointConfiguration), SoapClient.GetEndpointAddress(endpointConfiguration))
+                base(SoapClient<T>.GetBindingForEndpoint(endpointConfiguration), SoapClient<T>.GetEndpointAddress(endpointConfiguration))
         {
             this.Endpoint.Name = endpointConfiguration.ToString();
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
         
         public SoapClient(EndpointConfiguration endpointConfiguration, string remoteAddress) : 
-                base(SoapClient.GetBindingForEndpoint(endpointConfiguration), new System.ServiceModel.EndpointAddress(remoteAddress))
+                base(SoapClient<T>.GetBindingForEndpoint(endpointConfiguration), new System.ServiceModel.EndpointAddress(remoteAddress))
         {
             this.Endpoint.Name = endpointConfiguration.ToString();
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
         
         public SoapClient(EndpointConfiguration endpointConfiguration, System.ServiceModel.EndpointAddress remoteAddress) : 
-                base(SoapClient.GetBindingForEndpoint(endpointConfiguration), remoteAddress)
+                base(SoapClient<T>.GetBindingForEndpoint(endpointConfiguration), remoteAddress)
         {
             this.Endpoint.Name = endpointConfiguration.ToString();
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
@@ -32714,7 +32718,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Wsdl
             return base.Channel.CreateAsync(request);
         }
         
-        public System.Threading.Tasks.Task<bleak.Martech.SalesforceMarketingCloud.Wsdl.RetrieveResponse> RetrieveAsync(bleak.Martech.SalesforceMarketingCloud.Wsdl.RetrieveRequest1 request)
+        public System.Threading.Tasks.Task<bleak.Martech.SalesforceMarketingCloud.Wsdl.RetrieveResponse<T>> RetrieveAsync(bleak.Martech.SalesforceMarketingCloud.Wsdl.RetrieveRequest1 request)
         {
             return base.Channel.RetrieveAsync(request);
         }
@@ -32805,12 +32809,12 @@ namespace bleak.Martech.SalesforceMarketingCloud.Wsdl
         
         private static System.ServiceModel.Channels.Binding GetDefaultBinding()
         {
-            return SoapClient.GetBindingForEndpoint(EndpointConfiguration.Soap);
+            return SoapClient<T>.GetBindingForEndpoint(EndpointConfiguration.Soap);
         }
         
         private static System.ServiceModel.EndpointAddress GetDefaultEndpointAddress()
         {
-            return SoapClient.GetEndpointAddress(EndpointConfiguration.Soap);
+            return SoapClient<T>.GetEndpointAddress(EndpointConfiguration.Soap);
         }
         
         public enum EndpointConfiguration
