@@ -1,13 +1,13 @@
 using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication.SfmcPocos;
+using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.ContentBuilder;
 using bleak.Martech.SalesforceMarketingCloud.ContentBuilder.SfmcPocos;
 using System.Diagnostics;
 using System.ServiceModel;
 using System.Net.Http.Headers;
 
-namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
+namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 {
     public class LoadFolders
     {
@@ -19,17 +19,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
             _authRepository = authRepository;
         }
 
-
-
         private HttpVerbs verb = HttpVerbs.GET;
         private List<Header> headers = new List<Header>
         {
             new Header() { Name = "Content-Type", Value = "application/json" },
         };
-
-
-
-
 
         public List<FolderObject> GetFolderTree()
         {

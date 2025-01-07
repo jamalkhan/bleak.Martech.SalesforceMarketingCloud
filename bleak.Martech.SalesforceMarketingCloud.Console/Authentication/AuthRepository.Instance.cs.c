@@ -6,7 +6,7 @@ using bleak.Martech.SalesforceMarketingCloud.ContentBuilder.SfmcPocos;
 using System.Diagnostics;
 using System.ServiceModel;
 
-namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
+namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication
 {
     /*public partial class AuthRepository
     {

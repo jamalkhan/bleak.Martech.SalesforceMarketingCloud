@@ -1,12 +1,12 @@
 using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication.SfmcPocos;
+using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.ContentBuilder;
 using bleak.Martech.SalesforceMarketingCloud.ContentBuilder.SfmcPocos;
 using System.Diagnostics;
 using System.ServiceModel;
 
-namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
+namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication
 {
     public partial class AuthRepository
     {

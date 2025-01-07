@@ -1,5 +1,6 @@
 using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
+using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap.DataExtensions
 {
