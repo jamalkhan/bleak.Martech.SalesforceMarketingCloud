@@ -34,7 +34,8 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
             {
                 Console.WriteLine("Which Operation?");
                 Console.WriteLine("1. Content");
-                Console.WriteLine("2. Data Extensions");
+                Console.WriteLine("2. Data Extension Folders");
+                Console.WriteLine("3. Data Extensions");
 
                 var input = Console.ReadLine();
 
@@ -63,6 +64,14 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
                         RenderFolderTree(ft2);
 
+                        break;
+                    case "3":
+                        var deapi = new Sfmc.Soap.DataExtensions.DataExtensionSoapApi(authRepository: authRepository);
+                        var des = deapi.GetAllDataExtensions();
+                        foreach (var de in des)
+                        {
+                            Console.WriteLine($"Data Extension: {de.Name}; category id: {de.CategoryID}");
+                        };
                         break;
                     default:
                         {
