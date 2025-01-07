@@ -8,22 +8,6 @@ using System.Security.Cryptography.Pkcs;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap.DataExtensions
 {
-    public abstract class BasePoco
-    {
-        public string CustomerKey { get; set; } = string.Empty;
-    }
-    public class DataExtensionPoco: BasePoco
-    {
-        /// <summary>
-        /// The ID of the folder that contains the data extension.
-        /// </summary>
-        public long CategoryID { get; set; }
-        public string ObjectID { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public bool IsSendable { get; set; }
-        public bool IsTestable { get; set; }
-    }
 
     public class DataExtensionFolder : BasePoco
     {
@@ -38,6 +22,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap.DataExtens
         public bool IsActive { get; set; }
         public bool IsEditable { get; set; }
         public List<DataExtensionFolder> SubFolders { get; set; } = new List<DataExtensionFolder>();
+        public List<DataExtensionPoco> DataExtensions { get; set; } = new List<DataExtensionPoco>();
     }
     
     public static class DataExtensionFolderExtensions

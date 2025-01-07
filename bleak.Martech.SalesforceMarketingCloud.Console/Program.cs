@@ -59,19 +59,14 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                         break;
 
                     case "2":
-                        var lf2 = new Sfmc.Soap.DataExtensions.DataExtensionFolderSoapApi(authRepository: authRepository);
-                        var ft2 = lf2.GetFolderTree();
-
-                        RenderFolderTree(ft2);
+                        Path2_DataExtensionFolders();
 
                         break;
                     case "3":
-                        var deapi = new Sfmc.Soap.DataExtensions.DataExtensionSoapApi(authRepository: authRepository);
-                        var des = deapi.GetAllDataExtensions();
-                        foreach (var de in des)
-                        {
-                            Console.WriteLine($"Data Extension: {de.Name}; category id: {de.CategoryID}");
-                        };
+                        Path3_DataExtensions();
+                        break;
+                    case "4":
+                        Path4_DataExtensionFullPathFile();
                         break;
                     default:
                         {
@@ -87,6 +82,95 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                 // Display the elapsed time
                 Console.WriteLine($"Execution Time: {stopwatch.ElapsedMilliseconds} ms");
             }
+        }
+
+        private static void Path2_DataExtensionFolders()
+        {
+            var lf2 = new Sfmc.Soap.DataExtensions.DataExtensionFolderSoapApi(authRepository: authRepository);
+            var ft2 = lf2.GetFolderTree();
+
+            RenderFolderTree(ft2);
+        }
+
+        private static void Path3_DataExtensions()
+        {
+            var deapi = new Sfmc.Soap.DataExtensions.DataExtensionSoapApi(authRepository: authRepository);
+            var des = deapi.GetAllDataExtensions();
+            foreach (var de in des)
+            {
+                Console.WriteLine($"Data Extension: {de.Name}; category id: {de.CategoryID}");
+            };
+        }
+
+        private static void Path4_DataExtensionFullPathFile()
+        {
+            var lf = new Sfmc.Soap.DataExtensions.DataExtensionFolderSoapApi(authRepository: authRepository);
+            var folderTree = lf.GetFolderTree();
+
+            var deapi = new Sfmc.Soap.DataExtensions.DataExtensionSoapApi(authRepository: authRepository);
+            var dataExtensions = deapi.GetAllDataExtensions();
+
+            AddDEsToFolder(folderTree, dataExtensions);
+            WriteOutFolderTree(folderTree);
+        }
+
+        private static void WriteOutFolderTree(List<DataExtensionFolder> folderTree)
+        {
+            var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            string path = Path.Combine(desktopPath, "DEs.txt");
+            Console.WriteLine($"Y / N Write to {path}?");
+            var input = Console.ReadLine();
+            if (input!.ToLower() == "y")
+            {
+                // Open a file stream with StreamWriter
+                using (StreamWriter writer = new StreamWriter(path))
+                {
+                    foreach (var folder in folderTree)
+                    {
+                        WriteFolderContents(writer, folder);
+                    }
+                }
+
+                Console.WriteLine("File written successfully.");
+            }
+        }
+
+        private static void WriteFolderContents(StreamWriter writer, DataExtensionFolder folder)
+        {
+            writer.WriteLine($"Folder: {folder.FullPath}");
+            foreach (var de in folder.DataExtensions)
+            {
+                writer.WriteLine($"Data Extension: {de.FullPath}");
+            }
+            if (folder.SubFolders.Any())
+            {
+                foreach (var subfolder in folder.SubFolders)
+                {
+                    WriteFolderContents(writer, subfolder);
+                }
+            }
+        }
+
+        private static void AddDEsToFolder(List<DataExtensionFolder> folderTree, List<DataExtensionPoco> allDataExtensions)
+        {
+            foreach (var folder in folderTree)
+            {
+                var dataExtensionsInFolder = allDataExtensions.Where(x => x.CategoryID == folder.Id).ToList();
+                
+                foreach (var de in dataExtensionsInFolder)
+                {
+                    de.FullPath = folder.FullPath + "/" + de.Name;
+                    
+                }
+
+                folder.DataExtensions = dataExtensionsInFolder;
+                var subfolders = folder.SubFolders;
+
+                if (subfolders.Count > 0)
+                {
+                    AddDEsToFolder(subfolders, allDataExtensions);
+                }
+            };
         }
 
         private static void RenderFolderTree(List<DataExtensionFolder> ft2)
