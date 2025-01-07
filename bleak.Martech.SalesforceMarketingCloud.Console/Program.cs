@@ -5,6 +5,7 @@ using bleak.Martech.SalesforceMarketingCloud.ContentBuilder;
 using bleak.Martech.SalesforceMarketingCloud.ContentBuilder.SfmcPocos;
 using System.Diagnostics;
 using System.ServiceModel;
+using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap.DataExtensions;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 {
@@ -26,13 +27,15 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
             if (AppConfiguration.Instance.Debug) Console.WriteLine($"Gotten Auth Token {authRepository.Token.access_token}");
 
-            Console.WriteLine("Which Operation?");
-            Console.WriteLine("1. Content");
-            Console.WriteLine("2. Data Extensions");
+            
 
             bool cont = true;
             while (cont)
             {
+                Console.WriteLine("Which Operation?");
+                Console.WriteLine("1. Content");
+                Console.WriteLine("2. Data Extensions");
+
                 var input = Console.ReadLine();
 
                 var stopwatch = new Stopwatch();
@@ -53,10 +56,12 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                         // PrintFolders(folderTree);
                         DownloadAllAssets(folderTree);
                         break;
-                        
+
                     case "2":
                         var lf2 = new Sfmc.Soap.DataExtensions.DataExtensionFolderSoapApi(authRepository: authRepository);
                         var ft2 = lf2.GetFolderTree();
+
+                        RenderFolderTree(ft2);
 
                         break;
                     default:
@@ -72,6 +77,18 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
                 // Display the elapsed time
                 Console.WriteLine($"Execution Time: {stopwatch.ElapsedMilliseconds} ms");
+            }
+        }
+
+        private static void RenderFolderTree(List<DataExtensionFolder> ft2)
+        {
+            foreach (var folder in ft2)
+            {
+                Console.WriteLine($"Folder: {folder.FullPath}");
+                if (folder.SubFolders.Count > 0)
+                {
+                    RenderFolderTree(folder.SubFolders);
+                }
             }
         }
 

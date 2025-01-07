@@ -12,6 +12,9 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap.DataExtens
     {
         AuthRepository _authRepository;
         RestManager _restManager;
+
+        string url = $"https://{AppConfiguration.Instance.Subdomain}.soap.marketingcloudapis.com/Service.asmx";
+
         public DataExtensionFolderSoapApi(AuthRepository authRepository)
         {
             _authRepository = authRepository;
@@ -19,177 +22,230 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap.DataExtens
             _restManager = new RestManager(soapSerializer, soapSerializer);
         }
 
-        public List<FolderObject> GetFolderTree()
+        public List<DataExtensionFolder> GetFolderTree()
         {
             int page = 1;
             int currentPageSize = 0;
 
-            var sfmcFolders = new List<SfmcFolder>();
+            var wsdlFolders = new List<Wsdl.DataFolder>();
+            string requestId = null;
             do
             {
                 if (AppConfiguration.Instance.Debug) Console.WriteLine($"Loading Data Extension Folder Page {page}");
 
-                currentPageSize = LoadFolder(page, sfmcFolders);
+                requestId = LoadFolder(wsdlFolders, requestId);
                 page++;
             }
             while (AppConfiguration.Instance.PageSize == currentPageSize);
 
-            if (sfmcFolders.Any())
+            if (wsdlFolders.Any())
             {
-                return BuildFolderTree(sfmcFolders);
+                return BuildFolderTree(wsdlFolders);
             }
 
             throw new Exception("Error Loading Folders");
         }
 
-        private int LoadFolder(int page, List<SfmcFolder> sfmcFolders)
+        private string LoadFolder(List<Wsdl.DataFolder> wsdlFolders, string requestId = null)
         {
-            int currentPageSize;
             try
             {
-                
-                
-                
-                string url = $"https://{AppConfiguration.Instance.Subdomain}.soap.marketingcloudapis.com/Service.asmx";
-
-                if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Loading Folder Page #{page}, URL: {url}"); }
-
-/*
-                var envelope = new Envelope();
-                
-                envelope.Header = new Soap.DataExtensions.Pocos.Header()
-                {
-                    Action = new Soap.DataExtensions.Pocos.Action() { //MustUnderstand=1, 
-                        Value="Retrieve" },
-                    //To = new To() { MustUnderstand=1, Value="https://mckg4sgmm8lcgdkc-h38b94l2bz0.soap.marketingcloudapis.com/Service.asmx" },
-                    FuelOAuth = $"{_authRepository.Token.access_token}"
-                };
-                
-                envelope.Body = new Soap.DataExtensions.Pocos.Body()
-                {
-                    RetrieveRequestMsg = new RetrieveRequestMsg()
-                    {
-                        RetrieveRequest = new Soap.DataExtensions.Pocos.RetrieveRequest()
-                        {
-                            ObjectType = "DataFolder",
-                            Properties = new string[] { "ObjectID", "ParentFolder.ID", "Name", "Description", "ContentType", "IsActive", "IsEditable" },
-                            Filter = new Soap.DataExtensions.Pocos.Filter()
-                            { 
-                                Property = "ContentType",
-                                SimpleOperator = "equals",
-                                Value   = "dataextension",
-                            }
-                        }
-                    }
-                };
-                */
-                
-                //envelope.XmlnsS="http://www.w3.org/2003/05/soap-envelope";
-                //envelope.XmlnsA="http://schemas.xmlsoap.org/ws/2004/08/addressing";
-                //envelope.XmlnsU="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd";
-                
-                /*results = ExecuteRestMethodWithRetry(
-                    loadFolderApiCall: LoadFolderApiCall,
-                    url: url,
-                    authenticationError: "401", 
-                    resolveAuthentication: _authRepository.ResolveAuthentication
-                );*/
-
-var sb = new StringBuilder();
-sb.Append("<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:a=\"http://schemas.xmlsoap.org/ws/2004/08/addressing\" xmlns:u=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd\">");
-sb.Append("    <s:Header>");
-sb.Append("        <a:Action s:mustUnderstand=\"1\">Retrieve</a:Action>");
-sb.Append($"        <a:To s:mustUnderstand=\"1\">https://{AppConfiguration.Instance.Subdomain}.soap.marketingcloudapis.com/Service.asmx</a:To>");
-sb.Append($"        <fueloauth xmlns=\"http://exacttarget.com\">{_authRepository.Token.access_token}</fueloauth>");
-sb.Append("    </s:Header>");
-sb.Append("    <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">");
-sb.Append("        <RetrieveRequestMsg xmlns=\"http://exacttarget.com/wsdl/partnerAPI\">");
-sb.Append("            <RetrieveRequest>");
-sb.Append("                <ObjectType>DataFolder</ObjectType>");
-sb.Append("                <Properties>ObjectID</Properties>");
-sb.Append("                <Properties>ParentFolder.ID</Properties>");
-sb.Append("                <Properties>ParentFolder.Name</Properties>");
-sb.Append("                <Properties>Name</Properties>");
-sb.Append("                <Properties>Description</Properties>");
-sb.Append("                <Properties>ContentType</Properties>");
-sb.Append("                <Properties>IsActive</Properties>");
-sb.Append("                <Properties>IsEditable</Properties>");
-sb.Append("                <Filter xsi:type=\"SimpleFilterPart\">");
-sb.Append("                    <Property>ContentType</Property>");
-sb.Append("                    <SimpleOperator>equals</SimpleOperator>");
-sb.Append("                    <Value>dataextension</Value>");
-sb.Append("                </Filter>");
-sb.Append("            </RetrieveRequest>");
-sb.Append("        </RetrieveRequestMsg>");
-sb.Append("    </s:Body>");
-sb.Append("</s:Envelope>");
-
-var headers = new List<Api.Rest.Header>();
-headers.Add(new Api.Rest.Header() { Name="Content-Type", Value= "text/xml"});
-headers.Add(new Api.Rest.Header() { Name="Accept", Value= "/"});
-headers.Add(new Api.Rest.Header() { Name="Cache-Control", Value= "no-cache"});
-headers.Add(new Api.Rest.Header() { Name="Host", Value= $"{AppConfiguration.Instance.Subdomain}.soap.marketingcloudapis.com"});
-
+                if (AppConfiguration.Instance.Debug) { Console.WriteLine($"URL: {url}"); }
                 if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Invoking SOAP Call."); }
 
                 RestResults<SoapEnvelope<Wsdl.DataFolder>, string> results;
                 results = _restManager.ExecuteRestMethod<SoapEnvelope<Wsdl.DataFolder>, string>(
                     uri: new Uri(url),
-                    verb: HttpVerbs.POST, 
-                    serializedPayload: sb.ToString(),
-                    headers: headers
+                    verb: HttpVerbs.POST,
+                    serializedPayload: BuildRequest(requestId).ToString(),
+                    headers: BuildHeaders()
                 );
 
                 if (AppConfiguration.Instance.Debug) Console.WriteLine($"results.Value = {results?.Results}");
                 if (results?.Error != null) Console.WriteLine($"results.Error = {results.Error}");
 
+                // Process Results
                 Console.WriteLine($"Overall Status: {results.Results.Body.RetrieveResponse.OverallStatus}");
-
+                int currentPageSize = 0;
                 foreach (var result in results.Results.Body.RetrieveResponse.Results)
                 {
-                    Console.WriteLine($"Name: {result.Name}");
+                    wsdlFolders.Add(result);
+                    currentPageSize++;
                 }
+                if (AppConfiguration.Instance.Debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {wsdlFolders.Count()} Total Folders Identified.");
 
-                /*
-                currentPageSize = results!.Results.items.Count();
-                sfmcFolders.AddRange(results.Results.items);
-                if (AppConfiguration.Instance.Debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {sfmcFolders.Count()} Total Folders Identified.");
-
-                if (AppConfiguration.Instance.PageSize == currentPageSize)
+                if (results.Results.Body.RetrieveResponse.OverallStatus == "MoreDataAvailable")
                 {
-                    if (AppConfiguration.Instance.Debug) Console.WriteLine($"Running Loop Again");
+                    Console.WriteLine($"More Data Available. Request ID: {results.Results.Body.RetrieveResponse.RequestID}");
+                    var retval = LoadFolder(wsdlFolders, results.Results.Body.RetrieveResponse.RequestID);
+                    return retval;
+                    
                 }
-                */
+                return null;
             }
             catch (System.Exception ex)
             {
                 Console.WriteLine($"Error {ex.Message}");
                 throw;
             }
-
-            //return currentPageSize;
-            return 0;
         }
 
+        private static List<Header> BuildHeaders()
+        {
+            var headers = new List<Api.Rest.Header>();
+            headers.Add(new Api.Rest.Header() { Name = "Content-Type", Value = "text/xml" });
+            headers.Add(new Api.Rest.Header() { Name = "Accept", Value = "/" });
+            headers.Add(new Api.Rest.Header() { Name = "Cache-Control", Value = "no-cache" });
+            headers.Add(new Api.Rest.Header() { Name = "Host", Value = $"{AppConfiguration.Instance.Subdomain}.soap.marketingcloudapis.com" });
+            return headers;
+        }
 
-        List<FolderObject> BuildFolderTree(List<SfmcFolder> sfmcFolders)
+        private StringBuilder BuildRequest(string requestId)
+        {
+            /*
+                            var envelope = new Envelope();
+
+                            envelope.Header = new Soap.DataExtensions.Pocos.Header()
+                            {
+                                Action = new Soap.DataExtensions.Pocos.Action() { //MustUnderstand=1, 
+                                    Value="Retrieve" },
+                                //To = new To() { MustUnderstand=1, Value="https://mckg4sgmm8lcgdkc-h38b94l2bz0.soap.marketingcloudapis.com/Service.asmx" },
+                                FuelOAuth = $"{_authRepository.Token.access_token}"
+                            };
+
+                            envelope.Body = new Soap.DataExtensions.Pocos.Body()
+                            {
+                                RetrieveRequestMsg = new RetrieveRequestMsg()
+                                {
+                                    RetrieveRequest = new Soap.DataExtensions.Pocos.RetrieveRequest()
+                                    {
+                                        ObjectType = "DataFolder",
+                                        Properties = new string[] { "ObjectID", "ParentFolder.ID", "Name", "Description", "ContentType", "IsActive", "IsEditable" },
+                                        Filter = new Soap.DataExtensions.Pocos.Filter()
+                                        { 
+                                            Property = "ContentType",
+                                            SimpleOperator = "equals",
+                                            Value   = "dataextension",
+                                        }
+                                    }
+                                }
+                            };
+                            */
+
+            //envelope.XmlnsS="http://www.w3.org/2003/05/soap-envelope";
+            //envelope.XmlnsA="http://schemas.xmlsoap.org/ws/2004/08/addressing";
+            //envelope.XmlnsU="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd";
+
+            /*results = ExecuteRestMethodWithRetry(
+                loadFolderApiCall: LoadFolderApiCall,
+                url: url,
+                authenticationError: "401", 
+                resolveAuthentication: _authRepository.ResolveAuthentication
+            );*/
+
+            /*if (!string.IsNullOrEmpty(requestId))
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine($"<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:a=\"http://schemas.xmlsoap.org/ws/2004/08/addressing\" xmlns:u=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd\">");
+                sb.AppendLine($"    <s:Header>");
+                sb.AppendLine($"        <a:Action s:mustUnderstand=\"1\">Retrieve</a:Action>");
+                sb.AppendLine($"        <a:To s:mustUnderstand=\"1\">https://{AppConfiguration.Instance.Subdomain}.soap.marketingcloudapis.com/Service.asmx</a:To>");
+                sb.AppendLine($"        <fueloauth xmlns=\"http://exacttarget.com\">{_authRepository.Token.access_token}</fueloauth>");
+                sb.AppendLine($"    </s:Header>");
+                sb.AppendLine($"    <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">");
+                sb.AppendLine($"        <RetrieveRequestMsg xmlns=\"http://exacttarget.com/wsdl/partnerAPI\">");
+                sb.AppendLine($"            <RetrieveRequest>");
+                sb.AppendLine($"                <ContinueRequest>{requestId}</ContinueRequest>");
+                sb.AppendLine($"                <ObjectType>DataFolder</ObjectType>");
+                sb.AppendLine($"                <Properties>ObjectID</Properties>");
+                sb.AppendLine($"                <Properties>ParentFolder.ID</Properties>");
+                sb.AppendLine($"                <Properties>ParentFolder.Name</Properties>");
+                sb.AppendLine($"                <Properties>Name</Properties>");
+                sb.AppendLine($"                <Properties>Description</Properties>");
+                sb.AppendLine($"                <Properties>ContentType</Properties>");
+                sb.AppendLine($"                <Properties>IsActive</Properties>");
+                sb.AppendLine($"                <Properties>IsEditable</Properties>");
+                sb.AppendLine($"                <Filter xsi:type=\"SimpleFilterPart\">");
+                sb.AppendLine($"                    <Property>ContentType</Property>");
+                sb.AppendLine($"                    <SimpleOperator>equals</SimpleOperator>");
+                sb.AppendLine($"                    <Value>dataextension</Value>");
+                sb.AppendLine($"                </Filter>");
+                sb.AppendLine($"            </RetrieveRequest>");
+                sb.AppendLine($"        </RetrieveRequestMsg>");
+                sb.AppendLine($"    </s:Body>");
+                sb.AppendLine($"</s:Envelope>");
+                return sb;
+            }
+            else
+            {*/
+            var sb = new StringBuilder();
+            sb.AppendLine($"<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:a=\"http://schemas.xmlsoap.org/ws/2004/08/addressing\" xmlns:u=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd\">");
+            sb.AppendLine($"    <s:Header>");
+            sb.AppendLine($"        <a:Action s:mustUnderstand=\"1\">Retrieve</a:Action>");
+            sb.AppendLine($"        <a:To s:mustUnderstand=\"1\">https://{AppConfiguration.Instance.Subdomain}.soap.marketingcloudapis.com/Service.asmx</a:To>");
+            sb.AppendLine($"        <fueloauth xmlns=\"http://exacttarget.com\">{_authRepository.Token.access_token}</fueloauth>");
+            sb.AppendLine($"    </s:Header>");
+            sb.AppendLine($"    <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">");
+            sb.AppendLine($"        <RetrieveRequestMsg xmlns=\"http://exacttarget.com/wsdl/partnerAPI\">");
+            sb.AppendLine($"            <RetrieveRequest>");
+            if (!string.IsNullOrEmpty(requestId))
+            {
+                sb.AppendLine($"                <ContinueRequest>{requestId}</ContinueRequest>");
+            }
+            sb.AppendLine($"                <ObjectType>DataFolder</ObjectType>");
+            sb.AppendLine($"                <Properties>ID</Properties>");
+            sb.AppendLine($"                <Properties>ObjectID</Properties>");
+            sb.AppendLine($"                <Properties>ParentFolder.ID</Properties>");
+            sb.AppendLine($"                <Properties>ParentFolder.Name</Properties>");
+            sb.AppendLine($"                <Properties>Name</Properties>");
+            sb.AppendLine($"                <Properties>Description</Properties>");
+            sb.AppendLine($"                <Properties>ContentType</Properties>");
+            sb.AppendLine($"                <Properties>IsActive</Properties>");
+            sb.AppendLine($"                <Properties>IsEditable</Properties>");
+            sb.AppendLine($"                <Filter xsi:type=\"SimpleFilterPart\">");
+            sb.AppendLine($"                    <Property>ContentType</Property>");
+            sb.AppendLine($"                    <SimpleOperator>equals</SimpleOperator>");
+            sb.AppendLine($"                    <Value>dataextension</Value>");
+            sb.AppendLine($"                </Filter>");
+            sb.AppendLine($"            </RetrieveRequest>");
+            sb.AppendLine($"        </RetrieveRequestMsg>");
+            sb.AppendLine($"    </s:Body>");
+            sb.AppendLine($"</s:Envelope>");
+            return sb;
+            
+        }
+
+        List<DataExtensionFolder> BuildFolderTree(List<Wsdl.DataFolder> wsdlFolders)
         {
             const int root_folder = 0;
 
             // Find root folders
-            var sfmcRoots = sfmcFolders.Where(f => f.parentId == root_folder).ToList();
-            var retval = new List<FolderObject>();
-            foreach (var sfmcRoot in sfmcRoots)
+            var wsdlFolderRoots = wsdlFolders.Where(f => f.ParentFolder.ID == root_folder).ToList();
+            var retval = new List<DataExtensionFolder>();
+            foreach (var wsdlFolder in wsdlFolderRoots)
             {
-                var folderObject = sfmcRoot.ToFolderObject();
-                folderObject.FullPath = "/";
+                var folder = wsdlFolder.ToDataExtensionFolder();
+                folder.FullPath = $"/{folder.Name}";
 
                 // TODO: Reimplement this
                 // GetAssetsByFolder(folderObject);
-                // AddChildren(folderObject, sfmcFolders);
-                retval.Add(folderObject);
+                AddChildren(folder, wsdlFolders);
+                retval.Add(folder);
             }
             return retval;
+        }
+
+        void AddChildren(DataExtensionFolder folderObject, List<Wsdl.DataFolder> wsdlFolders)
+        {
+            var children = wsdlFolders.Where(f => f.ParentFolder.ID == folderObject.Id).ToList();
+            var childrenCount = children.Count;
+            foreach (var child in children)
+            {
+                var childFolder = child.ToDataExtensionFolder();
+                childFolder.FullPath = $"{folderObject.FullPath}/{childFolder.Name}";
+                folderObject.SubFolders.Add(childFolder);
+                AddChildren(childFolder, wsdlFolders);
+            }
         }
     }
 
