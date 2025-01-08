@@ -10,7 +10,12 @@ using System.IO;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 {
-    public class DownloadContent
+    public interface IConsoleApp
+    {
+        void Execute();
+    }
+
+    public class DownloadContent : IConsoleApp
     {
         static JsonSerializer serializer = new JsonSerializer();
         private static int assetCounter = 0;

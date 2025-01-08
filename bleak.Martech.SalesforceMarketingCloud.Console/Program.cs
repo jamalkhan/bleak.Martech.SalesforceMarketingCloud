@@ -37,6 +37,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                 Console.WriteLine("2. Data Extension Folders");
                 Console.WriteLine("3. Data Extensions");
                 Console.WriteLine("4. Data Extension Full Path File");
+                Console.WriteLine("5. Download All QueryDefinitions");
 
                 var input = Console.ReadLine();
 
@@ -61,6 +62,10 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                         break;
                     case "4":
                         Path4_DataExtensionFullPathFile();
+                        break;
+                    case "5":
+                        var queryDefinitionApp = new QueryDefinitionApp<QueryDefinitionPoco>(_authRepository);
+                        queryDefinitionApp.Execute();
                         break;
                     default:
                         {

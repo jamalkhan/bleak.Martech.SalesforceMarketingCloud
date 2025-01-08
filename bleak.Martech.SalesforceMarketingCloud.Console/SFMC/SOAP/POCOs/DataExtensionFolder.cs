@@ -54,5 +54,18 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap.DataExtens
                         IsTestable = dataExtension.IsTestable
                     };
         }
+
+        public static QueryDefinitionPoco ToPoco(this Wsdl.QueryDefinition obj)
+        {
+            return new QueryDefinitionPoco()
+                    {
+                        Name = obj.Name,
+                        Description = obj.Description,
+                        CustomerKey = obj.CustomerKey,
+                        DataExtensionTargetName = obj.DataExtensionTarget.Name,
+                        QueryText = obj.QueryText,
+                    };
+        }
+        
     }
 }
