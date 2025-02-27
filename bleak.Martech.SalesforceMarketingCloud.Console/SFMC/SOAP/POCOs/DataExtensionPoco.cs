@@ -1,4 +1,4 @@
-namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap.DataExtensions
+namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
 {
     public class DataExtensionPoco : BasePoco
     {

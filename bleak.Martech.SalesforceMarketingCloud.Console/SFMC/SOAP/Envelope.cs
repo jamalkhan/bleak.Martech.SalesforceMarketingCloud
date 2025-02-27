@@ -3,7 +3,7 @@ using System.Xml.Serialization;
 using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.Wsdl;
 
-namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap.DataExtensions
+namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
 {
     [XmlRoot("Envelope", Namespace = "http://www.w3.org/2003/05/soap-envelope")]
     public class SoapEnvelope<T>

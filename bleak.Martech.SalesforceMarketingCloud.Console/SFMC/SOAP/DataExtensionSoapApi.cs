@@ -7,7 +7,7 @@ using bleak.Martech.SalesforceMarketingCloud.Wsdl;
 using System.Text;
 using System.Security.Cryptography.Pkcs;
 
-namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap.DataExtensions
+namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
 {
     public partial class DataExtensionSoapApi : BaseSoapApi
     {
@@ -86,7 +86,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap.DataExtens
         }
 
 
-        private StringBuilder BuildRequest(string requestId)
+        private string BuildRequest(string requestId)
         {
             var sb = new StringBuilder();
             sb.AppendLine($"<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
@@ -115,7 +115,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap.DataExtens
             sb.AppendLine($"        </RetrieveRequestMsg>");
             sb.AppendLine($"    </s:Body>");
             sb.AppendLine($"</s:Envelope>");
-            return sb;
+            return sb.ToString();
         }
     }
 }

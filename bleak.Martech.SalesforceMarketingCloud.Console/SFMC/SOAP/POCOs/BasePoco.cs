@@ -1,6 +1,11 @@
-namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap.DataExtensions
+namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
 {
-    public abstract class BasePoco
+    public interface IPoco 
+    {
+
+    }
+
+    public abstract class BasePoco : IPoco
     {
         public string CustomerKey { get; set; } = string.Empty;
     }

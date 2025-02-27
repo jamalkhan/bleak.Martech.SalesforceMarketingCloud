@@ -1,7 +1,7 @@
 using System.Xml.Serialization;
 using bleak.Api.Rest;
 
-namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap.DataExtensions
+namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
 {
     public partial class SoapSerializer : ISerializer, IDeserializer
     {

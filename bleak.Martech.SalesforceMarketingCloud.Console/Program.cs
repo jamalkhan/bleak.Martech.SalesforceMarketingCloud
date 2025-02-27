@@ -4,7 +4,7 @@ using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps;
 using bleak.Martech.SalesforceMarketingCloud.ContentBuilder;
 using bleak.Martech.SalesforceMarketingCloud.ContentBuilder.SfmcPocos;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap.DataExtensions;
+using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using System.Diagnostics;
 using System;
 using System.IO;
@@ -38,6 +38,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                 Console.WriteLine("3. Data Extensions");
                 Console.WriteLine("4. Data Extension Full Path File");
                 Console.WriteLine("5. Download All QueryDefinitions");
+                Console.WriteLine("6. Download Opens for 1/28/2025");
 
                 var input = Console.ReadLine();
 
@@ -67,6 +68,14 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                         var queryDefinitionApp = new QueryDefinitionApp<QueryDefinitionPoco>(_authRepository);
                         queryDefinitionApp.Execute();
                         break;
+                    case "6":
+                        var opensApp = new DownloadOpensApp(
+                            authRepository:_authRepository,
+                            folder: Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Opens"),
+                            daysBack: 7
+                        );
+                        opensApp.Execute();
+                        break;
                     default:
                         {
                             Console.WriteLine("key not recognized. exiting...");
@@ -85,7 +94,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
         private static void Path2_DataExtensionFolders()
         {
-            var lf2 = new Sfmc.Soap.DataExtensions.DataExtensionFolderSoapApi(authRepository: _authRepository);
+            var lf2 = new Sfmc.Soap.DataExtensionFolderSoapApi(authRepository: _authRepository);
             var ft2 = lf2.GetFolderTree();
 
             RenderFolderTree(ft2);
@@ -93,7 +102,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
         private static void Path3_DataExtensions()
         {
-            var deapi = new Sfmc.Soap.DataExtensions.DataExtensionSoapApi(authRepository: _authRepository);
+            var deapi = new Sfmc.Soap.DataExtensionSoapApi(authRepository: _authRepository);
             var des = deapi.GetAllDataExtensions();
             foreach (var de in des)
             {
@@ -103,10 +112,10 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
         private static void Path4_DataExtensionFullPathFile()
         {
-            var lf = new Sfmc.Soap.DataExtensions.DataExtensionFolderSoapApi(authRepository: _authRepository);
+            var lf = new Sfmc.Soap.DataExtensionFolderSoapApi(authRepository: _authRepository);
             var folderTree = lf.GetFolderTree();
 
-            var deapi = new Sfmc.Soap.DataExtensions.DataExtensionSoapApi(authRepository: _authRepository);
+            var deapi = new Sfmc.Soap.DataExtensionSoapApi(authRepository: _authRepository);
             var dataExtensions = deapi.GetAllDataExtensions();
 
             AddDEsToFolder(folderTree, dataExtensions);
