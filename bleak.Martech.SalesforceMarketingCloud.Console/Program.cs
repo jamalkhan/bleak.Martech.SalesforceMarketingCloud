@@ -38,7 +38,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                 Console.WriteLine("3. Data Extensions");
                 Console.WriteLine("4. Data Extension Full Path File");
                 Console.WriteLine("5. Download All QueryDefinitions");
-                Console.WriteLine("6. Download Opens for 1/28/2025");
+                Console.WriteLine("6. Download Opens for last 180 days");
 
                 var input = Console.ReadLine();
 
@@ -72,7 +72,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                         var opensApp = new DownloadOpensApp(
                             authRepository:_authRepository,
                             folder: Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Opens"),
-                            daysBack: 1
+                            daysBack: 180
                         );
                         opensApp.Execute();
                         break;
