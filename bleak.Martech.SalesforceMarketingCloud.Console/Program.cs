@@ -72,7 +72,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                         var opensApp = new DownloadOpensApp(
                             authRepository:_authRepository,
                             folder: Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Opens"),
-                            daysBack: 7
+                            daysBack: 1
                         );
                         opensApp.Execute();
                         break;

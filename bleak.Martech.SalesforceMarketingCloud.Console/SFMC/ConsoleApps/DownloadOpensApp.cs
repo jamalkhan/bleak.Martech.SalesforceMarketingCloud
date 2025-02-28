@@ -24,17 +24,21 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 
         public void Execute()
         {
-            var date = DateTime.Today.AddDays(-DaysBack);
-            do
+            var startDate = DateTime.Today.AddDays(-DaysBack);
+            var endDate = DateTime.Today;
+
+            var dates = Enumerable.Range(0, (endDate - startDate).Days)
+                      .Select(offset => startDate.AddDays(offset))
+                      .ToList();
+
+            Parallel.ForEach(dates, date =>
             {
                 Console.WriteLine($"Downloading Opens for {date:yyyy-MM-dd}");
-                var endDate = date.AddDays(1);
-                var api = new Sfmc.Soap.OpenEventSoapApi(authRepository: _authRepository, startDate: date, endDate: endDate);
+                var nextDay = date.AddDays(1);
+                var api = new Sfmc.Soap.OpenEventSoapApi(authRepository: _authRepository, startDate: date, endDate: nextDay);
                 var pocos = api.LoadDataSet();
-                
-                WriteToCSV(date, endDate, pocos);
-                date = endDate;
-            }   while (date < DateTime.Today);
+                WriteToCSV(date, nextDay, pocos);
+            });
         }
 
         private void WriteToCSV(DateTime startDate, DateTime endDate, List<OpenEventPoco> pocos)
