@@ -2,6 +2,7 @@ using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.Wsdl;
+using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
 {
@@ -10,27 +11,15 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
         where TPoco : IPoco
     {
         protected string RequestID { get; set; } = string.Empty;
+        protected long RunningTally { get; set; } = 0;
+        protected IFileWriter FileWriter { get; set; }
 
-        public List<Wsdl.APIObject> WsdlObjects { get; set; } = new List<Wsdl.APIObject>();
-        public BaseDataSetSoapApi(AuthRepository authRepository) : base(authRepository)
+        public BaseDataSetSoapApi(AuthRepository authRepository, IFileWriter fileWriter) : base(authRepository)
         {
+            FileWriter = fileWriter;
         }
         
-        public List<TPoco> LoadDataSet()
-        {
-            LoadPage();
-            
-            if (WsdlObjects.Any())
-            {
-                List<TPoco> pocos = new List<TPoco>();
-                pocos.AddRange(WsdlObjects.Select(x => ConvertToPoco((TAPIObject)x)));
-                return pocos;
-            }
-
-            throw new Exception("Error Loading Folders");
-        }
-
-        private void LoadPage()
+        public void LoadDataSet()
         {
             try
             {
@@ -54,20 +43,29 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
                 // Process Results
                 if (AppConfiguration.Instance.Debug) Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Overall Status: {results!.Results.Body.RetrieveResponse.OverallStatus}");
                 int currentPageSize = 0;
-                foreach (var result in results!.Results.Body.RetrieveResponse.Results)
+                if (results!.Results.Body.RetrieveResponse.Results.Any())
                 {
-                    WsdlObjects.Add(result);
-                    currentPageSize++;
-                }
+                    var wsdlObjects = results!.Results.Body.RetrieveResponse.Results;
+                    List<TPoco> pocos = new List<TPoco>();
+                    pocos.AddRange(wsdlObjects.Select(x => ConvertToPoco((TAPIObject)x)));
+                    FileWriter.WriteToFile(pocos);
+                    
 
-                if (results.Results.Body.RetrieveResponse.OverallStatus == "MoreDataAvailable")
-                {
-                    Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] More Data Available. Current Page: {currentPageSize} records; Running Total: {WsdlObjects.Count()}; Request ID: {results.Results.Body.RetrieveResponse.RequestID}");
-                    LoadPage();
-                }
-                else
-                {
-                    Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Current Page: {currentPageSize} records. Total: {WsdlObjects.Count()} Request ID: {results.Results.Body.RetrieveResponse.RequestID}");
+                    currentPageSize = wsdlObjects.Count();
+                    RunningTally += currentPageSize;
+
+                    pocos.Clear();
+                    pocos.TrimExcess();
+
+                    if (results.Results.Body.RetrieveResponse.OverallStatus == "MoreDataAvailable")
+                    {
+                        Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] More Data Available. Current Page: {currentPageSize} records; Running Total: {RunningTally}; Request ID: {results.Results.Body.RetrieveResponse.RequestID}");
+                        LoadDataSet();
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Current Page: {currentPageSize} records. Total: {RunningTally} Request ID: {results.Results.Body.RetrieveResponse.RequestID}");
+                    }
                 }
             }
             catch (System.Exception ex)

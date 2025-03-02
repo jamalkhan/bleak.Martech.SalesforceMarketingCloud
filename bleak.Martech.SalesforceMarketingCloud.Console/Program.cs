@@ -20,7 +20,6 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
         private static void Main(string[] args)
         {
-            
             // See https://aka.ms/new-console-template for more information
             Console.WriteLine($"Getting Auth Token");
             _authRepository.ResolveAuthentication();
@@ -56,26 +55,30 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
                     case "2":
                         Path2_DataExtensionFolders();
-
                         break;
+
                     case "3":
                         Path3_DataExtensions();
                         break;
+
                     case "4":
                         Path4_DataExtensionFullPathFile();
                         break;
+
                     case "5":
                         var queryDefinitionApp = new QueryDefinitionApp<QueryDefinitionPoco>(_authRepository);
                         queryDefinitionApp.Execute();
                         break;
+
                     case "6":
                         var opensApp = new DownloadOpensApp(
                             authRepository:_authRepository,
-                            folder: Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Opens"),
+                            folder: Path.Combine(AppConfiguration.Instance.OutputFolder, "_SendTracking", "Opens"),
                             daysBack: 180
                         );
                         opensApp.Execute();
                         break;
+                        
                     default:
                         {
                             Console.WriteLine("key not recognized. exiting...");

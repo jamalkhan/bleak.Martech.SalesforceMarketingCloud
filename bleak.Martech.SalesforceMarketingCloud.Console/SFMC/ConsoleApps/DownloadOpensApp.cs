@@ -7,6 +7,7 @@ using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using System.Diagnostics;
 using System;
 using System.IO;
+using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 {
@@ -24,48 +25,75 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 
         public void Execute()
         {
+            EnsureFolderExists();
+
             var startDate = DateTime.Today.AddDays(-DaysBack);
             var endDate = DateTime.Today;
-
 
             var dates = Enumerable.Range(0, (endDate - startDate).Days + 1)
                       .Select(offset => startDate.AddDays(offset))
                       .ToList();
+            dates.Sort();
 
-            Parallel.ForEach(dates, date =>
-            {
-                
-                var nextDay = date.AddDays(1);
-                Console.WriteLine($"Downloading Opens for {date:yyyy-MM-dd} through {nextDay:yyyy-MM-dd}");
-                var api = new Sfmc.Soap.OpenEventSoapApi(authRepository: _authRepository, startDate: date, endDate: nextDay);
-                var pocos = api.LoadDataSet();
-                WriteToCSV(date, nextDay, pocos);
-                Console.WriteLine($"Downloaded Opens for {date:yyyy-MM-dd} through {nextDay:yyyy-MM-dd}");
-            });
+
+            Parallel.ForEach(
+                    source: dates,
+                    parallelOptions: new ParallelOptions { MaxDegreeOfParallelism = AppConfiguration.Instance.MaxDegreeOfParallelism },
+                    body: date => ProcessDate(date)
+                );
         }
 
-        private void WriteToCSV(DateTime startDate, DateTime endDate, List<OpenEventPoco> pocos)
+        private void EnsureFolderExists()
         {
-            try
+            if (Directory.Exists(Folder))
             {
-                
-                string path = Path.Combine(Folder, $"opens_{startDate:yyyyMMdd}_{endDate:yyyyMMdd}.csv");
-                Console.WriteLine($"Writing Opens to {path}");
-                // Open a file stream with StreamWriter
-                using (StreamWriter writer = new StreamWriter(path))
+                Console.WriteLine($"✔ Folder exists: {Folder}");
+                return;
+            }
+
+            Console.WriteLine($"⚠ Folder does not exist: {Folder}");
+            Console.Write("Would you like to create it? (y/n): ");
+            
+            string response = Console.ReadLine()?.Trim().ToLower();
+            if (response == "y")
+            {
+                try
                 {
-                    writer.WriteLine($"\"SubscriberKey\",\"EventDate\",\"EventType\"");
-                    foreach (var poco in pocos)
-                    {
-                        writer.WriteLine($"\"{poco.SubscriberKey}\",\"{poco.EventDate}\",\"{poco.EventType}\"");
-                    }
+                    Directory.CreateDirectory(Folder);
+                    Console.WriteLine($"✅ Folder created: {Folder}");
                 }
-                Console.WriteLine($"Write Complete {path}");
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"❌ Failed to create folder: {ex.Message}");
+                }
             }
-            catch (Exception ex)
+            else
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine("❌ Folder creation skipped.");
             }
+        }
+
+        private void ProcessDate(DateTime startTime)
+        {
+            var endTime = startTime.AddDays(1);
+            string path = Path.Combine(Folder, $"opens_{startTime:yyyyMMdd}_{endTime:yyyyMMdd}.csv");
+            Console.WriteLine($"Downloading Opens for {startTime:yyyy-MM-dd} through {endTime:yyyy-MM-dd} to file {path}");
+            
+            var api = new Sfmc.Soap.OpenEventSoapApi  
+            (
+                authRepository: _authRepository,
+                fileWriter: new DelimitedFileWriter
+                (
+                    filePath: path,
+                    options: new DelimitedFileWriterOptions { Delimiter = "," }
+                ),
+                startDate: startTime,
+                endDate: endTime
+            );
+
+            api.LoadDataSet();
+            
+            Console.WriteLine($"Downloaded Opens for {startTime:yyyy-MM-dd} through {endTime:yyyy-MM-dd}");
         }
     }
 }
