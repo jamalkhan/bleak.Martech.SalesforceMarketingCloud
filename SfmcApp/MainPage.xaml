@@ -33,10 +33,18 @@
                 Clicked="OnCounterClicked"
                 HorizontalOptions="Fill" />
 -->
-                
+
+<Button
+x:Name="ShowSfmcConnectionsBtn"
+Text="Show SFmc Connections" 
+SemanticProperties.Hint="Click to Connect to a Salesforce marketing Cloud Instance"
+Clicked="OnShowSfmcConnectionsClicked"
+HorizontalOptions="Fill" />
+
+
             <Button
                 x:Name="ConnectToSfmcBtn"
-                Text="Connect to SFMC" 
+                Text="Create new SFMC Connect" 
                 SemanticProperties.Hint="Click to Connect to a Salesforce marketing Cloud Instance"
                 Clicked="OnConnectClicked"
                 HorizontalOptions="Fill" />
