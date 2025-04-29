@@ -10,8 +10,7 @@ public partial class App : Application
 	}
 
 	protected override Window CreateWindow(IActivationState activationState)
-    {
-        // Create and return the main window with the root page
-        return new Window(new MainPage());
-    }
+	{
+		return new Window(new NavigationPage(new MainPage()));
+	}
 }

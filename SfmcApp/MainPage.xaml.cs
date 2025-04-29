@@ -36,7 +36,7 @@ public partial class MainPage : ContentPage
         BindingContext = this;
 	}
 
-	private void OnCounterClicked(object sender, EventArgs e)
+	/*private void OnCounterClicked(object sender, EventArgs e)
 	{
 		count++;
 
@@ -46,5 +46,10 @@ public partial class MainPage : ContentPage
 			CounterBtn.Text = $"Clicked {count} times";
 
 		SemanticScreenReader.Announce(CounterBtn.Text);
+    }*/
+
+    private async void OnConnectClicked(object sender, EventArgs e)
+    {
+        await Navigation.PushAsync(new SfmcConnectionEditPage());
     }
 }
