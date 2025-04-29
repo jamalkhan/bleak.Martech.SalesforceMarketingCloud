@@ -11,12 +11,12 @@ using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 {
-    public class DownloadOpensApp : IConsoleApp
+    public class DownloadSentsApp : IConsoleApp
     {
         public AuthRepository _authRepository { get; private set; }
         public string Folder { get;private set;}
         public int DaysBack { get; private set; }
-        public DownloadOpensApp(AuthRepository authRepository, string folder, int daysBack = 180)
+        public DownloadSentsApp(AuthRepository authRepository, string folder, int daysBack = 180)
         {
             _authRepository = authRepository;
             Folder = folder;
@@ -31,9 +31,10 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
             var endDate = DateTime.Today;
 
             var dates = Enumerable.Range(0, (endDate - startDate).Days + 1)
-                                    
-                                    .Select(offset => startDate.AddDays(offset))
-                                    .ToList();
+                      .Select(offset => startDate.AddDays(offset))
+                      .ToList();
+            dates.Sort();
+
 
             Parallel.ForEach(
                     source: dates,
@@ -59,7 +60,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                 try
                 {
                     Directory.CreateDirectory(Folder);
-                    Console.WriteLine($"✔ Folder created: {Folder}");
+                    Console.WriteLine($"✅ Folder created: {Folder}");
                 }
                 catch (Exception ex)
                 {
@@ -75,10 +76,10 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
         private void ProcessDate(DateTime startTime)
         {
             var endTime = startTime.AddDays(1);
-            string path = Path.Combine(Folder, $"opens_{startTime:yyyyMMdd}_{endTime:yyyyMMdd}.csv");
-            Console.WriteLine($"Downloading Opens for {startTime:yyyy-MM-dd} through {endTime:yyyy-MM-dd} to file {path}");
+            string path = Path.Combine(Folder, $"sends_{startTime:yyyyMMdd}_{endTime:yyyyMMdd}.csv");
+            Console.WriteLine($"Downloading Sends for {startTime:yyyy-MM-dd} through {endTime:yyyy-MM-dd} to file {path}");
             
-            var api = new Sfmc.Soap.OpenEventSoapApi  
+            var api = new Sfmc.Soap.SentEventSoapApi  
             (
                 authRepository: _authRepository,
                 fileWriter: new DelimitedFileWriter
@@ -92,7 +93,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 
             api.LoadDataSet();
             
-            Console.WriteLine($"Downloaded Opens for {startTime:yyyy-MM-dd} through {endTime:yyyy-MM-dd}");
+            Console.WriteLine($"Downloaded Sends for {startTime:yyyy-MM-dd} through {endTime:yyyy-MM-dd}");
         }
     }
 }

@@ -38,7 +38,9 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                 Console.WriteLine("4. Data Extension Full Path File");
                 Console.WriteLine("5. Download All QueryDefinitions");
                 Console.WriteLine("6. Download Opens for last 180 days");
-
+                Console.WriteLine("7. Download Clicks for last 180 days");
+                Console.WriteLine("8. Download Sents for last 180 days");
+                Console.WriteLine("9. Download Images");
                 var input = Console.ReadLine();
 
                 var stopwatch = new Stopwatch();
@@ -77,6 +79,29 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                             daysBack: 180
                         );
                         opensApp.Execute();
+                        break;
+
+                    case "7":
+                        var sentsApp = new DownloadSentsApp(
+                            authRepository:_authRepository,
+                            folder: Path.Combine(AppConfiguration.Instance.OutputFolder, "_SentTracking", "Sents"),
+                            daysBack: 180
+                        );
+                        sentsApp.Execute();
+                        break;
+                    
+                    case "8":
+                        var clicksApp = new DownloadSentsApp(
+                            authRepository:_authRepository,
+                            folder: Path.Combine(AppConfiguration.Instance.OutputFolder, "_SentTracking", "Sents"),
+                            daysBack: 180
+                        );
+                        clicksApp.Execute();
+                        break;
+
+                    case "9":
+                        var downloadImages = new DownloadImagesApp(_restManager, _authRepository);
+                        downloadImages.Execute();
                         break;
                         
                     default:

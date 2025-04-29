@@ -15,72 +15,69 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication
         private readonly RestManager _restManager;
         private static readonly object _lock = new();
         private static Lazy<SfmcAuthToken> _cachedToken;
+        private static readonly string AuthFilePath = Path.Combine(AppContext.BaseDirectory, "authentication.json");
+        private const double Threshold = 600.07;
+
         public AuthRepository(RestManager restManager, JsonSerializer jsonSerializer)
         {
             _restManager = restManager;
             _jsonSerializer = jsonSerializer;
-                    _cachedToken = new Lazy<SfmcAuthToken>(LoadToken, true); // Thread-safe lazy loading
-
+            _cachedToken = new Lazy<SfmcAuthToken>(LoadToken, true); // Thread-safe lazy loading
         }
 
         public SfmcAuthToken Token => _cachedToken.Value;
 
-
-
         public void ResolveAuthentication()
         {
-            string authFile = Path.Combine(AppContext.BaseDirectory, "authentication.json");
-            double threshold = 600.07;
-
-            if (File.Exists(authFile))
+            if (IsTokenValid())
             {
-                DateTime lastWriteTime = File.GetLastWriteTime(authFile);
-                TimeSpan timeDifference = DateTime.Now - lastWriteTime;
-
-                if (timeDifference.TotalSeconds <= threshold)
-                {
-                    Console.WriteLine($"Using cached authentication file. TimeDifference: {timeDifference.TotalSeconds}s");
-                    _cachedToken = new Lazy<SfmcAuthToken>(() => LoadToken(), true);
-                    return;
-                }
-
-                Console.WriteLine("Authentication expired. Re-authenticating...");
-                File.Delete(authFile);
-            }
-            else
-            {
-                Console.WriteLine("No authentication file found. Authenticating...");
+                Console.WriteLine("Using cached authentication file.");
+                return;
             }
 
             lock (_lock) // Ensure only one thread reauthenticates
             {
-                if (!File.Exists(authFile)) // Double-check after acquiring the lock
+                if (!IsTokenValid()) // Double-check after acquiring the lock
                 {
+                    Console.WriteLine("Authentication expired or not found. Re-authenticating...");
                     var newToken = Authenticate();
-                    SaveToken(newToken, authFile);
+                    SaveToken(newToken);
                     _cachedToken = new Lazy<SfmcAuthToken>(() => newToken, true);
                 }
             }
         }
 
+        private bool IsTokenValid()
+        {
+            if (File.Exists(AuthFilePath))
+            {
+                DateTime lastWriteTime = File.GetLastWriteTime(AuthFilePath);
+                TimeSpan timeDifference = DateTime.Now - lastWriteTime;
+                if (timeDifference.TotalSeconds <= Threshold)
+                {
+                    return true;
+                }
+                File.Delete(AuthFilePath);
+            }
+            return false;
+        }
+
         private SfmcAuthToken LoadToken()
         {
-            string authFile = Path.Combine(AppContext.BaseDirectory, "authentication.json");
-
-            if (File.Exists(authFile))
+            if (File.Exists(AuthFilePath))
             {
-                return _jsonSerializer.Deserialize<SfmcAuthToken>(File.ReadAllText(authFile));
+                return _jsonSerializer.Deserialize<SfmcAuthToken>(File.ReadAllText(AuthFilePath));
             }
             throw new InvalidOperationException("No valid authentication file found.");
         }
 
-        private void SaveToken(SfmcAuthToken token, string authFile)
+        private void SaveToken(SfmcAuthToken token)
         {
             string json = _jsonSerializer.Serialize(token);
-            File.WriteAllText(authFile, json);
+            File.WriteAllText(AuthFilePath, json);
         }
-        
-         private SfmcAuthToken Authenticate()
+
+        private SfmcAuthToken Authenticate()
         {
             Console.WriteLine("Authenticating...");
             string tokenUri = $"https://{AppConfiguration.Instance.Subdomain}.auth.marketingcloudapis.com/v2/token";

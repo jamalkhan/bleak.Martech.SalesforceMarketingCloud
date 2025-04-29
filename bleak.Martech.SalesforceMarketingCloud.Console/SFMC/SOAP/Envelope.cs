@@ -10,40 +10,40 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
         where T :  bleak.Martech.SalesforceMarketingCloud.Wsdl.APIObject
     {
         [XmlElement("Header", Namespace = "http://www.w3.org/2003/05/soap-envelope")]
-        public SoapHeader Header { get; set; }
+        public SoapHeader Header { get; set; } = new SoapHeader();
 
         [XmlElement("Body", Namespace = "http://www.w3.org/2003/05/soap-envelope")]
-        public SoapBody<T> Body { get; set; }
+        public SoapBody<T> Body { get; set; } = new SoapBody<T>();
     }
 
     public class SoapHeader
     {
         [XmlElement("Action", Namespace = "http://schemas.xmlsoap.org/ws/2004/08/addressing")]
-        public string Action { get; set; }
+        public string Action { get; set; } = "";
 
         [XmlElement("MessageID", Namespace = "http://schemas.xmlsoap.org/ws/2004/08/addressing")]
-        public string MessageID { get; set; }
+        public string MessageID { get; set; } = "";
 
         [XmlElement("RelatesTo", Namespace = "http://schemas.xmlsoap.org/ws/2004/08/addressing")]
-        public string RelatesTo { get; set; }
+        public string RelatesTo { get; set; } = "";
 
         [XmlElement("To", Namespace = "http://schemas.xmlsoap.org/ws/2004/08/addressing")]
-        public string To { get; set; }
+        public string To { get; set; } = "";
 
         [XmlElement("Security", Namespace = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd")]
-        public SoapSecurity Security { get; set; }
+        public SoapSecurity Security { get; set; } = new SoapSecurity();
     }
 
     public class SoapSecurity
     {
         [XmlElement("Timestamp", Namespace = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd")]
-        public SoapTimestamp Timestamp { get; set; }
+        public SoapTimestamp Timestamp { get; set; } = new SoapTimestamp();
     }
 
     public class SoapTimestamp
     {
         [XmlAttribute("Id", Namespace = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd")]
-        public string Id { get; set; }
+        public string Id { get; set; } = "";
 
         [XmlElement("Created", Namespace = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd")]
         public DateTime Created { get; set; }
@@ -56,7 +56,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
      where T :  bleak.Martech.SalesforceMarketingCloud.Wsdl.APIObject
     {
         [XmlElement("RetrieveResponseMsg", Namespace = "http://exacttarget.com/wsdl/partnerAPI")]
-        public RetrieveResponse<T> RetrieveResponse { get; set; }
+        public RetrieveResponse<T> RetrieveResponse { get; set; } = new RetrieveResponse<T>();
     }
 
     

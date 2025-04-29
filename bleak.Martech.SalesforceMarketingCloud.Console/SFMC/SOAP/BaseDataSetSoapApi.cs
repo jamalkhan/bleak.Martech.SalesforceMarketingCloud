@@ -3,6 +3,7 @@ using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.Wsdl;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops;
+using System.Net;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
 {
@@ -21,58 +22,66 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
         
         public void LoadDataSet()
         {
-            try
+            string? status = "";
+            do
             {
-                if (AppConfiguration.Instance.Debug) Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Invoking SOAP Call. URL: {url}");
-                RestResults<SoapEnvelope<TAPIObject>, string> results = 
-                    ExecuteWithReauth
-                    (
-                        apiCall: () => _restManager.ExecuteRestMethod<SoapEnvelope<TAPIObject>, string>(
-                            uri: new Uri(url),
-                            verb: HttpVerbs.POST,
-                            serializedPayload: BuildRequest(),
-                            headers: BuildHeaders()
-                        ),
-                        errorCondition: HandleError,
-                        reauthenticate: () => _authRepository.ResolveAuthentication()
-                    );
-
-                if (AppConfiguration.Instance.Debug) Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] results.Value = {results?.Results}");
-                if (results?.Error != null) Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] results.Error = {results.Error}");
-
-                // Process Results
-                if (AppConfiguration.Instance.Debug) Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Overall Status: {results!.Results.Body.RetrieveResponse.OverallStatus}");
-                int currentPageSize = 0;
-                if (results!.Results.Body.RetrieveResponse.Results.Any())
+                try
                 {
-                    var wsdlObjects = results!.Results.Body.RetrieveResponse.Results;
-                    List<TPoco> pocos = new List<TPoco>();
-                    pocos.AddRange(wsdlObjects.Select(x => ConvertToPoco((TAPIObject)x)));
-                    FileWriter.WriteToFile(pocos);
                     
+                    if (AppConfiguration.Instance.Debug) Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Invoking SOAP Call. URL: {url}");
+                    RestResults<SoapEnvelope<TAPIObject>, string> results = 
+                        ExecuteWithReauth
+                        (
+                            apiCall: () => _restManager.ExecuteRestMethod<SoapEnvelope<TAPIObject>, string>(
+                                uri: new Uri(url),
+                                verb: HttpVerbs.POST,
+                                serializedPayload: BuildRequest(),
+                                headers: BuildHeaders()
+                            ),
+                            errorCondition: HandleError,
+                            reauthenticate: () => _authRepository.ResolveAuthentication()
+                        );
 
-                    currentPageSize = wsdlObjects.Count();
-                    RunningTally += currentPageSize;
+                    if (AppConfiguration.Instance.Debug) Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] results.Value = {results?.Results}");
+                    if (results?.Error != null) Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] results.Error = {results.Error}");
 
-                    pocos.Clear();
-                    pocos.TrimExcess();
+                    status = results?.Results?.Body?.RetrieveResponse?.OverallStatus;
 
-                    if (results.Results.Body.RetrieveResponse.OverallStatus == "MoreDataAvailable")
+                    // Process Results
+                    if (AppConfiguration.Instance.Debug) Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Overall Status: {results!.Results.Body.RetrieveResponse.OverallStatus}");
+                    int currentPageSize = 0;
+                    if (results!.Results.Body.RetrieveResponse.Results.Any())
                     {
-                        Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] More Data Available. Current Page: {currentPageSize} records; Running Total: {RunningTally}; Request ID: {results.Results.Body.RetrieveResponse.RequestID}");
-                        LoadDataSet();
-                    }
-                    else
-                    {
-                        Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Current Page: {currentPageSize} records. Total: {RunningTally} Request ID: {results.Results.Body.RetrieveResponse.RequestID}");
+                        var wsdlObjects = results!.Results.Body.RetrieveResponse.Results;
+                        List<TPoco> pocos = new List<TPoco>();
+                        pocos.AddRange(wsdlObjects.Select(x => ConvertToPoco((TAPIObject)x)));
+                        FileWriter.WriteToFile(pocos);
+                        
+
+                        currentPageSize = wsdlObjects.Count();
+                        RunningTally += currentPageSize;
+
+                        pocos.Clear();
+                        pocos.TrimExcess();
+
+                        
+                        if (status == "MoreDataAvailable")
+                        {
+                            Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] More Data Available. Added: {currentPageSize} records; Total: {RunningTally}; Request ID: {results.Results.Body.RetrieveResponse.RequestID}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Current Page: {currentPageSize} records. Total: {RunningTally} Request ID: {results.Results.Body.RetrieveResponse.RequestID}");
+                        }
                     }
                 }
+                catch (System.Exception ex)
+                {
+                    Console.WriteLine($"Error {ex.Message}");
+                    status = $"Error - {ex.Message}";
+                }
             }
-            catch (System.Exception ex)
-            {
-                Console.WriteLine($"Error {ex.Message}");
-                throw;
-            }
+            while (status == "MoreDataAvailable");
         }
 
         private bool HandleError(RestResults<SoapEnvelope<TAPIObject>, string> results)
