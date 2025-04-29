@@ -32,19 +32,20 @@
                 Clicked="OnCounterClicked"
                 HorizontalOptions="Fill" />
 
+
                 <CollectionView ItemsSource="{Binding Nodes}">
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
                             <toolkit:Expander>
                                 <toolkit:Expander.Header>
-                                    <Label Text="{Binding Title}" FontAttributes="Bold" />
+                                    <Label Text="{Binding Name}" FontAttributes="Bold" />
                                 </toolkit:Expander.Header>
     
                                 <VerticalStackLayout Padding="10,0,0,0">
                                     <CollectionView ItemsSource="{Binding Children}">
                                         <CollectionView.ItemTemplate>
                                             <DataTemplate>
-                                                <Label Text="{Binding Title}" />
+                                                <Label Text="{Binding Name}" />
                                             </DataTemplate>
                                         </CollectionView.ItemTemplate>
                                     </CollectionView>
