@@ -4,9 +4,9 @@ public class SfmcConnection
 {
     public Guid Id { get; set; }
 
-    public string Name { get; set; }
-    public string Subdomain { get; set; }
-    public string ClientId { get; set; }
-    public string ClientSecret { get; set; }
-    public string MemberId { get; set; }
+    public required string Name { get; set; }
+    public required string Subdomain { get; set; }
+    public required string ClientId { get; set; }
+    public required string ClientSecret { get; set; }
+    public required string MemberId { get; set; }
 }

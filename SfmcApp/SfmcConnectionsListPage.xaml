@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:SfmcApp.Models"
              x:Class="SfmcApp.SfmcConnectionListPage"
+             
              Title="Saved Connections">
 
     <ContentPage.ToolbarItems>
@@ -10,7 +12,7 @@
 
     <CollectionView x:Name="ConnectionsListView" ItemsSource="{Binding Connections}">
         <CollectionView.ItemTemplate>
-            <DataTemplate>
+            <DataTemplate x:DataType="models:SfmcConnection">
                 <SwipeView>
                     <SwipeView.RightItems>
                         <SwipeItems>

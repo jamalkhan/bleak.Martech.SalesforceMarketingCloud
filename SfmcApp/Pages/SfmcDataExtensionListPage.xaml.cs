@@ -1,4 +1,4 @@
-namespace MauiApp1;
+namespace SfmcApp.Pages;
 
 public partial class SfmcDataExtensionListPage : ContentPage
 {
