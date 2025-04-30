@@ -42,12 +42,6 @@ Clicked="OnShowSfmcConnectionsClicked"
 HorizontalOptions="Fill" />
 
 
-            <Button
-                x:Name="ConnectToSfmcBtn"
-                Text="Create new SFMC Connect" 
-                SemanticProperties.Hint="Click to Connect to a Salesforce marketing Cloud Instance"
-                Clicked="OnConnectClicked"
-                HorizontalOptions="Fill" />
 
 
                 <CollectionView ItemsSource="{Binding Nodes}">

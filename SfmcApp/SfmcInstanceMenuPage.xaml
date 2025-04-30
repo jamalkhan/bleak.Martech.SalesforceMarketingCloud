@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SfmcApp.SfmcInstanceMenuPage"
+             Title="SfmcInstanceMenuPage">
+    <VerticalStackLayout>
+        <Label 
+            Text="Connected to SFMC / {Binding Name}"
+            VerticalOptions="Center" 
+            HorizontalOptions="Center" />
+
+        <Button
+            x:Name="ShowDataExtensionsBtn"
+            Text="Show Data Extensions" 
+            SemanticProperties.Hint="Show Data Extensions"
+            Clicked="OnShowDataExtensionsClicked"
+            HorizontalOptions="Fill" />
+    </VerticalStackLayout>
+</ContentPage>

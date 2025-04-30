@@ -51,11 +51,9 @@ public partial class SfmcConnectionListPage : ContentPage
 
     private async void OnConnectClicked(object sender, EventArgs e)
     {
-        if ((sender as Button)?.CommandParameter is SfmcConnection connection)
+        if (sender is Button button && button.CommandParameter is SfmcConnection connection)
         {
-            await DisplayAlert("Connecting", $"Connecting to: {connection.Subdomain}", "OK");
-
-            // TODO: Replace with real logic
+            await Navigation.PushAsync(new SfmcInstanceMenuPage(connection));
         }
     }
 
