@@ -1,4 +1,4 @@
-namespace bleak.Martech.SalesforceMarketingCloud.ContentBuilder.SfmcPocos
+namespace bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos
 {
     public class SfmcEmail
         {

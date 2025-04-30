@@ -1,9 +1,9 @@
 ﻿using bleak.Api.Rest;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps;
-using bleak.Martech.SalesforceMarketingCloud.ContentBuilder;
-using bleak.Martech.SalesforceMarketingCloud.ContentBuilder.SfmcPocos;
+using bleak.Martech.SalesforceMarketingCloud.Authentication;
+using bleak.Martech.SalesforceMarketingCloud.Models;
+using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using System.Diagnostics;
 using System;
@@ -15,7 +15,14 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
     {
         static JsonSerializer serializer = new JsonSerializer();
         static RestManager _restManager = new RestManager(serializer, serializer);
-        static AuthRepository _authRepository = new AuthRepository(_restManager, serializer);
+        static AuthRepository _authRepository = new AuthRepository(
+            restManager: _restManager,
+            jsonSerializer: serializer,
+            subdomain: AppConfiguration.Instance.Subdomain,
+            clientId: AppConfiguration.Instance.ClientId,
+            clientSecret: AppConfiguration.Instance.ClientSecret,
+            memberId: AppConfiguration.Instance.MemberId
+        );
         
 
         private static void Main(string[] args)

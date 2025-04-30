@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace bleak.Martech.SalesforceMarketingCloud.ContentBuilder
+namespace bleak.Martech.SalesforceMarketingCloud.Models
 {
     public class FolderObject
     {

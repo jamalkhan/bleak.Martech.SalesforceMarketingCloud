@@ -1,8 +1,8 @@
 using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication;
-using bleak.Martech.SalesforceMarketingCloud.ContentBuilder;
-using bleak.Martech.SalesforceMarketingCloud.ContentBuilder.SfmcPocos;
+using bleak.Martech.SalesforceMarketingCloud.Authentication;
+using bleak.Martech.SalesforceMarketingCloud.Models;
+using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.Wsdl;
 using System.Text;
 using System.Security.Cryptography.Pkcs;

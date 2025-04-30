@@ -1,20 +1,27 @@
 using bleak.Api.Rest;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication;
-using bleak.Martech.SalesforceMarketingCloud.ContentBuilder;
-using bleak.Martech.SalesforceMarketingCloud.ContentBuilder.SfmcPocos;
 using System.Diagnostics;
 using System.ServiceModel;
 using System.Net.Http.Headers;
+using bleak.Martech.SalesforceMarketingCloud.Authentication;
+using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
+using bleak.Martech.SalesforceMarketingCloud.Models;
+using bleak.Martech.SalesforceMarketingCloud.Configuration;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.DataExtensions
 {
     public class DataExtensionFolderRestApi
     {
-        RestManager _restManager;
-        AuthRepository _authRepository;
+        readonly SfmcConnectionConfiguration _sfmcConnectionConfiguration;
+        readonly RestManager _restManager;
+        readonly AuthRepository _authRepository;
+
         public DataExtensionFolderRestApi(RestManager restManager, AuthRepository authRepository)
+            : this(restManager, authRepository, new SfmcConnectionConfiguration())
         {
+        }
+        public DataExtensionFolderRestApi(RestManager restManager, AuthRepository authRepository, SfmcConnectionConfiguration sfmcConnectionConfiguration)
+        {
+            _sfmcConnectionConfiguration = sfmcConnectionConfiguration;
             _restManager = restManager;
             _authRepository = authRepository;
         }
@@ -27,10 +34,6 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.DataExtens
             new Header() { Name = "Content-Type", Value = "application/json" },
         };
 
-
-
-
-
         public List<FolderObject> GetFolderTree()
         {
             int page = 1;
@@ -42,7 +45,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.DataExtens
                 currentPageSize = LoadFolder(page, sfmcFolders);
                 page++;
             }
-            while (AppConfiguration.Instance.PageSize == currentPageSize);
+            while (_sfmcConnectionConfiguration.PageSize == currentPageSize);
 
             if (sfmcFolders.Any())
             {
@@ -77,11 +80,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.DataExtens
             int currentPageSize;
             try
             {
-                if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Loading Folder Page #{page}"); }
+                if (_sfmcConnectionConfiguration.Debug) { Console.WriteLine($"Loading Folder Page #{page}"); }
                 
                 RestResults<SfmcRestWrapper<SfmcFolder>, string> results;
                 ///legacy/v1/beta/object/
-                string url = $"https://{AppConfiguration.Instance.Subdomain}.rest.marketingcloudapis.com//legacy/v1/beta/object/?$page={page}&$pagesize={AppConfiguration.Instance.PageSize}";
+                string url = $"https://{_authRepository.Subdomain}.rest.marketingcloudapis.com//legacy/v1/beta/object/?$page={page}&$pagesize={_sfmcConnectionConfiguration.PageSize}";
                 
                 results = ExecuteRestMethodWithRetry(
                     loadFolderApiCall: LoadFolderApiCall,
@@ -90,16 +93,16 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.DataExtens
                     resolveAuthentication: _authRepository.ResolveAuthentication
                 );
 
-                if (AppConfiguration.Instance.Debug) Console.WriteLine($"results.Value = {results?.Results}");
+                if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"results.Value = {results?.Results}");
                 if (results?.Error != null) Console.WriteLine($"results.Error = {results.Error}");
 
                 currentPageSize = results!.Results.items.Count();
                 sfmcFolders.AddRange(results.Results.items);
-                if (AppConfiguration.Instance.Debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {sfmcFolders.Count()} Total Folders Identified.");
+                if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {sfmcFolders.Count()} Total Folders Identified.");
 
-                if (AppConfiguration.Instance.PageSize == currentPageSize)
+                if (_sfmcConnectionConfiguration.PageSize == currentPageSize)
                 {
-                    if (AppConfiguration.Instance.Debug) Console.WriteLine($"Running Loop Again");
+                    if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"Running Loop Again");
                 }
 
             }
@@ -116,12 +119,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.DataExtens
             string url
         )
         {
-            // string opens = await GetTrackingData($"{baseUri}/messageDefinitionSends/key:{definitionKey}/tracking/opens", accessToken);
-            // string clicks = await GetTrackingData($"{baseUri}/messageDefinitionSends/key:{definitionKey}/tracking/clicks", accessToken);
-            // string bounces = await GetTrackingData($"{baseUri}/messageDefinitionSends/key:{definitionKey}/tracking/bounces", accessToken);
-            // string sends = await GetTrackingData($"{baseUri}/messageDefinitionSends/key:{definitionKey}/tracking", accessToken);
-
-            if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Attempting to {verb} to {url} with accessToken: {_authRepository.Token.access_token}"); }
+            if (_sfmcConnectionConfiguration.Debug) { Console.WriteLine($"Attempting to {verb} to {url} with accessToken: {_authRepository.Token.access_token}"); }
 
             var headersWithAuth = SetAuthHeader(headers);
 

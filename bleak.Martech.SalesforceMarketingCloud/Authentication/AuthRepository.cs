@@ -1,16 +1,19 @@
 using bleak.Api.Rest;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication;
-using bleak.Martech.SalesforceMarketingCloud.ContentBuilder;
-using bleak.Martech.SalesforceMarketingCloud.ContentBuilder.SfmcPocos;
 using System.Diagnostics;
 using System.ServiceModel;
 using System.Threading;
 
-namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication
+namespace bleak.Martech.SalesforceMarketingCloud.Authentication
 {
     public partial class AuthRepository
     {
+        private readonly string _subdomain;
+        private readonly string _clientId;
+        private readonly string _clientSecret;
+        private readonly string _memberId;
+
+        public string Subdomain => _subdomain;
+
         private readonly JsonSerializer _jsonSerializer;
         private readonly RestManager _restManager;
         private static readonly object _lock = new();
@@ -18,8 +21,12 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication
         private static readonly string AuthFilePath = Path.Combine(AppContext.BaseDirectory, "authentication.json");
         private const double Threshold = 600.07;
 
-        public AuthRepository(RestManager restManager, JsonSerializer jsonSerializer)
+        public AuthRepository(RestManager restManager, JsonSerializer jsonSerializer, string subdomain, string clientId, string clientSecret, string memberId)
         {
+            _subdomain = subdomain;
+            _clientId = clientId;
+            _clientSecret = clientSecret;
+            _memberId = memberId;
             _restManager = restManager;
             _jsonSerializer = jsonSerializer;
             _cachedToken = new Lazy<SfmcAuthToken>(LoadToken, true); // Thread-safe lazy loading
@@ -80,7 +87,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication
         private SfmcAuthToken Authenticate()
         {
             Console.WriteLine("Authenticating...");
-            string tokenUri = $"https://{AppConfiguration.Instance.Subdomain}.auth.marketingcloudapis.com/v2/token";
+            string tokenUri = $"https://{_subdomain}.auth.marketingcloudapis.com/v2/token";
 
             var authResults = _restManager.ExecuteRestMethod<SfmcAuthToken, string>(
                 uri: new Uri(tokenUri),
@@ -88,9 +95,9 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication
                 payload: new
                 {
                     grant_type = "client_credentials",
-                    client_id = AppConfiguration.Instance.ClientId,
-                    client_secret = AppConfiguration.Instance.ClientSecret,
-                    account_id = AppConfiguration.Instance.MemberId
+                    client_id = _clientId,
+                    client_secret = _clientSecret,
+                    account_id = _memberId,
                 },
                 headers: new List<Header> { new Header { Name = "Content-Type", Value = "application/json" } }
             );

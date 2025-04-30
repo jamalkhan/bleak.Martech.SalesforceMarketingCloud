@@ -1,6 +1,4 @@
-using bleak.Martech.SalesforceMarketingCloud.ContentBuilder;
-
-namespace bleak.Martech.SalesforceMarketingCloud.ContentBuilder.SfmcPocos
+namespace bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos
 {
     public partial class SfmcAsset:ISfmcPoco
     {
