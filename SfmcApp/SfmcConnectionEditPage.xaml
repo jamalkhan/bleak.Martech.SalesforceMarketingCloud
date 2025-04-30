@@ -7,6 +7,7 @@
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="15">
             <Entry x:Name="IdEntry" Placeholder="Id" />
+            <Entry x:Name="NameEntry" Placeholder="Name" />
             <Entry x:Name="SubdomainEntry" Placeholder="Subdomain" />
             <Entry x:Name="ClientIdEntry" Placeholder="Client ID" />
             <Entry x:Name="ClientSecretEntry" Placeholder="Client Secret" IsPassword="true" />

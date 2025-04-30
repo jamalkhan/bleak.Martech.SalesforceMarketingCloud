@@ -71,4 +71,9 @@ public partial class SfmcConnectionListPage : ContentPage
             Preferences.Set(ConnectionsPrefKey, updatedJson);
         }
     }
+
+    private async void OnAddConnectionClicked(object sender, EventArgs e)
+    {
+        await Navigation.PushAsync(new SfmcConnectionEditPage());
+    }
 }

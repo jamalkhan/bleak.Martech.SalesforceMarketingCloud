@@ -20,6 +20,7 @@ public partial class SfmcConnectionEditPage : ContentPage
 		if (connection != null)
 		{
             IdEntry.Text = connection.Id.ToString();
+            NameEntry.Text = connection.Name;
 			SubdomainEntry.Text = connection.Subdomain;
 			ClientIdEntry.Text = connection.ClientId;
 			ClientSecretEntry.Text = connection.ClientSecret;
@@ -49,6 +50,7 @@ public partial class SfmcConnectionEditPage : ContentPage
             {
                 DisplayAlert($"Found {SubdomainEntry.Text}", $"Id = {IdEntry.Text} Subdomain = {SubdomainEntry.Text} was found.", "OK");
                 isFound = true;
+                conn.Name = NameEntry.Text;
                 conn.Subdomain = SubdomainEntry.Text;
                 conn.ClientId = ClientIdEntry.Text;
                 conn.ClientSecret = ClientSecretEntry.Text;
@@ -61,6 +63,7 @@ public partial class SfmcConnectionEditPage : ContentPage
             var newConnection = new SfmcConnection
             {
                 Id = id,
+                Name = NameEntry.Text,
                 Subdomain = SubdomainEntry.Text,
                 ClientId = ClientIdEntry.Text,
                 ClientSecret = ClientSecretEntry.Text,

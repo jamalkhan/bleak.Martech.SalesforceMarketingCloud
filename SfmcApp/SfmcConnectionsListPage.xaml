@@ -4,6 +4,10 @@
              x:Class="SfmcApp.SfmcConnectionListPage"
              Title="Saved Connections">
 
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="+" Clicked="OnAddConnectionClicked" />
+    </ContentPage.ToolbarItems>
+
     <CollectionView x:Name="ConnectionsListView" ItemsSource="{Binding Connections}">
         <CollectionView.ItemTemplate>
             <DataTemplate>
@@ -21,8 +25,7 @@
                     <!-- Display connection info -->
                     <Frame BorderColor="LightGray" Margin="10" Padding="10">
                         <VerticalStackLayout>
-                            <Label Text="{Binding Subdomain}" FontAttributes="Bold" />
-                            <Label Text="{Binding ClientId}" FontSize="12" TextColor="Gray" />
+                            <Label Text="{Binding Name}" FontAttributes="Bold" />
                             <HorizontalStackLayout Spacing="10" Margin="0,10,0,0">
                                 <Button Text="Edit" Clicked="OnEditClicked" CommandParameter="{Binding}" />
                                 <Button Text="Connect" Clicked="OnConnectClicked" CommandParameter="{Binding}" />
