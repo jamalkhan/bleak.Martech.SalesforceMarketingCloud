@@ -1,7 +1,4 @@
 using bleak.Api.Rest;
-using System.Diagnostics;
-using System.ServiceModel;
-using System.Net.Http.Headers;
 using bleak.Martech.SalesforceMarketingCloud.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.Models;
@@ -13,13 +10,18 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.DataExtens
     {
         readonly SfmcConnectionConfiguration _sfmcConnectionConfiguration;
         readonly RestManager _restManager;
-        readonly AuthRepository _authRepository;
+        readonly IAuthRepository _authRepository;
 
-        public DataExtensionFolderRestApi(RestManager restManager, AuthRepository authRepository)
+        public DataExtensionFolderRestApi(
+            RestManager restManager, 
+            IAuthRepository authRepository)
             : this(restManager, authRepository, new SfmcConnectionConfiguration())
         {
         }
-        public DataExtensionFolderRestApi(RestManager restManager, AuthRepository authRepository, SfmcConnectionConfiguration sfmcConnectionConfiguration)
+        public DataExtensionFolderRestApi(
+            RestManager restManager, 
+            IAuthRepository authRepository, 
+            SfmcConnectionConfiguration sfmcConnectionConfiguration)
         {
             _sfmcConnectionConfiguration = sfmcConnectionConfiguration;
             _restManager = restManager;

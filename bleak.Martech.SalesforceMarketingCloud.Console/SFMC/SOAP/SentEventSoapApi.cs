@@ -7,6 +7,7 @@ using bleak.Martech.SalesforceMarketingCloud.Wsdl;
 using System.Text;
 using System.Security.Cryptography.Pkcs;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops;
+using bleak.Martech.SalesforceMarketingCloud.Configuration;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
 {
@@ -16,8 +17,12 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
         public DateTime StartDate { get; set; }  = DateTime.MinValue;
         public DateTime EndDate { get; set; } = DateTime.MinValue;
 
-        public SentEventSoapApi(AuthRepository authRepository, IFileWriter fileWriter, DateTime startDate, DateTime endDate)
-            : base(authRepository: authRepository, fileWriter: fileWriter)
+        public SentEventSoapApi(IAuthRepository authRepository, IFileWriter fileWriter, DateTime startDate, DateTime endDate)
+            : base(
+                authRepository: authRepository, 
+                fileWriter: fileWriter,
+                config: new SfmcConnectionConfiguration()
+                )
         {
             StartDate = startDate;
             EndDate = endDate;

@@ -7,7 +7,12 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
 {
     public partial class DataExtensionFolderSoapApi : BaseSoapApi
     {
-        public DataExtensionFolderSoapApi(AuthRepository authRepository, SfmcConnectionConfiguration config) : base(authRepository, sfmcConnectionConfiguration: config)
+        public DataExtensionFolderSoapApi(
+            IAuthRepository authRepository, 
+            SfmcConnectionConfiguration config)
+            : base(
+                authRepository: authRepository, 
+                sfmcConnectionConfiguration: config)
         {
         }
 

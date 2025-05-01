@@ -8,6 +8,8 @@ using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using System.Diagnostics;
 using System;
 using System.IO;
+using bleak.Martech.SalesforceMarketingCloud.Configuration;
+using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 {
@@ -15,9 +17,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
     {
         static JsonSerializer serializer = new JsonSerializer();
         static RestManager _restManager = new RestManager(serializer, serializer);
-        static AuthRepository _authRepository = new AuthRepository(
-            restManager: _restManager,
-            jsonSerializer: serializer,
+        static IAuthRepository _authRepository = new AuthRepository(
             subdomain: AppConfiguration.Instance.Subdomain,
             clientId: AppConfiguration.Instance.ClientId,
             clientSecret: AppConfiguration.Instance.ClientSecret,
@@ -129,7 +129,10 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
         private static void Path2_DataExtensionFolders()
         {
-            var lf2 = new Sfmc.Soap.DataExtensionFolderSoapApi(authRepository: _authRepository);
+            var lf2 = new Sfmc.Soap.DataExtensionFolderSoapApi(
+                authRepository: _authRepository,
+                config: new SfmcConnectionConfiguration()
+                );
             var ft2 = lf2.GetFolderTree();
 
             RenderFolderTree(ft2);
@@ -137,7 +140,9 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
         private static void Path3_DataExtensions()
         {
-            var deapi = new Sfmc.Soap.DataExtensionSoapApi(authRepository: _authRepository);
+            var deapi = new Sfmc.Soap.DataExtensionSoapApi(
+                authRepository: _authRepository
+                );
             var des = deapi.GetAllDataExtensions();
             foreach (var de in des)
             {
@@ -147,7 +152,9 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
         private static void Path4_DataExtensionFullPathFile()
         {
-            var lf = new Sfmc.Soap.DataExtensionFolderSoapApi(authRepository: _authRepository);
+            var lf = new Sfmc.Soap.DataExtensionFolderSoapApi(
+                authRepository: _authRepository,
+                config: new SfmcConnectionConfiguration());
             var folderTree = lf.GetFolderTree();
 
             var deapi = new Sfmc.Soap.DataExtensionSoapApi(authRepository: _authRepository);

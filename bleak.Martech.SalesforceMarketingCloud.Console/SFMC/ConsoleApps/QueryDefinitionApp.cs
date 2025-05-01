@@ -16,8 +16,8 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
         private static int assetCounter = 0;
         private static int folderCounter = 0;
         private static HashSet<string> assetTypes = new HashSet<string>();
-        AuthRepository _authRepository;
-        public QueryDefinitionApp(AuthRepository authRepository)
+        IAuthRepository _authRepository;
+        public QueryDefinitionApp(IAuthRepository authRepository)
         {
             _authRepository = authRepository;
         }

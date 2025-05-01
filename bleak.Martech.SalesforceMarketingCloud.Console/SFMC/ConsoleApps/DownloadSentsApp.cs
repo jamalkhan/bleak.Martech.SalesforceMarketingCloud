@@ -13,10 +13,10 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 {
     public class DownloadSentsApp : IConsoleApp
     {
-        public AuthRepository _authRepository { get; private set; }
+        public IAuthRepository _authRepository { get; private set; }
         public string Folder { get;private set;}
         public int DaysBack { get; private set; }
-        public DownloadSentsApp(AuthRepository authRepository, string folder, int daysBack = 180)
+        public DownloadSentsApp(IAuthRepository authRepository, string folder, int daysBack = 180)
         {
             _authRepository = authRepository;
             Folder = folder;

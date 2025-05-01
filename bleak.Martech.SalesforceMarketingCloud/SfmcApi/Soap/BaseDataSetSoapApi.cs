@@ -15,7 +15,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
         protected long RunningTally { get; set; } = 0;
         protected IFileWriter FileWriter { get; set; }
 
-        public BaseDataSetSoapApi(AuthRepository authRepository, IFileWriter fileWriter, SfmcConnectionConfiguration config)
+        public BaseDataSetSoapApi(IAuthRepository authRepository, IFileWriter fileWriter, SfmcConnectionConfiguration config)
             : base(authRepository, config)
         {
             FileWriter = fileWriter;

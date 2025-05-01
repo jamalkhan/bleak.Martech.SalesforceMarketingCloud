@@ -1,17 +1,21 @@
 using bleak.Api.Rest;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
+using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Authentication;
-using bleak.Martech.SalesforceMarketingCloud.Models;
-using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
-using bleak.Martech.SalesforceMarketingCloud.Wsdl;
 using System.Text;
-using System.Security.Cryptography.Pkcs;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
 {
     public partial class DataExtensionSoapApi : BaseSoapApi
     {
-        public DataExtensionSoapApi(AuthRepository authRepository) : base(authRepository)
+        public DataExtensionSoapApi
+        (
+            IAuthRepository authRepository
+        )
+        : base
+        (
+            authRepository: authRepository,
+            sfmcConnectionConfiguration: new SfmcConnectionConfiguration()
+        )
         {
         }
         
@@ -24,11 +28,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
             string requestId = string.Empty;
             do
             {
-                if (AppConfiguration.Instance.Debug) Console.WriteLine($"Loading Data Extension {page}");
+                if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"Loading Data Extension {page}");
                 requestId = LoadDataExtensions(wsdlDataExtensions, requestId);
                 page++;
             }
-            while (AppConfiguration.Instance.PageSize == currentPageSize);
+            while (_sfmcConnectionConfiguration.PageSize == currentPageSize);
 
             if (wsdlDataExtensions.Any())
             {
@@ -47,7 +51,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
         {
             try
             {
-                if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Invoking SOAP Call. URL: {url}"); }
+                if (_sfmcConnectionConfiguration.Debug) { Console.WriteLine($"Invoking SOAP Call. URL: {url}"); }
 
                 var results = _restManager.ExecuteRestMethod<SoapEnvelope<Wsdl.DataExtension>, string>(
                     uri: new Uri(url),
@@ -56,7 +60,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
                     headers: BuildHeaders()
                 );
 
-                if (AppConfiguration.Instance.Debug) Console.WriteLine($"results.Value = {results?.Results}");
+                if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"results.Value = {results?.Results}");
                 if (results?.Error != null) Console.WriteLine($"results.Error = {results.Error}");
 
                 // Process Results
@@ -67,7 +71,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
                     wsdlDataExtensions.Add(result);
                     currentPageSize++;
                 }
-                if (AppConfiguration.Instance.Debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {wsdlDataExtensions.Count()} Total Data Extensions Identified.");
+                if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {wsdlDataExtensions.Count()} Total Data Extensions Identified.");
 
                 if (results.Results.Body.RetrieveResponse.OverallStatus == "MoreDataAvailable")
                 {
@@ -93,7 +97,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
             sb.AppendLine($"<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:a=\"http://schemas.xmlsoap.org/ws/2004/08/addressing\" xmlns:u=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd\">");
             sb.AppendLine($"    <s:Header>");
             sb.AppendLine($"        <a:Action s:mustUnderstand=\"1\">Retrieve</a:Action>");
-            sb.AppendLine($"        <a:To s:mustUnderstand=\"1\">https://{AppConfiguration.Instance.Subdomain}.soap.marketingcloudapis.com/Service.asmx</a:To>");
+            sb.AppendLine($"        <a:To s:mustUnderstand=\"1\">https://{_authRepository.Subdomain}.soap.marketingcloudapis.com/Service.asmx</a:To>");
             sb.AppendLine($"        <fueloauth xmlns=\"http://exacttarget.com\">{_authRepository.Token.access_token}</fueloauth>");
             sb.AppendLine($"    </s:Header>");
             sb.AppendLine($"    <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">");

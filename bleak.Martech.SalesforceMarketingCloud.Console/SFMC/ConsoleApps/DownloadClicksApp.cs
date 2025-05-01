@@ -1,22 +1,15 @@
-using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Authentication;
-using bleak.Martech.SalesforceMarketingCloud.Models;
-using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
-using System.Diagnostics;
-using System;
-using System.IO;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 {
     public class DownloadClicksApp : IConsoleApp
     {
-        public AuthRepository _authRepository { get; private set; }
+        public IAuthRepository _authRepository { get; private set; }
         public string Folder { get;private set;}
         public int DaysBack { get; private set; }
-        public DownloadClicksApp(AuthRepository authRepository, string folder, int daysBack = 180)
+        public DownloadClicksApp(IAuthRepository authRepository, string folder, int daysBack = 180)
         {
             _authRepository = authRepository;
             Folder = folder;

@@ -35,7 +35,6 @@ public partial class SfmcDataExtensionListPage : ContentPage
     {
         try
         {
-			_api.GetFolderTree();
             var folderTree = await _api.GetFolderTreeAsync(); // Must be async method
             foreach (var folder in folderTree)
             {

@@ -1,12 +1,9 @@
-using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Authentication;
-using bleak.Martech.SalesforceMarketingCloud.Models;
-using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.Wsdl;
 using System.Text;
-using System.Security.Cryptography.Pkcs;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops;
+using bleak.Martech.SalesforceMarketingCloud.Configuration;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
 {
@@ -16,8 +13,15 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
         public DateTime StartDate { get; set; }  = DateTime.MinValue;
         public DateTime EndDate { get; set; } = DateTime.MinValue;
 
-        public ClickEventSoapApi(AuthRepository authRepository, IFileWriter fileWriter, DateTime startDate, DateTime endDate)
-            : base(authRepository: authRepository, fileWriter: fileWriter)
+        public ClickEventSoapApi(
+            IAuthRepository authRepository, 
+            IFileWriter fileWriter, 
+            DateTime startDate, 
+            DateTime endDate)
+            : base(
+                authRepository: authRepository, 
+                fileWriter: fileWriter, 
+                config: new SfmcConnectionConfiguration())
         {
             StartDate = startDate;
             EndDate = endDate;

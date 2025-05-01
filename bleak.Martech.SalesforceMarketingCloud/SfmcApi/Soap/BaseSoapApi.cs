@@ -7,11 +7,13 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
     public abstract partial class BaseSoapApi
     {
         protected string url { get; private set;}
-        protected AuthRepository _authRepository { get; private set;}
+        protected IAuthRepository _authRepository { get; private set;}
         protected RestManager _restManager { get; private set;}
         protected SfmcConnectionConfiguration _sfmcConnectionConfiguration { get; private set;}
 
-        public BaseSoapApi(AuthRepository authRepository, SfmcConnectionConfiguration sfmcConnectionConfiguration)
+        public BaseSoapApi(
+            IAuthRepository authRepository, 
+            SfmcConnectionConfiguration sfmcConnectionConfiguration)
         {
             _sfmcConnectionConfiguration = sfmcConnectionConfiguration;
             _authRepository = authRepository;

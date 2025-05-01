@@ -12,8 +12,8 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
     public class LoadFolders
     {
         RestManager _restManager;
-        AuthRepository _authRepository;
-        public LoadFolders(RestManager restManager, AuthRepository authRepository)
+        IAuthRepository _authRepository;
+        public LoadFolders(RestManager restManager, IAuthRepository authRepository)
         {
             _restManager = restManager;
             _authRepository = authRepository;

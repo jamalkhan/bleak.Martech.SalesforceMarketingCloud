@@ -7,12 +7,17 @@ using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.Wsdl;
 using System.Text;
 using System.Security.Cryptography.Pkcs;
+using bleak.Martech.SalesforceMarketingCloud.Configuration;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
 {
     public partial class QueryDefinitionSoapApi : BaseSoapApi
     {
-        public QueryDefinitionSoapApi(AuthRepository authRepository) : base(authRepository)
+        public QueryDefinitionSoapApi(
+            IAuthRepository authRepository) 
+        : base(
+            authRepository: authRepository, 
+            sfmcConnectionConfiguration: new SfmcConnectionConfiguration())
         {
         }
         
