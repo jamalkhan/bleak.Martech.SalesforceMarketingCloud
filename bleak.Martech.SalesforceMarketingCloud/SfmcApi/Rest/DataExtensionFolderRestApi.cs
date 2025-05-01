@@ -34,6 +34,12 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.DataExtens
             new Header() { Name = "Content-Type", Value = "application/json" },
         };
 
+
+        public async Task<List<FolderObject>> GetFolderTreeAsync()
+        {
+            return await Task.Run(() => GetFolderTree());
+        }
+        
         public List<FolderObject> GetFolderTree()
         {
             int page = 1;

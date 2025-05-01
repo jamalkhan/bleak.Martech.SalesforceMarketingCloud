@@ -1,11 +1,9 @@
 using bleak.Api.Rest;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Authentication;
-using bleak.Martech.SalesforceMarketingCloud.Models;
-using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.Wsdl;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops;
 using System.Net;
+using bleak.Martech.SalesforceMarketingCloud.Configuration;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
 {
@@ -17,7 +15,8 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
         protected long RunningTally { get; set; } = 0;
         protected IFileWriter FileWriter { get; set; }
 
-        public BaseDataSetSoapApi(AuthRepository authRepository, IFileWriter fileWriter) : base(authRepository)
+        public BaseDataSetSoapApi(AuthRepository authRepository, IFileWriter fileWriter, SfmcConnectionConfiguration config)
+            : base(authRepository, config)
         {
             FileWriter = fileWriter;
         }
@@ -30,7 +29,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
                 try
                 {
                     
-                    if (AppConfiguration.Instance.Debug) Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Invoking SOAP Call. URL: {url}");
+                    if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Invoking SOAP Call. URL: {url}");
                     RestResults<SoapEnvelope<TAPIObject>, string> results = 
                         ExecuteWithReauth
                         (
@@ -44,13 +43,13 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
                             reauthenticate: () => _authRepository.ResolveAuthentication()
                         );
 
-                    if (AppConfiguration.Instance.Debug) Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] results.Value = {results?.Results}");
+                    if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] results.Value = {results?.Results}");
                     if (results?.Error != null) Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] results.Error = {results.Error}");
 
                     status = results?.Results?.Body?.RetrieveResponse?.OverallStatus;
 
                     // Process Results
-                    if (AppConfiguration.Instance.Debug) Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Overall Status: {results!.Results.Body.RetrieveResponse.OverallStatus}");
+                    if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Overall Status: {results!.Results.Body.RetrieveResponse.OverallStatus}");
                     int currentPageSize = 0;
                     if (results!.Results.Body.RetrieveResponse.Results.Any())
                     {

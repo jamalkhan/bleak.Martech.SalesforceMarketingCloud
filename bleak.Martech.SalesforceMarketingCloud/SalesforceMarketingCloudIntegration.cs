@@ -1,4 +1,5 @@
 using System;
+using bleak.Martech.SalesforceMarketingCloud.Wsdl;
 
 namespace bleak.Martech.SalesforceMarketingCloud
 {
@@ -7,7 +8,5 @@ namespace bleak.Martech.SalesforceMarketingCloud
         public SalesforceMarketingCloudIntegration(string clientId, string clientSecret, string authUrl, string restUrl)
         {
         }
-
-        // Add methods to interact with Salesforce Marketing Cloud API here
     }
 }

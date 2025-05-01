@@ -1,5 +1,4 @@
 using System.Reflection;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops
 {
@@ -34,7 +33,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops
             int attempt = 0;
             bool writeSuccessful = false;
 
-            if (AppConfiguration.Instance.Debug) Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Writing {records.Count()} records to {FilePath}");
+            //if (AppConfiguration.Instance.Debug) Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Writing {records.Count()} records to {FilePath}");
             while (attempt < Options.MaxRetryAttempts && !writeSuccessful)
             {
                 try

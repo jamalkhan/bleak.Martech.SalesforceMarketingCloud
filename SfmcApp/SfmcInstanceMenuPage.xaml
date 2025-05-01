@@ -3,17 +3,19 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="SfmcApp.SfmcInstanceMenuPage"
              Title="SfmcInstanceMenuPage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Connected to SFMC / {Binding Name}"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
+    <ScrollView>
+        <VerticalStackLayout>
+            <Label 
+                Text="Connected to SFMC / {Binding Name}"
+                VerticalOptions="Center" 
+                HorizontalOptions="Center" />
 
-        <Button
-            x:Name="ShowDataExtensionsBtn"
-            Text="Show Data Extensions" 
-            SemanticProperties.Hint="Show Data Extensions"
-            Clicked="OnShowDataExtensionsClicked"
-            HorizontalOptions="Fill" />
-    </VerticalStackLayout>
+            <Button
+                x:Name="ShowDataExtensionsBtn"
+                Text="Show Data Extensions" 
+                SemanticProperties.Hint="Show Data Extensions"
+                Clicked="OnShowDataExtensionsClicked"
+                HorizontalOptions="Fill" />
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>
