@@ -2,12 +2,8 @@
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps;
 using bleak.Martech.SalesforceMarketingCloud.Authentication;
-using bleak.Martech.SalesforceMarketingCloud.Models;
-using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using System.Diagnostics;
-using System;
-using System.IO;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication;
 
@@ -170,7 +166,9 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
         private static void Path5_SharedDataExtensionFullPathFile()
         {
-            var lf = new SharedDataExtensionFolderSoapApi(authRepository: _authRepository);
+            var lf = new SharedDataExtensionFolderSoapApi(
+                authRepository: _authRepository,
+                config: new SfmcConnectionConfiguration());
             var folderTree = lf.GetFolderTree();
 
             var deapi = new DataExtensionSoapApi(authRepository: _authRepository);

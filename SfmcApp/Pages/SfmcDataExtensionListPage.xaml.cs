@@ -9,13 +9,13 @@ namespace SfmcApp.Pages;
 
 public partial class SfmcDataExtensionListPage : ContentPage
 {
-	public AuthRepository _authRepository { get; private set; }
+	public IAuthRepository _authRepository { get; private set; }
     private readonly DataExtensionFolderSoapApi _api;
 	public ObservableCollection<DataExtensionFolder> Folders { get; set; } = new();
 	static JsonSerializer _serializer = new JsonSerializer();
     static RestManager _restManager = new RestManager(_serializer, _serializer);
 
-	public SfmcDataExtensionListPage(AuthRepository authRepository)
+	public SfmcDataExtensionListPage(IAuthRepository authRepository)
 	{
 		InitializeComponent();
         _authRepository = authRepository;

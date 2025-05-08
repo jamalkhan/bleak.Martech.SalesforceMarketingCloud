@@ -1,13 +1,13 @@
 using bleak.Martech.SalesforceMarketingCloud.Authentication;
 
-namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication
+namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
 {
-    public partial class AuthRepository : AuthRepositoryBase
+    public partial class MauiAuthRepository : AuthRepositoryBase
     {
         private static Lazy<SfmcAuthToken>? _cachedToken = null;
         private static readonly string AuthFilePath = Path.Combine(AppContext.BaseDirectory, "authentication.json");
 
-        public AuthRepository(string subdomain, string clientId, string clientSecret, string memberId)
+        public MauiAuthRepository(string subdomain, string clientId, string clientSecret, string memberId)
             : base(subdomain, clientId, clientSecret, memberId)
         {
             _cachedToken = new Lazy<SfmcAuthToken>(LoadToken, true); // Thread-safe lazy loading
