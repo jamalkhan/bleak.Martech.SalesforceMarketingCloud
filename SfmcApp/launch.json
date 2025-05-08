@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Launch MAUI macOS App",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/bin/Debug/net8.0-maccatalyst/osx-x64/MyMacApp.app/Contents/MacOS/MyMacApp",
+        "cwd": "${workspaceFolder}",
+        "stopAtEntry": false
+      }
+    ]
+  }

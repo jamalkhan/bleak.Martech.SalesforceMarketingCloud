@@ -1,0 +1,10 @@
+{
+    "OutputFolder":"",
+    "Subdomain":"",
+    "ClientId":"",
+    "ClientSecret":"",
+    "MemberId":"",
+    "PageSize":500,
+    "MaxDegreeOfParallelism":10,
+    "Debug":false
+}

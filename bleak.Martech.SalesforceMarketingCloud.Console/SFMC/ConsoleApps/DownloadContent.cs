@@ -1,24 +1,25 @@
 using bleak.Api.Rest;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
-using bleak.Martech.SalesforceMarketingCloud.ContentBuilder;
-using bleak.Martech.SalesforceMarketingCloud.ContentBuilder.SfmcPocos;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap.DataExtensions;
+using bleak.Martech.SalesforceMarketingCloud.Authentication;
+using bleak.Martech.SalesforceMarketingCloud.Models;
+using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
+using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using System.Diagnostics;
 using System;
 using System.IO;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 {
-    public class DownloadContent
+
+    public class DownloadContent : IConsoleApp
     {
         static JsonSerializer serializer = new JsonSerializer();
         private static int assetCounter = 0;
         private static int folderCounter = 0;
         private static HashSet<string> assetTypes = new HashSet<string>();
         RestManager _restManager;
-        AuthRepository _authRepository;
-        public DownloadContent( RestManager restManager, AuthRepository authRepository)
+        IAuthRepository _authRepository;
+        public DownloadContent( RestManager restManager, IAuthRepository authRepository)
         {
             _restManager = restManager;
             _authRepository = authRepository;

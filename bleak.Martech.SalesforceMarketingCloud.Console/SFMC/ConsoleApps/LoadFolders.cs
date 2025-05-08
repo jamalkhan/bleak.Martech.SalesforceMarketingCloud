@@ -1,8 +1,8 @@
 using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication;
-using bleak.Martech.SalesforceMarketingCloud.ContentBuilder;
-using bleak.Martech.SalesforceMarketingCloud.ContentBuilder.SfmcPocos;
+using bleak.Martech.SalesforceMarketingCloud.Authentication;
+using bleak.Martech.SalesforceMarketingCloud.Models;
+using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using System.Diagnostics;
 using System.ServiceModel;
 using System.Net.Http.Headers;
@@ -12,8 +12,8 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
     public class LoadFolders
     {
         RestManager _restManager;
-        AuthRepository _authRepository;
-        public LoadFolders(RestManager restManager, AuthRepository authRepository)
+        IAuthRepository _authRepository;
+        public LoadFolders(RestManager restManager, IAuthRepository authRepository)
         {
             _restManager = restManager;
             _authRepository = authRepository;

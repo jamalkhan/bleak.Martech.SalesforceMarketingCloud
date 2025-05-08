@@ -1,13 +1,15 @@
 ﻿using bleak.Api.Rest;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps;
-using bleak.Martech.SalesforceMarketingCloud.ContentBuilder;
-using bleak.Martech.SalesforceMarketingCloud.ContentBuilder.SfmcPocos;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap.DataExtensions;
+using bleak.Martech.SalesforceMarketingCloud.Authentication;
+using bleak.Martech.SalesforceMarketingCloud.Models;
+using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
+using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using System.Diagnostics;
 using System;
 using System.IO;
+using bleak.Martech.SalesforceMarketingCloud.Configuration;
+using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 {
@@ -15,12 +17,16 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
     {
         static JsonSerializer serializer = new JsonSerializer();
         static RestManager _restManager = new RestManager(serializer, serializer);
-        static AuthRepository _authRepository = new AuthRepository(_restManager, serializer);
+        static IAuthRepository _authRepository = new AuthRepository(
+            subdomain: AppConfiguration.Instance.Subdomain,
+            clientId: AppConfiguration.Instance.ClientId,
+            clientSecret: AppConfiguration.Instance.ClientSecret,
+            memberId: AppConfiguration.Instance.MemberId
+        );
         
 
         private static void Main(string[] args)
         {
-            
             // See https://aka.ms/new-console-template for more information
             Console.WriteLine($"Getting Auth Token");
             _authRepository.ResolveAuthentication();
@@ -38,7 +44,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                 Console.WriteLine("3. Data Extensions");
                 Console.WriteLine("4. Data Extension Full Path File");
                 Console.WriteLine("5. Shared Data Extension Full Path File");
-
+                Console.WriteLine("6. Download All QueryDefinitions");
+                Console.WriteLine("7. Download Opens for last 180 days");
+                Console.WriteLine("8. Download Clicks for last 180 days");
+                Console.WriteLine("9. Download Sents for last 180 days");
+                Console.WriteLine("10. Download Images");
                 var input = Console.ReadLine();
 
                 var stopwatch = new Stopwatch();
@@ -55,17 +65,56 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
                     case "2":
                         Path2_DataExtensionFolders();
-
                         break;
+
                     case "3":
                         Path3_DataExtensions();
                         break;
+
                     case "4":
                         Path4_DataExtensionFullPathFile();
                         break;
                     case "5":
                         Path5_SharedDataExtensionFullPathFile();
                         break;
+
+                    case "6":
+                        var queryDefinitionApp = new QueryDefinitionApp<QueryDefinitionPoco>(_authRepository);
+                        queryDefinitionApp.Execute();
+                        break;
+
+                    case "7":
+                        var opensApp = new DownloadOpensApp(
+                            authRepository:_authRepository,
+                            folder: Path.Combine(AppConfiguration.Instance.OutputFolder, "_SendTracking", "Opens"),
+                            daysBack: 180
+                        );
+                        opensApp.Execute();
+                        break;
+
+                    case "8":
+                        var sentsApp = new DownloadSentsApp(
+                            authRepository:_authRepository,
+                            folder: Path.Combine(AppConfiguration.Instance.OutputFolder, "_SentTracking", "Sents"),
+                            daysBack: 180
+                        );
+                        sentsApp.Execute();
+                        break;
+                    
+                    case "9":
+                        var clicksApp = new DownloadSentsApp(
+                            authRepository:_authRepository,
+                            folder: Path.Combine(AppConfiguration.Instance.OutputFolder, "_SentTracking", "Sents"),
+                            daysBack: 180
+                        );
+                        clicksApp.Execute();
+                        break;
+
+                    case "10":
+                        var downloadImages = new DownloadImagesApp(_restManager, _authRepository);
+                        downloadImages.Execute();
+                        break;
+                        
                     default:
                         {
                             Console.WriteLine("key not recognized. exiting...");
@@ -84,7 +133,10 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
         private static void Path2_DataExtensionFolders()
         {
-            var lf2 = new Sfmc.Soap.DataExtensions.DataExtensionFolderSoapApi(authRepository: _authRepository);
+            var lf2 = new Sfmc.Soap.DataExtensionFolderSoapApi(
+                authRepository: _authRepository,
+                config: new SfmcConnectionConfiguration()
+                );
             var ft2 = lf2.GetFolderTree();
 
             RenderFolderTree(ft2);
@@ -92,7 +144,9 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
         private static void Path3_DataExtensions()
         {
-            var deapi = new Sfmc.Soap.DataExtensions.DataExtensionSoapApi(authRepository: _authRepository);
+            var deapi = new Sfmc.Soap.DataExtensionSoapApi(
+                authRepository: _authRepository
+                );
             var des = deapi.GetAllDataExtensions();
             foreach (var de in des)
             {
@@ -102,10 +156,12 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
         private static void Path4_DataExtensionFullPathFile()
         {
-            var lf = new Sfmc.Soap.DataExtensions.DataExtensionFolderSoapApi(authRepository: _authRepository);
-            var folderTree = lf.GetFolderTree();
+            var lf = new Sfmc.Soap.DataExtensionFolderSoapApi(
+                authRepository: _authRepository,
+                config: new SfmcConnectionConfiguration());
 
-            var deapi = new Sfmc.Soap.DataExtensions.DataExtensionSoapApi(authRepository: _authRepository);
+            var folderTree = lf.GetFolderTree();
+            var deapi = new DataExtensionSoapApi(authRepository: _authRepository);
             var dataExtensions = deapi.GetAllDataExtensions();
 
             AddDEsToFolder(folderTree, dataExtensions);
@@ -114,10 +170,10 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
 
         private static void Path5_SharedDataExtensionFullPathFile()
         {
-            var lf = new Sfmc.Soap.DataExtensions.SharedDataExtensionFolderSoapApi(authRepository: _authRepository);
+            var lf = new SharedDataExtensionFolderSoapApi(authRepository: _authRepository);
             var folderTree = lf.GetFolderTree();
 
-            var deapi = new Sfmc.Soap.DataExtensions.DataExtensionSoapApi(authRepository: _authRepository);
+            var deapi = new DataExtensionSoapApi(authRepository: _authRepository);
             var dataExtensions = deapi.GetAllDataExtensions();
 
             AddDEsToFolder(folderTree, dataExtensions);

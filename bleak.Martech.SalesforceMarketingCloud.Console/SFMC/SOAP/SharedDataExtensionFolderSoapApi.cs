@@ -6,13 +6,14 @@ using bleak.Martech.SalesforceMarketingCloud.ContentBuilder.SfmcPocos;
 using bleak.Martech.SalesforceMarketingCloud.Wsdl;
 using System.Text;
 using System.Security.Cryptography.Pkcs;
+using bleak.Martech.SalesforceMarketingCloud.Authentication;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap.DataExtensions
 {
     public partial class SharedDataExtensionFolderSoapApi : BaseSoapApi
     {
 
-        public SharedDataExtensionFolderSoapApi(AuthRepository authRepository) : base(authRepository)
+        public SharedDataExtensionFolderSoapApi(IAuthRepository authRepository) : base(authRepository)
         {
         }
 
