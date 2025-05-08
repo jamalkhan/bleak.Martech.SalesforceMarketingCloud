@@ -37,6 +37,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                 Console.WriteLine("2. Data Extension Folders");
                 Console.WriteLine("3. Data Extensions");
                 Console.WriteLine("4. Data Extension Full Path File");
+                Console.WriteLine("5. Shared Data Extension Full Path File");
 
                 var input = Console.ReadLine();
 
@@ -61,6 +62,9 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                         break;
                     case "4":
                         Path4_DataExtensionFullPathFile();
+                        break;
+                    case "5":
+                        Path5_SharedDataExtensionFullPathFile();
                         break;
                     default:
                         {
@@ -99,6 +103,18 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
         private static void Path4_DataExtensionFullPathFile()
         {
             var lf = new Sfmc.Soap.DataExtensions.DataExtensionFolderSoapApi(authRepository: _authRepository);
+            var folderTree = lf.GetFolderTree();
+
+            var deapi = new Sfmc.Soap.DataExtensions.DataExtensionSoapApi(authRepository: _authRepository);
+            var dataExtensions = deapi.GetAllDataExtensions();
+
+            AddDEsToFolder(folderTree, dataExtensions);
+            WriteOutFolderTree(folderTree);
+        }
+
+        private static void Path5_SharedDataExtensionFullPathFile()
+        {
+            var lf = new Sfmc.Soap.DataExtensions.SharedDataExtensionFolderSoapApi(authRepository: _authRepository);
             var folderTree = lf.GetFolderTree();
 
             var deapi = new Sfmc.Soap.DataExtensions.DataExtensionSoapApi(authRepository: _authRepository);
