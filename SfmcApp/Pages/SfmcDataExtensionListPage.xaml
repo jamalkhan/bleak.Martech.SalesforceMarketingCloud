@@ -10,16 +10,16 @@
             VerticalOptions="Center" 
             HorizontalOptions="Center" />
 
-            <CollectionView ItemsSource="{Binding Nodes}">
+            <CollectionView ItemsSource="{Binding Folders}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <toolkit:Expander>
                             <toolkit:Expander.Header>
-                                <Label Text="{Binding Folders}" FontAttributes="Bold" />
+                                <Label Text="{Binding Name}" FontAttributes="Bold" />
                             </toolkit:Expander.Header>
 
                             <VerticalStackLayout Padding="10,0,0,0">
-                                <CollectionView ItemsSource="{Binding Children}">
+                                <CollectionView ItemsSource="{Binding SubFolders}">
                                     <CollectionView.ItemTemplate>
                                         <DataTemplate>
                                             <Label Text="{Binding Name}" />
