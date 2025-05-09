@@ -1,46 +1,92 @@
+using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.Authentication;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
 {
-    public partial class MauiAuthRepository : AuthRepositoryBase
+    public partial class MauiAuthRepository : IAuthRepository
     {
-        private static Lazy<SfmcAuthToken>? _cachedToken = null;
-        private static readonly string AuthFilePath = Path.Combine(AppContext.BaseDirectory, "authentication.json");
+        const double TokenRetionThreshold = 600.07;
+        private DateTime _lastWriteTime = DateTime.Now;
 
-        public MauiAuthRepository(string subdomain, string clientId, string clientSecret, string memberId)
-            : base(subdomain, clientId, clientSecret, memberId)
+        protected readonly JsonSerializer _jsonSerializer;
+        protected readonly RestManager _restManager;
+        
+        public string Subdomain {get; private set; }
+        public string ClientId {get; private set; }
+        public string ClientSecret {get; private set; }
+        public string MemberId {get; private set; }
+
+        private static readonly object _lock = new object();
+        public SfmcAuthToken? _token;
+        public SfmcAuthToken Token
         {
-            _cachedToken = new Lazy<SfmcAuthToken>(LoadToken, true); // Thread-safe lazy loading
+            get
+            {
+                if (!IsTokenValid())
+                {
+                    lock (_lock)
+                    {
+                        if (!IsTokenValid())
+                        {
+                            _token = Authenticate();
+                            _lastWriteTime = DateTime.Now;
+                        }
+                    }
+                }
+                
+                return _token ?? throw new InvalidOperationException("Authentication failed.");
+            }
         }
 
-        protected override bool IsTokenValid()
+        bool IsTokenValid()
         {
-            if (File.Exists(AuthFilePath))
+            if (_token != null)
             {
-                DateTime lastWriteTime = File.GetLastWriteTime(AuthFilePath);
-                TimeSpan timeDifference = DateTime.Now - lastWriteTime;
-                if (timeDifference.TotalSeconds <= Threshold)
-                {
-                    return true;
-                }
-                File.Delete(AuthFilePath);
+                TimeSpan timeDifference = DateTime.Now - _lastWriteTime;
+                return timeDifference.TotalSeconds <= TokenRetionThreshold;
             }
             return false;
         }
 
-        protected override SfmcAuthToken LoadToken()
+        protected SfmcAuthToken Authenticate()
         {
-            if (File.Exists(AuthFilePath))
+            Console.WriteLine("Authenticating...");
+            string tokenUri = $"https://{Subdomain}.auth.marketingcloudapis.com/v2/token";
+
+            var authResults = _restManager.ExecuteRestMethod<SfmcAuthToken, string>(
+                uri: new Uri(tokenUri),
+                verb: HttpVerbs.POST,
+                payload: new
+                {
+                    grant_type = "client_credentials",
+                    client_id = ClientId,
+                    client_secret = ClientSecret,
+                    account_id = MemberId,
+                },
+                headers: new List<Header> { new Header { Name = "Content-Type", Value = "application/json" } }
+            );
+
+            if (authResults.Error != null)
             {
-                return _jsonSerializer.Deserialize<SfmcAuthToken>(File.ReadAllText(AuthFilePath));
+                throw new Exception($"Authentication failed: {authResults.Error}");
             }
-            throw new InvalidOperationException("No valid authentication file found.");
+
+            return authResults.Results;
         }
 
-        protected override void SaveToken(SfmcAuthToken token)
+        public void ResolveAuthentication()
         {
-            string json = _jsonSerializer.Serialize(token);
-            File.WriteAllText(AuthFilePath, json);
+            throw new NotImplementedException();
+        }
+
+        public MauiAuthRepository(string subdomain, string clientId, string clientSecret, string memberId)
+        {
+            Subdomain = subdomain;
+            ClientId = clientId;
+            ClientSecret = clientSecret;
+            MemberId = memberId;
+            _jsonSerializer = new JsonSerializer();
+            _restManager = new RestManager(_jsonSerializer, _jsonSerializer);
         }
     }
 }

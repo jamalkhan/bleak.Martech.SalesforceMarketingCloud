@@ -14,7 +14,6 @@ public partial class SfmcConnectionListPage : ContentPage
     {
         InitializeComponent();
         BindingContext = this;
-
         LoadConnections();
     }
 
@@ -30,7 +29,9 @@ public partial class SfmcConnectionListPage : ContentPage
                 if (connections != null)
                 {
                     foreach (var connection in connections)
+                    {
                         Connections.Add(connection);
+                    }
                 }
             }
             catch

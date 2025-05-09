@@ -66,7 +66,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Authentication
             return authResults.Results;
         }
 
-        public virtual  void ResolveAuthentication()
+        public virtual void ResolveAuthentication()
         {
             if (IsTokenValid())
             {
