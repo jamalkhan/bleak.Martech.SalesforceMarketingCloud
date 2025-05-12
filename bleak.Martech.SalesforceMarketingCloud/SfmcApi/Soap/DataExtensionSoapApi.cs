@@ -9,17 +9,39 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
     {
         public DataExtensionSoapApi
         (
-            IAuthRepository authRepository
+            IAuthRepository authRepository,
+            SfmcConnectionConfiguration config
         )
         : base
         (
             authRepository: authRepository,
-            sfmcConnectionConfiguration: new SfmcConnectionConfiguration()
+            sfmcConnectionConfiguration: config
         )
         {
         }
         
+
+        public Task<List<DataExtensionPoco>> GetDataExtensionsByFolderAsync(int folderId)
+        {
+            return Task.Run(() => GetDataExtensionsByFolder(folderId));
+        }
+        private List<DataExtensionPoco> GetDataExtensionsByFolder(int folderId)
+        {
+            var requestPayload = BuildRequest(folderId: folderId);
+            return IterateAPICallsForRequest(requestPayload: requestPayload);
+        }
+
+        public Task<List<DataExtensionPoco>> GetAllDataExtensionsAsync()
+        {
+            return Task.Run(() => GetAllDataExtensions());
+        }
         public List<DataExtensionPoco> GetAllDataExtensions()
+        {
+            var requestPayload = BuildRequest();
+            return IterateAPICallsForRequest(requestPayload: requestPayload);
+        }
+
+        private List<DataExtensionPoco> IterateAPICallsForRequest(string requestPayload)
         {
             int page = 1;
             int currentPageSize = 0;
@@ -29,7 +51,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
             do
             {
                 if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"Loading Data Extension {page}");
-                requestId = LoadDataExtensions(wsdlDataExtensions, requestId);
+                requestId = MakeApiCall(wsdlDataExtensions, requestPayload);
                 page++;
             }
             while (_sfmcConnectionConfiguration.PageSize == currentPageSize);
@@ -47,7 +69,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
             throw new Exception("Error Loading Folders");
         }
 
-        private string LoadDataExtensions(List<Wsdl.DataExtension> wsdlDataExtensions, string requestId = "")
+        private string MakeApiCall(List<Wsdl.DataExtension> wsdlDataExtensions, string requestPayload)
         {
             try
             {
@@ -56,7 +78,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
                 var results = _restManager.ExecuteRestMethod<SoapEnvelope<Wsdl.DataExtension>, string>(
                     uri: new Uri(url),
                     verb: HttpVerbs.POST,
-                    serializedPayload: BuildRequest(requestId).ToString(),
+                    serializedPayload: requestPayload,
                     headers: BuildHeaders()
                 );
 
@@ -76,7 +98,8 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
                 if (results.Results.Body.RetrieveResponse.OverallStatus == "MoreDataAvailable")
                 {
                     Console.WriteLine($"More DataExtensions Available. Request ID: {results.Results.Body.RetrieveResponse.RequestID}");
-                    var retval = LoadDataExtensions(wsdlDataExtensions, results.Results.Body.RetrieveResponse.RequestID);
+                    var moreDataRequestPayload = BuildRequest(requestId: results.Results.Body.RetrieveResponse.RequestID).ToString();
+                    var retval = MakeApiCall(wsdlDataExtensions, moreDataRequestPayload);
                     return retval;
                     
                 }
@@ -90,8 +113,13 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
         }
 
 
-        private string BuildRequest(string requestId)
+        private string BuildRequest(string? requestId = null, int? folderId = null)
         {
+            if (!string.IsNullOrEmpty(requestId) && folderId.HasValue)
+            {
+                throw new ArgumentException("Either requestId or folderId must be provided, not both.");
+            }
+
             var sb = new StringBuilder();
             sb.AppendLine($"<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
             sb.AppendLine($"<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:a=\"http://schemas.xmlsoap.org/ws/2004/08/addressing\" xmlns:u=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd\">");
@@ -115,6 +143,15 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
             sb.AppendLine($"                <Properties>CategoryID</Properties>");
             sb.AppendLine($"                <Properties>IsSendable</Properties>");
             sb.AppendLine($"                <Properties>IsTestable</Properties>");
+
+            if (folderId.HasValue)
+            {
+                sb.AppendLine($"                <Filter xsi:type=\"SimpleFilterPart\">");
+                sb.AppendLine($"                    <Property>CategoryID</Property>");
+                sb.AppendLine($"                    <SimpleOperator>equals</SimpleOperator>");
+                sb.AppendLine($"                    <Value>{folderId.Value}</Value>");
+                sb.AppendLine($"                </Filter>");
+            }
             sb.AppendLine($"            </RetrieveRequest>");
             sb.AppendLine($"        </RetrieveRequestMsg>");
             sb.AppendLine($"    </s:Body>");
