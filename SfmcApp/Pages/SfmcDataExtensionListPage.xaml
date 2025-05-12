@@ -125,16 +125,69 @@
                 ItemsSource="{Binding DataExtensions}"
                 IsVisible="{Binding IsLoaded}"
                 >
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="20" />
+                </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Grid ColumnDefinitions="2*, 1*, 3*, *"
-                            Padding="10">
-                            <Label Grid.Column="0" Text="{Binding Name}" />
-                            <Label Grid.Column="1" Text="{Binding Description}" />
-                            <Label Grid.Column="2" Text="{Binding IsSendable}" />
-                            <Label Grid.Column="3" Text="{Binding CustomerKey}" />
-                        </Grid>
+                        <Border 
+                            Stroke="LightGray" 
+                            StrokeThickness="1" 
+                            Margin="10,20,10,20" 
+                            Padding="4" 
+                            StrokeShape="RoundRectangle 4">
+
+                            <Grid ColumnDefinitions="Auto, *, Auto"
+                                RowDefinitions="Auto, Auto, Auto"
+                                Padding="10"
+                                ColumnSpacing="10"
+                                VerticalOptions="Center">
+
+                                <!-- lemon.gif spanning 3 rows -->
+                                <Image Grid.RowSpan="3"
+                                    Grid.Column="0"
+                                    Source="lemon.gif"
+                                    WidthRequest="60"
+                                    HeightRequest="60"
+                                    VerticalOptions="Center" />
+
+                                <!-- Name in big text -->
+                                <Label Grid.Column="1"
+                                    Grid.Row="0"
+                                    Text="{Binding Name}"
+                                    FontSize="20"
+                                    FontAttributes="Bold"
+                                    VerticalOptions="Center" />
+
+                                <!-- Customer Key -->
+                                <HorizontalStackLayout
+                                    Grid.Column="1"
+                                    Grid.Row="1"
+                                    VerticalOptions="Center">
+                                    <Label Text="Customer Key: " />
+                                    <Label Text="{Binding CustomerKey}" />
+                                </HorizontalStackLayout>
+
+                                <!-- Description -->
+                                <Label Grid.Column="1"
+                                    Grid.Row="2"
+                                    Text="{Binding Description}"
+                                    VerticalOptions="Center" />
+
+                                <!-- mail.png, only visible if IsSendable -->
+                                <Image Grid.Column="2"
+                                    Grid.RowSpan="3"
+                                    Source="mail.png"
+                                    WidthRequest="30"
+                                    HeightRequest="30"
+                                    VerticalOptions="Center"
+                                    HorizontalOptions="End"
+                                    IsVisible="{Binding IsSendable}"
+                                    SemanticProperties.Description="Is Sendable = true" />
+                            </Grid>
+                        </Border>
                     </DataTemplate>
+
                 </CollectionView.ItemTemplate>
             </CollectionView>
         </Border>

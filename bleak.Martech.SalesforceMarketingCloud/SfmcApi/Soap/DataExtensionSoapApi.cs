@@ -143,7 +143,6 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
             sb.AppendLine($"                <Properties>CategoryID</Properties>");
             sb.AppendLine($"                <Properties>IsSendable</Properties>");
             sb.AppendLine($"                <Properties>IsTestable</Properties>");
-
             if (folderId.HasValue)
             {
                 sb.AppendLine($"                <Filter xsi:type=\"SimpleFilterPart\">");
