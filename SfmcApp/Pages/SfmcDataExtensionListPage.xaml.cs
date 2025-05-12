@@ -12,6 +12,29 @@ namespace SfmcApp.Pages;
 
 public partial class SfmcDataExtensionListPage : ContentPage, INotifyPropertyChanged
 {
+    private bool _isLoading;
+    public bool IsLoading
+    {
+        get => _isLoading;
+        set
+        {
+            _isLoading = value;
+            OnPropertyChanged(); // or SetProperty in CommunityToolkit
+        }
+    }
+
+    private bool _isLoaded;
+    public bool IsLoaded
+    {
+        get => _isLoaded;
+        set
+        {
+            _isLoaded = value;
+            OnPropertyChanged(); // or SetProperty in CommunityToolkit
+        }
+    }
+
+
 	public IAuthRepository _authRepository { get; private set; }
     private readonly DataExtensionFolderSoapApi _api;
 	public ObservableCollection<DataExtensionFolder> Folders { get; set; } = new();
@@ -60,11 +83,15 @@ public partial class SfmcDataExtensionListPage : ContentPage, INotifyPropertyCha
     {
         try
         {
+            IsLoaded = false;
+            IsLoading = true;
             var folderTree = await _api.GetFolderTreeAsync(); // Must be async method
             foreach (var folder in folderTree)
             {
                 Folders.Add(folder);
             }
+            IsLoaded = true;
+            IsLoading = false;
         }
         catch (Exception ex)
         {

@@ -5,94 +5,130 @@
              xmlns:local="clr-namespace:SfmcApp.Pages"
              x:Class="SfmcApp.Pages.SfmcDataExtensionListPage"
              Title="SfmcDataExtensionListPage">
-    <VerticalStackLayout>
-        <Label 
+    <Grid 
+        ColumnDefinitions="*, 2*"
+        RowDefinitions="Auto, *"
+        VerticalOptions="FillAndExpand"        
+        >
+
+        <!-- Header -->
+        <Label Grid.Row="0"
             Text="Data Extension Folders!"
             VerticalOptions="Center" 
-            HorizontalOptions="Center" />
+            HorizontalOptions="Center"
+            />
 
+        <!-- Left Column -->
+        <Border 
+            Grid.Row="1"
+            Grid.Column="0"
+            Stroke="Gray"
+            StrokeThickness="1"
+            BackgroundColor="White"
+            Padding="5"
+            Margin="10"
+            StrokeShape="RoundRectangle 8"
+            >
+            <Grid>
+                 <Image Source="spinner.gif"
+                       WidthRequest="40"
+                       HeightRequest="40"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       IsVisible="{Binding IsLoading}" />
+                <CollectionView
+                            ItemsSource="{Binding Folders}"
+                            SelectionMode="Single"
+                            SelectedItem="{Binding SelectedFolder}"
+                            IsVisible="{Binding IsLoaded}"
+                            >
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <toolkit:Expander>
+                                <!-- Folder -->
+                                <toolkit:Expander.Header>
+                                    <HorizontalStackLayout Spacing="5">
+                                        <Image Source="folder_icon.png" HeightRequest="20" WidthRequest="20" />
+                                        <Label Text="{Binding Name}">
+                                            <Label.GestureRecognizers>
+                                                <TapGestureRecognizer
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcDataExtensionListPage}}, Path=BindingContext.FolderTappedCommand}"
+                                                    CommandParameter="{Binding .}" />
+                                            </Label.GestureRecognizers>
+                                        </Label>
+                                    </HorizontalStackLayout>
+                                </toolkit:Expander.Header>
 
-        <Grid ColumnDefinitions="* , 2*" RowDefinitions="*">
-            <CollectionView
-                        Grid.Column="0"
-                        ItemsSource="{Binding Folders}"
-                        SelectionMode="Single"
-                        SelectedItem="{Binding SelectedFolder}">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <toolkit:Expander>
-                            <!-- Folder -->
-                            <toolkit:Expander.Header>
-                                <HorizontalStackLayout Spacing="5">
-                                    <Image Source="folder_icon.png" HeightRequest="20" WidthRequest="20" />
-                                    <Label Text="{Binding Name}" />
-                                    <Button
-                                        x:Name="ShowDataExtensionsBtn"
-                                        Text="Show Data Extensions" 
-                                        SemanticProperties.Hint="Show Data Extensions"
-                                        Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcDataExtensionListPage}}, Path=BindingContext.FolderTappedCommand}"
-                                        CommandParameter="{Binding .}"
-                                        HorizontalOptions="Fill" />
-                                </HorizontalStackLayout>
-                            </toolkit:Expander.Header>
-
-                            <!-- Subfolders -->
-                            <VerticalStackLayout Padding="20,0,0,0">
-                                <CollectionView ItemsSource="{Binding SubFolders}">
-                                    <CollectionView.ItemTemplate>
-                                        <DataTemplate>
-                                            <toolkit:Expander>
-                                                <toolkit:Expander.Header>
-                                                    <HorizontalStackLayout Spacing="5">
-                                                        <Image Source="folder_icon.png" HeightRequest="18" WidthRequest="18" />
-                                                        <Label Text="{Binding Name}" />
-                                                        <Button
-                                                            x:Name="ShowDataExtensionsBtn"
-                                                            Text="Show Data Extensions" 
-                                                            SemanticProperties.Hint="Show Data Extensions"
-                                                            Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcDataExtensionListPage}}, Path=BindingContext.FolderTappedCommand}"
-                                                            CommandParameter="{Binding .}"
-                                                            HorizontalOptions="Fill" />
-                                                    </HorizontalStackLayout>
-                                                </toolkit:Expander.Header>
-
-                                                <!-- (Optional) Recursive subfolders -->
-                                                <VerticalStackLayout Padding="20,0,0,0">
-                                                    <CollectionView ItemsSource="{Binding SubFolders}">
-                                                        <CollectionView.ItemTemplate>
-                                                            <DataTemplate>
-                                                                <HorizontalStackLayout Spacing="5">
-                                                                    <Image Source="folder_icon.png" HeightRequest="18" WidthRequest="18" />
-                                                                    <Label Text="{Binding Name}" />
-                                                                    <Button
-                                                                        x:Name="ShowDataExtensionsBtn"
-                                                                        Text="Show Data Extensions" 
-                                                                        SemanticProperties.Hint="Show Data Extensions"
+                                <!-- Subfolders -->
+                                <VerticalStackLayout Padding="20,0,0,0">
+                                    <CollectionView ItemsSource="{Binding SubFolders}">
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate>
+                                                <toolkit:Expander>
+                                                    <toolkit:Expander.Header>
+                                                        <HorizontalStackLayout Spacing="5">
+                                                            <Image Source="folder_icon.png" HeightRequest="18" WidthRequest="18" />
+                                                            <Label Text="{Binding Name}">
+                                                                <Label.GestureRecognizers>
+                                                                    <TapGestureRecognizer
                                                                         Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcDataExtensionListPage}}, Path=BindingContext.FolderTappedCommand}"
-                                                                        CommandParameter="{Binding .}"
-                                                                        HorizontalOptions="Fill" />
-                                                                </HorizontalStackLayout>
-                                                            </DataTemplate>
-                                                        </CollectionView.ItemTemplate>
-                                                    </CollectionView>
-                                                </VerticalStackLayout>
-                                            </toolkit:Expander>
-                                        </DataTemplate>
-                                    </CollectionView.ItemTemplate>
-                                </CollectionView>
-                            </VerticalStackLayout>
-                        </toolkit:Expander>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+                                                                        CommandParameter="{Binding .}" />
+                                                                </Label.GestureRecognizers>
+                                                            </Label>
+                                                        </HorizontalStackLayout>
+                                                    </toolkit:Expander.Header>
 
-            <!-- Right Column -->
-            <CollectionView Grid.Column="1"
-                            ItemsSource="{Binding DataExtensions}">
+                                                    <!-- (Optional) Recursive subfolders -->
+                                                    <VerticalStackLayout Padding="20,0,0,0">
+                                                        <CollectionView ItemsSource="{Binding SubFolders}">
+                                                            <CollectionView.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <HorizontalStackLayout Spacing="5">
+                                                                        <Image Source="folder_icon.png" HeightRequest="18" WidthRequest="18" />
+                                                                        <Label Text="{Binding Name}">
+                                                                            <Label.GestureRecognizers>
+                                                                                <TapGestureRecognizer
+                                                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcDataExtensionListPage}}, Path=BindingContext.FolderTappedCommand}"
+                                                                                    CommandParameter="{Binding .}" />
+                                                                            </Label.GestureRecognizers>
+                                                                        </Label>
+                                                                    </HorizontalStackLayout>
+                                                                </DataTemplate>
+                                                            </CollectionView.ItemTemplate>
+                                                        </CollectionView>
+                                                    </VerticalStackLayout>
+                                                </toolkit:Expander>
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+                                </VerticalStackLayout>
+                            </toolkit:Expander>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+        </Border>
+        
+
+        <!-- Right Column -->
+        <Border 
+            Grid.Row="1"
+            Grid.Column="1"
+            Stroke="Gray"
+            StrokeThickness="1"
+            BackgroundColor="White"
+            Padding="5"
+            Margin="10"
+            StrokeShape="RoundRectangle 8"
+            >
+            <CollectionView
+                ItemsSource="{Binding DataExtensions}"
+                IsVisible="{Binding IsLoaded}"
+                >
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Grid ColumnDefinitions="2*, 1*, 3*"
-                              Padding="10">
+                        <Grid ColumnDefinitions="2*, 1*, 3*, *"
+                            Padding="10">
                             <Label Grid.Column="0" Text="{Binding Name}" />
                             <Label Grid.Column="1" Text="{Binding Description}" />
                             <Label Grid.Column="2" Text="{Binding IsSendable}" />
@@ -101,7 +137,6 @@
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-
-        </Grid>
-    </VerticalStackLayout>
+        </Border>
+    </Grid>
 </ContentPage>
