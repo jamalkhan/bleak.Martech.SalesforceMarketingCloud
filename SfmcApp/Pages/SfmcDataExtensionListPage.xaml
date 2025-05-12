@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:local="clr-namespace:SfmcApp.Pages"
              x:Class="SfmcApp.Pages.SfmcDataExtensionListPage"
              Title="SfmcDataExtensionListPage">
     <VerticalStackLayout>
@@ -17,7 +18,6 @@
                         ItemsSource="{Binding Folders}"
                         SelectionMode="Single"
                         SelectedItem="{Binding SelectedFolder}">
-                        >
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <toolkit:Expander>
@@ -25,7 +25,14 @@
                             <toolkit:Expander.Header>
                                 <HorizontalStackLayout Spacing="5">
                                     <Image Source="folder_icon.png" HeightRequest="20" WidthRequest="20" />
-                                    <Label Text="{Binding Name}" FontAttributes="Bold" />
+                                    <Label Text="{Binding Name}" />
+                                    <Button
+                                        x:Name="ShowDataExtensionsBtn"
+                                        Text="Show Data Extensions" 
+                                        SemanticProperties.Hint="Show Data Extensions"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcDataExtensionListPage}}, Path=BindingContext.FolderTappedCommand}"
+                                        CommandParameter="{Binding .}"
+                                        HorizontalOptions="Fill" />
                                 </HorizontalStackLayout>
                             </toolkit:Expander.Header>
 
@@ -39,6 +46,13 @@
                                                     <HorizontalStackLayout Spacing="5">
                                                         <Image Source="folder_icon.png" HeightRequest="18" WidthRequest="18" />
                                                         <Label Text="{Binding Name}" />
+                                                        <Button
+                                                            x:Name="ShowDataExtensionsBtn"
+                                                            Text="Show Data Extensions" 
+                                                            SemanticProperties.Hint="Show Data Extensions"
+                                                            Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcDataExtensionListPage}}, Path=BindingContext.FolderTappedCommand}"
+                                                            CommandParameter="{Binding .}"
+                                                            HorizontalOptions="Fill" />
                                                     </HorizontalStackLayout>
                                                 </toolkit:Expander.Header>
 
@@ -50,6 +64,13 @@
                                                                 <HorizontalStackLayout Spacing="5">
                                                                     <Image Source="folder_icon.png" HeightRequest="18" WidthRequest="18" />
                                                                     <Label Text="{Binding Name}" />
+                                                                    <Button
+                                                                        x:Name="ShowDataExtensionsBtn"
+                                                                        Text="Show Data Extensions" 
+                                                                        SemanticProperties.Hint="Show Data Extensions"
+                                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcDataExtensionListPage}}, Path=BindingContext.FolderTappedCommand}"
+                                                                        CommandParameter="{Binding .}"
+                                                                        HorizontalOptions="Fill" />
                                                                 </HorizontalStackLayout>
                                                             </DataTemplate>
                                                         </CollectionView.ItemTemplate>

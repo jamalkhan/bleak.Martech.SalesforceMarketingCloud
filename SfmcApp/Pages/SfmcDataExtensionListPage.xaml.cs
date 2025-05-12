@@ -7,6 +7,7 @@ using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows.Input;
 namespace SfmcApp.Pages;
 
 public partial class SfmcDataExtensionListPage : ContentPage, INotifyPropertyChanged
@@ -70,6 +71,12 @@ public partial class SfmcDataExtensionListPage : ContentPage, INotifyPropertyCha
             await DisplayAlert("Error", $"Failed to load folders: {ex.Message}", "OK");
         }
     }
+
+
+    public ICommand FolderTappedCommand => new Command<DataExtensionFolder>(folder =>
+    {
+        SelectedFolder = folder;
+    });
 
 
     private async void LoadDataExtensionsForSelectedFolderAsync()
