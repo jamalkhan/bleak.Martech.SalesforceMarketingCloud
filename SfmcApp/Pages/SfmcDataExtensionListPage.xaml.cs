@@ -133,4 +133,24 @@ public partial class SfmcDataExtensionListPage : ContentPage, INotifyPropertyCha
             await DisplayAlert("Error", $"Failed to load data extensions: {ex.Message}", "OK");
         }
     }
+
+
+
+
+    private void OnDownloadCsvTapped(object sender, EventArgs e)
+    {
+        if (sender is Image image && image.BindingContext is DataExtensionPoco poco)
+        {
+            // Now you can access the bound object
+            Console.WriteLine($"Download CSV for: {poco.Name}");
+
+            // Example: Call a method to handle download
+            DownloadCsv(poco);
+        }
+    }
+
+    private void DownloadCsv(DataExtensionPoco dataExtension)
+    {
+        // Implement your CSV logic here
+    }
 }

@@ -3,14 +3,14 @@ using bleak.Martech.SalesforceMarketingCloud.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.Models;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
+using bleak.Martech.SalesforceMarketingCloud.Rest;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.DataExtensions
 {
-    public class DataExtensionFolderRestApi
+    public class DataExtensionFolderRestApi : BaseRestApi
     {
-        readonly SfmcConnectionConfiguration _sfmcConnectionConfiguration;
-        readonly RestManager _restManager;
-        readonly IAuthRepository _authRepository;
+
+        private HttpVerbs verb = HttpVerbs.GET;
 
         public DataExtensionFolderRestApi(
             RestManager restManager, 
@@ -22,20 +22,9 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.DataExtens
             RestManager restManager, 
             IAuthRepository authRepository, 
             SfmcConnectionConfiguration sfmcConnectionConfiguration)
+            : base(restManager, authRepository, sfmcConnectionConfiguration)
         {
-            _sfmcConnectionConfiguration = sfmcConnectionConfiguration;
-            _restManager = restManager;
-            _authRepository = authRepository;
         }
-
-
-
-        private HttpVerbs verb = HttpVerbs.GET;
-        private List<Header> headers = new List<Header>
-        {
-            new Header() { Name = "Content-Type", Value = "application/json" },
-        };
-
 
         public async Task<List<FolderObject>> GetFolderTreeAsync()
         {
@@ -92,7 +81,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.DataExtens
                 
                 RestResults<SfmcRestWrapper<SfmcFolder>, string> results;
                 ///legacy/v1/beta/object/
-                string url = $"https://{_authRepository.Subdomain}.rest.marketingcloudapis.com//legacy/v1/beta/object/?$page={page}&$pagesize={_sfmcConnectionConfiguration.PageSize}";
+                string url = $"https://{_authRepository.Subdomain}.rest.marketingcloudapis.com/legacy/v1/beta/object/?$page={page}&$pagesize={_sfmcConnectionConfiguration.PageSize}";
                 
                 results = ExecuteRestMethodWithRetry(
                     loadFolderApiCall: LoadFolderApiCall,
@@ -129,12 +118,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.DataExtens
         {
             if (_sfmcConnectionConfiguration.Debug) { Console.WriteLine($"Attempting to {verb} to {url} with accessToken: {_authRepository.Token.access_token}"); }
 
-            var headersWithAuth = SetAuthHeader(headers);
-
+            SetAuthHeader();
             var results = _restManager.ExecuteRestMethod<SfmcRestWrapper<SfmcFolder>, string>(
                 uri: new Uri(url),
                 verb: verb,
-                headers: headersWithAuth
+                headers: _headers
                 );
 
             return results!;
@@ -166,22 +154,6 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.DataExtens
             }
 
             return results!;
-        }
-
-        private List<Header> SetAuthHeader(List<Header> headers)
-        {
-            var headersWithAuth = new List<Header>();
-
-            foreach (var header in headers)
-            {
-                headersWithAuth.Add(new Header() { Name = header.Name, Value = header.Value });
-            }
-
-            headersWithAuth.Add(
-                new Header() { Name = "Authorization", Value = $"Bearer {_authRepository.Token.access_token}" }
-            );
-
-            return headersWithAuth;
         }
     }
 }

@@ -137,7 +137,7 @@
                             Padding="4" 
                             StrokeShape="RoundRectangle 4">
 
-                            <Grid ColumnDefinitions="Auto, *, Auto"
+                            <Grid ColumnDefinitions="Auto, *, Auto, Auto"
                                 RowDefinitions="Auto, Auto, Auto"
                                 Padding="10"
                                 ColumnSpacing="10"
@@ -184,6 +184,20 @@
                                     HorizontalOptions="End"
                                     IsVisible="{Binding IsSendable}"
                                     SemanticProperties.Description="Is Sendable = true" />
+
+                                <Image Grid.Column="3"
+                                    Grid.RowSpan="3"
+                                    Source="csv_download.png"
+                                    WidthRequest="30"
+                                    HeightRequest="30"
+                                    VerticalOptions="Center"
+                                    HorizontalOptions="End"
+                                    SemanticProperties.Description="Download CSV"
+                                >
+                                <Image.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnDownloadCsvTapped" />
+                                </Image.GestureRecognizers>
+                            </Image>
                             </Grid>
                         </Border>
                     </DataTemplate>
