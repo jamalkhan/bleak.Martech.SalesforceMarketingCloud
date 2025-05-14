@@ -8,6 +8,18 @@ using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using bleak.Martech.SalesforceMarketingCloud.Rest;
+using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops;
+
+#if MACCATALYST
+using UIKit;
+using Foundation;
+using CoreGraphics;
+using UniformTypeIdentifiers;
+#endif
+
+
+
 namespace SfmcApp.Pages;
 
 public partial class SfmcDataExtensionListPage : ContentPage, INotifyPropertyChanged
@@ -137,20 +149,77 @@ public partial class SfmcDataExtensionListPage : ContentPage, INotifyPropertyCha
 
 
 
-    private void OnDownloadCsvTapped(object sender, EventArgs e)
+    private async void OnDownloadCsvTapped(object sender, EventArgs e)
     {
-        if (sender is Image image && image.BindingContext is DataExtensionPoco poco)
+        if (sender is Image image && image.BindingContext is DataExtensionPoco dataExtension)
         {
-            // Now you can access the bound object
-            Console.WriteLine($"Download CSV for: {poco.Name}");
+            var filePath = Path.Combine(FileSystem.AppDataDirectory, $"{dataExtension.Name}.csv");
 
-            // Example: Call a method to handle download
-            DownloadCsv(poco);
+            try
+            {
+                // Optional: Show loading UI
+                await DisplayAlert("Downloading", $"Starting download of {dataExtension.Name} to {filePath}...", "OK");
+
+                var api = new DataExtensionRestApi(_authRepository);
+                IFileWriter fileWriter = new DelimitedFileWriter(
+                    new DelimitedFileWriterOptions { Delimiter = "," });
+
+                // Run long sync task in background
+                long records = await Task.Run(() =>
+                    api.DownloadDataExtension(
+                        dataExtensionCustomerKey: dataExtension.CustomerKey,
+                        fileWriter: fileWriter,
+                        fileName: filePath
+                    )
+                );
+
+                await DisplayAlert("Success", $"Downloaded {records} records to {filePath}", "OK");
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", $"Download failed: {ex.ToString()}", "OK");
+            }
         }
     }
 
-    private void DownloadCsv(DataExtensionPoco dataExtension)
+    /*private async Task<string?> PromptUserForSaveLocationAsync(string suggestedFileName)
     {
-        // Implement your CSV logic here
+    #if MACCATALYST
+        var panel = new UIKit.UIDocumentPickerViewController(
+            new[] { UTType.CommaSeparatedText },
+            UIDocumentPickerMode.ExportToService);
+
+        string? selectedPath = null;
+
+        var tcs = new TaskCompletionSource<string?>();
+
+        panel.DidPickDocument += (sender, args) =>
+        {
+            var url = args.Url;
+            if (url != null)
+            {
+                selectedPath = url.Path;
+            }
+            tcs.SetResult(selectedPath);
+        };
+
+        panel.WasCancelled += (sender, e) => tcs.SetResult(null);
+
+        var windowScene = UIApplication.SharedApplication.ConnectedScenes
+            .OfType<UIWindowScene>().FirstOrDefault();
+
+        var window = windowScene?.Windows.FirstOrDefault();
+        if (window?.RootViewController != null)
+        {
+            window.RootViewController.PresentViewController(panel, true, null);
+        }
+
+        return await tcs.Task;
+    #else
+        // Fallback or throw for other platforms
+        await Application.Current.MainPage.DisplayAlert("Unsupported", "File picker only supported on macOS in this build.", "OK");
+        return null;
+    #endif
     }
+*/
 }

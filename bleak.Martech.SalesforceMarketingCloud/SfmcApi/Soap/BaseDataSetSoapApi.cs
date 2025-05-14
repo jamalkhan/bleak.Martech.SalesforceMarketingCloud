@@ -21,7 +21,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
             FileWriter = fileWriter;
         }
         
-        public void LoadDataSet()
+        public void LoadDataSet(string filePath)
         {
             string? status = "";
             do
@@ -56,7 +56,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
                         var wsdlObjects = results!.Results.Body.RetrieveResponse.Results;
                         List<TPoco> pocos = new List<TPoco>();
                         pocos.AddRange(wsdlObjects.Select(x => ConvertToPoco((TAPIObject)x)));
-                        FileWriter.WriteToFile(pocos);
+                        FileWriter.WriteToFile(filePath, pocos);
                         
 
                         currentPageSize = wsdlObjects.Count();

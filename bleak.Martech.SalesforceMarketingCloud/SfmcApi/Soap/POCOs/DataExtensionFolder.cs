@@ -36,15 +36,15 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
         public static DataExtensionPoco ToDataExtensionPoco(this Wsdl.DataExtension dataExtension)
         {
             return new DataExtensionPoco()
-                    {
-                        ObjectID = dataExtension.ObjectID,
-                        Name = dataExtension.Name,
-                        Description = dataExtension.Description,
-                        CustomerKey = dataExtension.CustomerKey,
-                        CategoryID = dataExtension.CategoryID,
-                        IsSendable = dataExtension.IsSendable,
-                        IsTestable = dataExtension.IsTestable
-                    };
+                {
+                    ObjectID = dataExtension.ObjectID,
+                    Name = dataExtension.Name,
+                    Description = dataExtension.Description,
+                    CustomerKey = dataExtension.CustomerKey,
+                    CategoryID = dataExtension.CategoryID,
+                    IsSendable = dataExtension.IsSendable,
+                    IsTestable = dataExtension.IsTestable
+                };
         }
 
         public static QueryDefinitionPoco ToPoco(this Wsdl.QueryDefinition obj)

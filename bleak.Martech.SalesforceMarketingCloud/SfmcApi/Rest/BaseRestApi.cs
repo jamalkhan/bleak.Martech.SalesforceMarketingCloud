@@ -6,7 +6,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Rest
 {
     public class BaseRestApi
     {
-        protected readonly RestManager _restManager;
+        protected readonly IRestManager _restManager;
         protected readonly IAuthRepository _authRepository;
         protected readonly SfmcConnectionConfiguration _sfmcConnectionConfiguration;
 
@@ -19,7 +19,21 @@ namespace bleak.Martech.SalesforceMarketingCloud.Rest
 
 
         public BaseRestApi(
-            RestManager restManager, 
+            IAuthRepository authRepository, 
+            SfmcConnectionConfiguration sfmcConnectionConfiguration)
+            : this (
+                new RestManager(
+                    new JsonSerializer(),
+                    new JsonSerializer()
+                ),
+                authRepository,
+                sfmcConnectionConfiguration
+            )
+        {
+        }
+
+        public BaseRestApi(
+            IRestManager restManager,
             IAuthRepository authRepository, 
             SfmcConnectionConfiguration sfmcConnectionConfiguration)
         {
@@ -32,7 +46,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Rest
         {
             if (_headers == null)
             {
-                _headers = new List<Header>();
+                _headers = [];
             }
 
             // Remove existing Authorization header if it exists

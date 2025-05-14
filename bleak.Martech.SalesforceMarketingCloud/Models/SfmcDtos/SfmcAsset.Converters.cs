@@ -1,6 +1,6 @@
 namespace bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos
 {
-    public class DataExtensionDataDto
+    public partial class DataExtensionDataDto
     {
         public LinksDto links { get; set; } = new LinksDto();
         public string requestToken { get; set; } = string.Empty;
@@ -12,6 +12,28 @@ namespace bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos
         public int count { get; set; }
         public int top { get; set; }
         public List<ItemDto> items { get; set; } = new List<ItemDto>();
+    }
+
+    public partial class DataExtensionDataDto
+    {
+        public List<Dictionary<string, string>> ToDictionaryList()
+        {
+            var retval = new List<Dictionary<string,string>>();
+            foreach (var item in items)
+            {
+                var dict = new Dictionary<string,string>();
+                foreach (var key in item.keys)
+                {
+                    dict[key.Key] = key.Value;
+                }
+                foreach (var value in item.values)
+                {
+                    dict[value.Key] = value.Value;
+                }
+                retval.Add(dict);
+            }
+            return retval;
+        }
     }
 
     public class LinksDto

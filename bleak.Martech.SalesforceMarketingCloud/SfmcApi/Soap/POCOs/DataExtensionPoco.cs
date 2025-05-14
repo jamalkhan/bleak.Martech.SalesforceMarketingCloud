@@ -15,6 +15,6 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
         /// <summary>
         /// The full path as found in SFMC's UI.
         /// </summary>
-        public string FullPath { get; set; }
+        public string? FullPath { get; set; }
     }
 }

@@ -4,6 +4,8 @@ using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.Models;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Rest;
+using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops;
+using System.Formats.Asn1;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Rest
 {
@@ -11,16 +13,14 @@ namespace bleak.Martech.SalesforceMarketingCloud.Rest
     public class DataExtensionRestApi : BaseRestApi
     {
         public DataExtensionRestApi(
-            RestManager restManager, 
             IAuthRepository authRepository)
-            : this(restManager, authRepository, new SfmcConnectionConfiguration())
+            : this(authRepository, new SfmcConnectionConfiguration())
         {
         }
-        public DataExtensionRestApi(
-            RestManager restManager, 
+        public DataExtensionRestApi( 
             IAuthRepository authRepository, 
-            SfmcConnectionConfiguration sfmcConnectionConfiguration)
-            : base(restManager, authRepository, sfmcConnectionConfiguration) 
+            SfmcConnectionConfiguration config)
+            : base(authRepository, config) 
         {
         }
 
@@ -28,41 +28,73 @@ namespace bleak.Martech.SalesforceMarketingCloud.Rest
         //"https://{{et_subdomain}}.rest.marketingcloudapis.com/data/v1/customobjectdata/key/Person_NA/rowset";
 
 
-        public DataExtensionDataDto DownloadDataExtension(
-            string dataExtensionCustomerKey, 
-            int page = 1)
+        public async Task<long> DownloadDataExtensionAsync(
+            string dataExtensionCustomerKey,
+            IFileWriter fileWriter,
+            string fileName
+        )
+        {
+            return await Task.FromResult(DownloadDataExtension(dataExtensionCustomerKey, fileWriter, fileName));
+        }
+
+        public long DownloadDataExtension
+            (
+            string dataExtensionCustomerKey,
+            IFileWriter fileWriter,
+            string fileName
+            )
         {
             int currentPageSize;
+            long totalRecords = 0;
             try
             {
-                RestResults<DataExtensionDataDto, string> results;
-                
-                string url = $"https://{_authRepository.Subdomain}.rest.marketingcloudapis.com/data/v1/customobjectdata/key/{dataExtensionCustomerKey}/rowset?$page={page}";
-                
-                results = LoadApiWithRetry<DataExtensionDataDto>(
-                    loadApiCall: LoadApiCall,
-                    url: url,
-                    authenticationError: "401", 
-                    resolveAuthentication: _authRepository.ResolveAuthentication
-                );
-
-                if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"results.Value = {results?.Results}");
-                if (results?.Error != null) Console.WriteLine($"results.Error = {results.Error}");
-
-                currentPageSize = results!.Results.items.Count();
-                if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {results!.Results.items.Count()} Total Folders Identified.");
-
-                if (_sfmcConnectionConfiguration.PageSize == currentPageSize)
+                string baseUrl = $"https://{_authRepository.Subdomain}.rest.marketingcloudapis.com/data";
+                string url = $"{baseUrl}/v1/customobjectdata/key/{dataExtensionCustomerKey}/rowset?$page=1&$pageSize=2500";
+                do
                 {
-                    if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"Running Loop Again");
-                }
-                return results!.Results;
+                    RestResults<DataExtensionDataDto, string> results = LoadApiWithRetry<DataExtensionDataDto>(
+                        loadApiCall: LoadApiCall,
+                        url: url,
+                        authenticationError: "401", 
+                        resolveAuthentication: _authRepository.ResolveAuthentication
+                    );
+                    if (results?.Error != null)
+                    {
+                        throw new Exception($"Error: {results.Error}");
+                    }
+
+                    if (results?.Results?.items == null)
+                    {
+                        throw new Exception("API returned no results.");
+                    }
+
+                    currentPageSize = results!.Results!.items!.Count();
+                    totalRecords += currentPageSize;
+
+                    // add data to return value.
+                    fileWriter.WriteToFile(fileName, results.Results.ToDictionaryList());
+                    
+
+                    if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {totalRecords} Records Identified.");
+                    
+                    if (results == null || results?.Results == null || results.Results.links == null || results!.Results.links == null)
+                    {
+                        if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"No more pages to process. Exiting loop.");
+                        break;
+                    }
+                    if (results!.Results.links.next != null)
+                    {
+                        if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"Running Loop Again");
+                        url = $"{baseUrl}{results.Results.links.next}"; 
+                    }
+                } while (true);
             }
             catch (System.Exception ex)
             {
                 Console.WriteLine($"{ex.Message}");
                 throw;
             }
+            return totalRecords;
         }
 
 
