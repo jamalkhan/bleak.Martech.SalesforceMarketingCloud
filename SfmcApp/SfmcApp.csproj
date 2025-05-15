@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-    <Version>1.0.7</Version>		<TargetFrameworks>net9.0-maccatalyst</TargetFrameworks>
+    <Version>1.0.8</Version>		<TargetFrameworks>net9.0-maccatalyst</TargetFrameworks>
     	
     	
 		<TargetFrameworks>net9.0-maccatalyst</TargetFrameworks>
