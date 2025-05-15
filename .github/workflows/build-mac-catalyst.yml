@@ -11,8 +11,8 @@ jobs:
   build-mac:
     runs-on: macos-14
     steps:
-      - name: Use Xcode 15
-        run: sudo xcode-select -s /Applications/Xcode_15.app/Contents/Developer
+      - name: Check Xcode version
+        run: xcodebuild -version
 
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -65,11 +65,7 @@ jobs:
 
       - name: Build Universal Binary (macOS)
         run: |
-          dotnet publish SfmcApp/SfmcApp.csproj \
-            -c Release \
-            -f:net9.0-maccatalyst \
-            -p:RuntimeIdentifier=maccatalyst-arm64 \
-            -p:UseMaui=true
+          dotnet publish SfmcApp/SfmcApp.csproj -c Release -f net9.0-maccatalyst -p:RuntimeIdentifier=maccatalyst-arm64 -p:UseMaui=true
 
       - name: Package .app bundle into zip
         run: |
