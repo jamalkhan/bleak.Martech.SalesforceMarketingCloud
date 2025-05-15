@@ -61,15 +61,11 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore SfmcApp/SfmcApp.csproj
 
-      - name: Build Universal Binary (macOS)
-        run: |
-          dotnet publish SfmcApp/SfmcApp.csproj \
-            -c Release \
-            -f:net9.0-maccatalyst \
-            -p:RuntimeIdentifier=osx.14.0 \
-            -p:EnableMacCatalyst=true \
-            -p:MacCatalystArchs="x64;arm64" \
-            -p:UseMaui=true
+      dotnet publish SfmcApp/SfmcApp.csproj \
+        -c Release \
+        -f:net9.0-maccatalyst \
+        -p:RuntimeIdentifier=maccatalyst-arm64 \
+        -p:UseMaui=true
 
       - name: Package .app bundle into zip
         run: |
