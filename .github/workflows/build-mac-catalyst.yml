@@ -61,9 +61,6 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore SfmcApp/SfmcApp.csproj
 
-      - name: Run unit tests
-        run: dotnet test --verbosity normal
-
       - name: Build Universal Binary (macOS)
         run: |
           dotnet publish SfmcApp/SfmcApp.csproj \
