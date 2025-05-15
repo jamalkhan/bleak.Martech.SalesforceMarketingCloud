@@ -66,6 +66,7 @@ jobs:
           dotnet publish SfmcApp/SfmcApp.csproj \
             -c Release \
             -f:net9.0-maccatalyst \
+            -p:MauiVersion=8.0.100 \
             -p:RuntimeIdentifier=maccatalyst-arm64 \
             -p:UseMaui=true
 
