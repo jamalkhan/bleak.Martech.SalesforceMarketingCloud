@@ -1,0 +1,90 @@
+name: Build & Package SfmcApp for macOS (.NET 9 Universal)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-mac:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup .NET 9 SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Install MAUI workload
+        run: dotnet workload install maui
+
+      - name: Auto-increment version number
+        id: versioning
+        run: |
+          FILE="SfmcApp/SfmcApp.csproj"
+          CURRENT_VERSION=$(xmllint --xpath "string(//Project/PropertyGroup/Version)" "$FILE")
+          
+          if [ -z "$CURRENT_VERSION" ]; then
+            echo "No <Version> tag found. Adding default 1.0.0"
+            sed -i '' '/<PropertyGroup>/a\
+            \  <Version>1.0.0</Version>' "$FILE"
+            CURRENT_VERSION="1.0.0"
+          fi
+
+          echo "Current version: $CURRENT_VERSION"
+
+          IFS='.' read -r major minor patch <<< "$CURRENT_VERSION"
+          patch=$((patch + 1))
+          NEW_VERSION="$major.$minor.$patch"
+          echo "New version: $NEW_VERSION"
+
+          # Replace version in .csproj
+          sed -i '' "s|<Version>$CURRENT_VERSION</Version>|<Version>$NEW_VERSION</Version>|" "$FILE"
+
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Commit updated version
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add SfmcApp/SfmcApp.csproj
+          git commit -m "CI: Bump version to ${{ steps.versioning.outputs.version }}"
+          git push
+
+      - name: Restore dependencies
+        run: dotnet restore SfmcApp/SfmcApp.csproj
+
+      - name: Run unit tests
+        run: dotnet test --verbosity normal
+
+      - name: Build Universal Binary (macOS)
+        run: |
+          dotnet publish SfmcApp/SfmcApp.csproj \
+            -c Release \
+            -f:net9.0-maccatalyst \
+            -p:RuntimeIdentifier=osx.14.0 \
+            -p:EnableMacCatalyst=true \
+            -p:MacCatalystArchs="x64;arm64" \
+            -p:UseMaui=true
+
+      - name: Package .app bundle into zip
+        run: |
+          mkdir -p output
+          APP_PATH=$(find . -name "*.app" -type d | head -n 1)
+          echo "Found app bundle at: $APP_PATH"
+          cp -R "$APP_PATH" output/
+          cd output
+          zip -r SfmcApp-macOS-${{ steps.versioning.outputs.version }}.zip *.app
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: SfmcApp-macOS-${{ steps.versioning.outputs.version }}
+          path: output/SfmcApp-macOS-${{ steps.versioning.outputs.version }}.zip
