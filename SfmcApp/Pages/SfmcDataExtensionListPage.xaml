@@ -12,11 +12,35 @@
         >
 
         <!-- Header -->
-        <Label Grid.Row="0"
-            Text="Data Extension Folders!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center"
-            />
+        <HorizontalStackLayout Grid.Row="0"
+                              Spacing="10"
+                              Padding="10"
+                              VerticalOptions="Center"
+                              HorizontalOptions="StartAndExpand">
+            <Label Text="Data Extension Folders!"
+                    VerticalOptions="Center"
+                    FontSize="Title" />
+            <SearchBar Placeholder="Search Data Extensions"
+                    WidthRequest="200"
+                    x:Name="SearchBarText"
+                    VerticalOptions="Center" />
+            <Picker Title="Select Search Type"
+                    WidthRequest="150"
+                    x:Name="SearchTypePicker"
+                    VerticalOptions="Center">
+                <Picker.ItemsSource>
+                    <x:Array Type="{x:Type x:String}">
+                        <x:String>Like</x:String>
+                        <x:String>Starts With</x:String>
+                        <x:String>Ends With</x:String>
+                    </x:Array>
+                </Picker.ItemsSource>
+            </Picker>
+            <Button Text="Search"
+                    VerticalOptions="Center"
+                    x:Name="SearchButton"
+                    Clicked="OnSearchButtonClicked" />
+        </HorizontalStackLayout>
 
         <!-- Left Column -->
         <Border 

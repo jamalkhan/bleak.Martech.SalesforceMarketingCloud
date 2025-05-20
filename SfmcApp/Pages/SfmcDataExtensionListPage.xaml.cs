@@ -10,6 +10,8 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using bleak.Martech.SalesforceMarketingCloud.Rest;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops;
+using bleak.Martech.SalesforceMarketingCloud.Wsdl;
+
 
 #if MACCATALYST
 using UIKit;
@@ -47,9 +49,9 @@ public partial class SfmcDataExtensionListPage : ContentPage, INotifyPropertyCha
     }
 
 
-	public IAuthRepository _authRepository { get; private set; }
-    private readonly DataExtensionFolderSoapApi _api;
-	public ObservableCollection<DataExtensionFolder> Folders { get; set; } = new();
+    public IAuthRepository _authRepository { get; private set; }
+    private readonly DataExtensionFolderSoapApi _folderApi;
+    public ObservableCollection<DataExtensionFolder> Folders { get; set; } = new();
     public ObservableCollection<DataExtensionPoco> DataExtensions { get; set; } = new();
 
     public event PropertyChangedEventHandler PropertyChanged;
@@ -75,29 +77,29 @@ public partial class SfmcDataExtensionListPage : ContentPage, INotifyPropertyCha
     static JsonSerializer _serializer = new JsonSerializer();
     static RestManager _restManager = new RestManager(_serializer, _serializer);
 
-	public SfmcDataExtensionListPage(IAuthRepository authRepository)
-	{
-		InitializeComponent();
+    public SfmcDataExtensionListPage(IAuthRepository authRepository)
+    {
+        InitializeComponent();
         _authRepository = authRepository;
 
-        _api = new DataExtensionFolderSoapApi(
-			authRepository: _authRepository,
-			config: new SfmcConnectionConfiguration()
-			);
+        _folderApi = new DataExtensionFolderSoapApi(
+            authRepository: _authRepository,
+            config: new SfmcConnectionConfiguration()
+            );
 
         BindingContext = this;
 
         // Safely load folders in the background
         LoadFoldersAsync();
-	}
+    }
 
-	private async void LoadFoldersAsync()
+    private async void LoadFoldersAsync()
     {
         try
         {
             IsLoaded = false;
             IsLoading = true;
-            var folderTree = await _api.GetFolderTreeAsync(); // Must be async method
+            var folderTree = await _folderApi.GetFolderTreeAsync(); // Must be async method
             foreach (var folder in folderTree)
             {
                 Folders.Add(folder);
@@ -123,7 +125,7 @@ public partial class SfmcDataExtensionListPage : ContentPage, INotifyPropertyCha
         try
         {
             var api = new DataExtensionSoapApi(
-                authRepository:_authRepository,
+                authRepository: _authRepository,
                 config: new SfmcConnectionConfiguration()
                 );
 
@@ -180,6 +182,61 @@ public partial class SfmcDataExtensionListPage : ContentPage, INotifyPropertyCha
                 await DisplayAlert("Error", $"Download failed: {ex.ToString()}", "OK");
             }
         }
+    }
+
+
+    private async void OnSearchButtonClicked(object sender, EventArgs e)
+    {
+        var api = new DataExtensionSoapApi(
+            authRepository: _authRepository,
+            config: new SfmcConnectionConfiguration()
+            );
+
+        DataExtensions.Clear();
+        string searchType = SearchTypePicker.SelectedItem?.ToString() ?? "Like";
+        string searchText = SearchBarText.Text?.Trim() ?? string.Empty;
+
+        // Check if search text is empty
+        if (string.IsNullOrEmpty(searchText))
+        {
+            await DisplayAlert("Error", "Please enter a search term.", "OK");
+            return;
+        }
+
+        try
+        {
+            // Assume DataExtensions is a property in the view model or code-behind
+            // and api is an instance of your API client
+            List<DataExtensionPoco> results = new List<DataExtensionPoco>();
+            switch (searchType)
+            {
+                case "Starts With":
+                    results = await api.GetDataExtensionsNameStartsWithAsync(searchText);
+
+                    break;
+                case "Like":
+                    results =  await api.GetDataExtensionsNameLikeAsync(searchText);
+                    break;
+                case "Ends With":
+                    results = await api.GetDataExtensionsNameEndsWithAsync(searchText);
+                    break;
+                default:
+                    results = await api.GetDataExtensionsNameLikeAsync(searchText);
+                    break;
+            }
+            foreach (var item in results)
+            {
+                DataExtensions.Add(item);
+            }
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", $"Failed to perform search: {ex.Message}", "OK");
+        }
+
+        // You can access the SearchBar and Picker values if they are named, e.g.:
+        // var searchText = SearchBarName.Text; // If SearchBar has x:Name="SearchBarName"
+        // var searchType = PickerName.SelectedItem?.ToString(); // If Picker has x:Name="PickerName"
     }
 
     /*private async Task<string?> PromptUserForSaveLocationAsync(string suggestedFileName)

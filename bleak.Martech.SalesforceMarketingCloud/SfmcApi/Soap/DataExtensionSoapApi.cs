@@ -31,6 +31,37 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
             return IterateAPICallsForRequest(requestPayload: requestPayload);
         }
 
+        
+        public Task<List<DataExtensionPoco>> GetDataExtensionsNameLikeAsync(string nameLike)
+        {
+            return Task.Run(() => GetDataExtensionsNameLike(nameLike));
+        }
+        private List<DataExtensionPoco> GetDataExtensionsNameLike(string nameLike)
+        {
+            var requestPayload = BuildRequest(nameLike: nameLike);
+            return IterateAPICallsForRequest(requestPayload: requestPayload);
+        }
+
+        public Task<List<DataExtensionPoco>> GetDataExtensionsNameStartsWithAsync(string nameStartsWith)
+        {
+            return Task.Run(() => GetDataExtensionsNameStartsWith(nameStartsWith));
+        }
+        private List<DataExtensionPoco> GetDataExtensionsNameStartsWith(string nameStartsWith)
+        {
+            var requestPayload = BuildRequest(nameStartsWith: nameStartsWith);
+            return IterateAPICallsForRequest(requestPayload: requestPayload);
+        }
+        
+        public Task<List<DataExtensionPoco>> GetDataExtensionsNameEndsWithAsync(string nameEndsWith)
+        {
+            return Task.Run(() => GetDataExtensionsNameEndsWith(nameEndsWith));
+        }
+        private List<DataExtensionPoco> GetDataExtensionsNameEndsWith(string nameEndsWith)
+        {
+            var requestPayload = BuildRequest(nameEndsWith: nameEndsWith);
+            return IterateAPICallsForRequest(requestPayload: requestPayload);
+        }
+        
         public Task<List<DataExtensionPoco>> GetAllDataExtensionsAsync()
         {
             return Task.Run(() => GetAllDataExtensions());
@@ -113,12 +144,30 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
         }
 
 
-        private string BuildRequest(string? requestId = null, int? folderId = null)
+        private string BuildRequest(
+            string? requestId = null,
+            int? folderId = null,
+            string? nameEndsWith = null,
+            string? nameLike = null,
+            string? nameStartsWith = null
+            )
+        {
+            /*
+            // TODO: Reimplement validation at a later time.
+            if (string.IsNullOrEmpty(requestId) && !folderId.HasValue && string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException("Either requestId, folderId or name must be provided.");
+            }
+            if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(nameLike))
+            {
+                throw new ArgumentException("Either name or nameLike must be provided, not both.");
+            }
         {
             if (!string.IsNullOrEmpty(requestId) && folderId.HasValue)
             {
                 throw new ArgumentException("Either requestId or folderId must be provided, not both.");
             }
+            */
 
             var sb = new StringBuilder();
             sb.AppendLine($"<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
@@ -151,6 +200,28 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
                 sb.AppendLine($"                    <Value>{folderId.Value}</Value>");
                 sb.AppendLine($"                </Filter>");
             }
+            if (!string.IsNullOrEmpty(nameEndsWith) || !string.IsNullOrEmpty(nameLike) || !string.IsNullOrEmpty(nameStartsWith))
+            {
+                sb.AppendLine($"                <Filter xsi:type=\"SimpleFilterPart\">");
+                sb.AppendLine($"                    <Property>Name</Property>");
+                if (!string.IsNullOrEmpty(nameEndsWith))
+                {
+                    sb.AppendLine($"                    <SimpleOperator>endsWith</SimpleOperator>");
+                    sb.AppendLine($"                    <Value>{nameEndsWith}</Value>");
+                }
+                else if (!string.IsNullOrEmpty(nameLike))
+                {
+                    sb.AppendLine($"                    <SimpleOperator>like</SimpleOperator>");
+                    sb.AppendLine($"                    <Value>{nameLike}</Value>");
+                }
+                else if (!string.IsNullOrEmpty(nameStartsWith))
+                {
+                    sb.AppendLine($"                    <SimpleOperator>startsWith</SimpleOperator>");
+                    sb.AppendLine($"                    <Value>{nameStartsWith}</Value>");
+                }
+                sb.AppendLine($"                </Filter>");
+            }
+
             sb.AppendLine($"            </RetrieveRequest>");
             sb.AppendLine($"        </RetrieveRequestMsg>");
             sb.AppendLine($"    </s:Body>");
