@@ -13,8 +13,8 @@
                 SemanticProperties.Description="dot net bot in a race car number eight" />
             <Button
                 x:Name="ShowSfmcConnectionsBtn"
-                Text="Show SFmc Connections" 
-                SemanticProperties.Hint="Click to Connect to a Salesforce marketing Cloud Instance"
+                Text="Show SFMC Connections" 
+                SemanticProperties.Hint="Click to Connect to a Salesforce Marketing Cloud instance"
                 Clicked="OnShowSfmcConnectionsClicked"
                 HorizontalOptions="Fill" />
         </VerticalStackLayout>
