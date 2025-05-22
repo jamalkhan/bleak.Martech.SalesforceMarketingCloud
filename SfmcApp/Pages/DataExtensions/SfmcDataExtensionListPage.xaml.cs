@@ -12,6 +12,8 @@ using bleak.Martech.SalesforceMarketingCloud.Rest;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops;
 using bleak.Martech.SalesforceMarketingCloud.Wsdl;
 using SfmcApp.Models;
+using SfmcApp.Pages.BasePages;
+
 
 
 
@@ -26,40 +28,44 @@ using UniformTypeIdentifiers;
 
 namespace SfmcApp.Pages;
 
+
 public partial class SfmcDataExtensionListPage : ContentPage, INotifyPropertyChanged
 {
-    private bool _isLoading;
-    public bool IsLoading
+    public new event PropertyChangedEventHandler PropertyChanged;
+
+    private void OnPropertyChanged([CallerMemberName] string name = null) =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+
+    #region Bound Properties
+    private bool _isFoldersLoading;
+    public bool IsFoldersLoading
     {
-        get => _isLoading;
+        get => _isFoldersLoading;
         set
         {
-            _isLoading = value;
+            _isFoldersLoading = value;
             OnPropertyChanged(); // or SetProperty in CommunityToolkit
         }
     }
 
-    private bool _isLoaded;
-    public bool IsLoaded
+    private bool _isFoldersLoaded;
+    public bool IsFoldersLoaded
     {
-        get => _isLoaded;
+        get => _isFoldersLoaded;
         set
         {
-            _isLoaded = value;
+            _isFoldersLoaded = value;
             OnPropertyChanged(); // or SetProperty in CommunityToolkit
         }
     }
 
 
-    public IAuthRepository _authRepository { get; private set; }
-    private readonly DataExtensionFolderSoapApi _folderApi;
+
+    
     public ObservableCollection<DataExtensionFolder> Folders { get; set; } = new();
     public ObservableCollection<DataExtensionPoco> DataExtensions { get; set; } = new();
 
-    public event PropertyChangedEventHandler PropertyChanged;
-
-    void OnPropertyChanged([CallerMemberName] string name = null) =>
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
     private DataExtensionFolder _selectedFolder;
     public DataExtensionFolder SelectedFolder
@@ -95,26 +101,21 @@ public partial class SfmcDataExtensionListPage : ContentPage, INotifyPropertyCha
             }
         }
     }
+    #endregion Bound Properties
 
-
-    static JsonSerializer _serializer = new JsonSerializer();
-    static RestManager _restManager = new RestManager(_serializer, _serializer);
+    private readonly IAuthRepository _authRepository;
 
     public SfmcDataExtensionListPage(IAuthRepository authRepository)
     {
         InitializeComponent();
-        _authRepository = authRepository;
 
-        _folderApi = new DataExtensionFolderSoapApi(
-            authRepository: _authRepository,
-            config: new SfmcConnectionConfiguration()
-            );
+        BindingContext = this;
+        _authRepository = authRepository;
 
         SearchBarText.SearchButtonPressed += (s, e) =>
         {
             OnSearchButtonClicked(s, e);
         };
-        BindingContext = this;
 
         // Safely load folders in the background
         LoadFoldersAsync();
@@ -124,15 +125,19 @@ public partial class SfmcDataExtensionListPage : ContentPage, INotifyPropertyCha
     {
         try
         {
-            IsLoaded = false;
-            IsLoading = true;
-            var folderTree = await _folderApi.GetFolderTreeAsync(); // Must be async method
+            IsFoldersLoaded = false;
+            IsFoldersLoading = true;
+            var folderApi = new DataExtensionFolderSoapApi(
+            authRepository: _authRepository,
+            config: new SfmcConnectionConfiguration()
+            );
+            var folderTree = await folderApi.GetFolderTreeAsync(); // Must be async method
             foreach (var folder in folderTree)
             {
                 Folders.Add(folder);
             }
-            IsLoaded = true;
-            IsLoading = false;
+            IsFoldersLoaded = true;
+            IsFoldersLoading = false;
         }
         catch (Exception ex)
         {
@@ -239,10 +244,9 @@ public partial class SfmcDataExtensionListPage : ContentPage, INotifyPropertyCha
             {
                 case "Starts With":
                     results = await api.GetDataExtensionsNameStartsWithAsync(searchText);
-
                     break;
                 case "Like":
-                    results =  await api.GetDataExtensionsNameLikeAsync(searchText);
+                    results = await api.GetDataExtensionsNameLikeAsync(searchText);
                     break;
                 case "Ends With":
                     results = await api.GetDataExtensionsNameEndsWithAsync(searchText);

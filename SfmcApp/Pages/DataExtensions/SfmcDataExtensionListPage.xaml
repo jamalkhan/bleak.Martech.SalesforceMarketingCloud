@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:local="clr-namespace:SfmcApp.Pages"
+             xmlns:localbase="clr-namespace:SfmcApp.Pages.BasePages"
              x:Class="SfmcApp.Pages.SfmcDataExtensionListPage"
              Title="Data Extension Navigator">
     <Grid 
@@ -59,12 +60,12 @@
                        HeightRequest="40"
                        HorizontalOptions="Center"
                        VerticalOptions="Center"
-                       IsVisible="{Binding IsLoading}" />
+                       IsVisible="{Binding IsFoldersLoading}" />
                 <CollectionView
                             ItemsSource="{Binding Folders}"
                             SelectionMode="Single"
                             SelectedItem="{Binding SelectedFolder}"
-                            IsVisible="{Binding IsLoaded}"
+                            IsVisible="{Binding IsFoldersLoaded}"
                             >
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
@@ -147,7 +148,7 @@
             >
             <CollectionView
                 ItemsSource="{Binding DataExtensions}"
-                IsVisible="{Binding IsLoaded}"
+                IsVisible="{Binding IsFoldersLoaded}"
                 >
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout Orientation="Vertical" ItemSpacing="20" />

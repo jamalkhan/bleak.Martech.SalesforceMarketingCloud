@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<localbase:BasePage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:local="clr-namespace:SfmcApp.Pages.Content"
+             xmlns:localbase="clr-namespace:SfmcApp.Pages.BasePages"
+             x:Class="SfmcApp.Pages.Content.SfmcContentListPage"
+             Title="Content Navigator">
+
+   <Grid 
+        ColumnDefinitions="*, 2*"
+        RowDefinitions="Auto, *"
+        VerticalOptions="FillAndExpand"        
+        >
+
+        <!-- Header -->
+        <HorizontalStackLayout Grid.Row="0"
+                              Spacing="10"
+                              Padding="10"
+                              VerticalOptions="Center"
+                              HorizontalOptions="StartAndExpand">
+            <SearchBar
+                Placeholder="Search Data Extensions"
+                WidthRequest="200"
+                x:Name="SearchBarText"
+                VerticalOptions="Center"
+                BackgroundColor="White"
+                TextColor="Black"
+                PlaceholderColor="Gray"
+                HeightRequest="40"
+                >
+            </SearchBar>
+
+            <Picker Title="Select Search Type"
+                    WidthRequest="150"
+                    ItemsSource="{Binding SearchOptions}"
+                    x:Name="SearchTypePicker"
+                    SelectedIndex="0"
+                    VerticalOptions="Center">
+            </Picker>
+            <Button Text="Search"
+                    VerticalOptions="Center"
+                    x:Name="SearchButton"
+                    Clicked="OnSearchButtonClicked" />
+        </HorizontalStackLayout>
+
+        <!-- Left Column -->
+        <Border 
+            Grid.Row="1"
+            Grid.Column="0"
+            Stroke="Gray"
+            StrokeThickness="1"
+            BackgroundColor="White"
+            Padding="5"
+            Margin="10"
+            StrokeShape="RoundRectangle 8"
+            >
+            <Grid>
+                 <Image Source="spinner.gif"
+                       WidthRequest="40"
+                       HeightRequest="40"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       IsVisible="{Binding IsFoldersLoading}" />
+                <CollectionView
+                            ItemsSource="{Binding Folders}"
+                            SelectionMode="Single"
+                            SelectedItem="{Binding SelectedFolder}"
+                            IsVisible="{Binding IsFoldersLoaded}"
+                            >
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <toolkit:Expander>
+                                <!-- Folder -->
+                                <toolkit:Expander.Header>
+                                    <HorizontalStackLayout Spacing="5">
+                                        <Image Source="folder_icon.png" HeightRequest="20" WidthRequest="20" />
+                                        <Label Text="{Binding Name}">
+                                            <Label.GestureRecognizers>
+                                                <TapGestureRecognizer
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcContentListPage}}, Path=BindingContext.FolderTappedCommand}"
+                                                    CommandParameter="{Binding .}" />
+                                            </Label.GestureRecognizers>
+                                        </Label>
+                                    </HorizontalStackLayout>
+                                </toolkit:Expander.Header>
+
+                                <!-- Subfolders -->
+                                <VerticalStackLayout Padding="20,0,0,0">
+                                    <CollectionView ItemsSource="{Binding SubFolders}">
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate>
+                                                <toolkit:Expander>
+                                                    <toolkit:Expander.Header>
+                                                        <HorizontalStackLayout Spacing="5">
+                                                            <Image Source="folder_icon.png" HeightRequest="18" WidthRequest="18" />
+                                                            <Label Text="{Binding Name}">
+                                                                <Label.GestureRecognizers>
+                                                                    <TapGestureRecognizer
+                                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcContentListPage}}, Path=BindingContext.FolderTappedCommand}"
+                                                                        CommandParameter="{Binding .}" />
+                                                                </Label.GestureRecognizers>
+                                                            </Label>
+                                                        </HorizontalStackLayout>
+                                                    </toolkit:Expander.Header>
+
+                                                    <!-- (Optional) Recursive subfolders -->
+                                                    <VerticalStackLayout Padding="20,0,0,0">
+                                                        <CollectionView ItemsSource="{Binding SubFolders}">
+                                                            <CollectionView.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <HorizontalStackLayout Spacing="5">
+                                                                        <Image Source="folder_icon.png" HeightRequest="18" WidthRequest="18" />
+                                                                        <Label Text="{Binding Name}">
+                                                                            <Label.GestureRecognizers>
+                                                                                <TapGestureRecognizer
+                                                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcContentListPage}}, Path=BindingContext.FolderTappedCommand}"
+                                                                                    CommandParameter="{Binding .}" />
+                                                                            </Label.GestureRecognizers>
+                                                                        </Label>
+                                                                    </HorizontalStackLayout>
+                                                                </DataTemplate>
+                                                            </CollectionView.ItemTemplate>
+                                                        </CollectionView>
+                                                    </VerticalStackLayout>
+                                                </toolkit:Expander>
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+                                </VerticalStackLayout>
+                            </toolkit:Expander>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+        </Border>
+        
+
+        <!-- Right Column -->
+        <Border 
+            Grid.Row="1"
+            Grid.Column="1"
+            Stroke="Gray"
+            StrokeThickness="1"
+            BackgroundColor="White"
+            Padding="5"
+            Margin="10"
+            StrokeShape="RoundRectangle 8"
+            >
+            <CollectionView
+                ItemsSource="{Binding DataExtensions}"
+                IsVisible="{Binding IsFoldersLoaded}"
+                >
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="20" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border 
+                            Stroke="LightGray" 
+                            StrokeThickness="1" 
+                            Margin="10,20,10,20" 
+                            Padding="4" 
+                            StrokeShape="RoundRectangle 4">
+
+                            <Grid ColumnDefinitions="Auto, *, Auto, Auto"
+                                RowDefinitions="Auto, Auto, Auto"
+                                Padding="10"
+                                ColumnSpacing="10"
+                                VerticalOptions="Center">
+
+                                <!-- lemon.gif spanning 3 rows -->
+                                <Image Grid.RowSpan="3"
+                                    Grid.Column="0"
+                                    Source="lemon.gif"
+                                    WidthRequest="60"
+                                    HeightRequest="60"
+                                    VerticalOptions="Center" />
+
+                                <!-- Name in big text -->
+                                <Label Grid.Column="1"
+                                    Grid.Row="0"
+                                    Text="{Binding Name}"
+                                    FontSize="20"
+                                    FontAttributes="Bold"
+                                    VerticalOptions="Center" />
+
+                                <!-- Customer Key -->
+                                <HorizontalStackLayout
+                                    Grid.Column="1"
+                                    Grid.Row="1"
+                                    VerticalOptions="Center">
+                                    <Label Text="Customer Key: " />
+                                    <Label Text="{Binding CustomerKey}" />
+                                </HorizontalStackLayout>
+
+                                <!-- Description -->
+                                <Label Grid.Column="1"
+                                    Grid.Row="2"
+                                    Text="{Binding Description}"
+                                    VerticalOptions="Center" />
+
+                                <!-- mail.png, only visible if IsSendable -->
+                                <Image Grid.Column="2"
+                                    Grid.RowSpan="3"
+                                    Source="mail.png"
+                                    WidthRequest="30"
+                                    HeightRequest="30"
+                                    VerticalOptions="Center"
+                                    HorizontalOptions="End"
+                                    IsVisible="{Binding IsSendable}"
+                                    SemanticProperties.Description="Is Sendable = true" />
+
+                                <Image Grid.Column="3"
+                                    Grid.RowSpan="3"
+                                    Source="csv_download.png"
+                                    WidthRequest="30"
+                                    HeightRequest="30"
+                                    VerticalOptions="Center"
+                                    HorizontalOptions="End"
+                                    SemanticProperties.Description="Download CSV"
+                                >
+                                <Image.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnDownloadTapped" />
+                                </Image.GestureRecognizers>
+                            </Image>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Border>
+    </Grid>
+</localbase:BasePage>

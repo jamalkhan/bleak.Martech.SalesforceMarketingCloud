@@ -9,7 +9,6 @@
                 Text="Connected to SFMC / {Binding Name}"
                 VerticalOptions="Center" 
                 HorizontalOptions="Center" />
-
             <Button
                 x:Name="ShowDataExtensionsBtn"
                 Text="Show Data Extensions" 
