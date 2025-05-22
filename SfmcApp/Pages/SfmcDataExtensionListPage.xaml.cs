@@ -11,6 +11,8 @@ using System.Windows.Input;
 using bleak.Martech.SalesforceMarketingCloud.Rest;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops;
 using bleak.Martech.SalesforceMarketingCloud.Wsdl;
+using SfmcApp.Models;
+
 
 
 #if MACCATALYST
@@ -74,6 +76,27 @@ public partial class SfmcDataExtensionListPage : ContentPage, INotifyPropertyCha
         }
     }
 
+
+
+    public ObservableCollection<StringSearchOptions> SearchOptions { get; }
+        = new ObservableCollection<StringSearchOptions>(
+            Enum.GetValues(typeof(StringSearchOptions)).Cast<StringSearchOptions>());
+
+    private StringSearchOptions _selectedSearchOption = StringSearchOptions.Like;
+    public StringSearchOptions SelectedSearchOption
+    {
+        get => _selectedSearchOption;
+        set
+        {
+            if (_selectedSearchOption != value)
+            {
+                _selectedSearchOption = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+
     static JsonSerializer _serializer = new JsonSerializer();
     static RestManager _restManager = new RestManager(_serializer, _serializer);
 
@@ -87,6 +110,10 @@ public partial class SfmcDataExtensionListPage : ContentPage, INotifyPropertyCha
             config: new SfmcConnectionConfiguration()
             );
 
+        SearchBarText.SearchButtonPressed += (s, e) =>
+        {
+            OnSearchButtonClicked(s, e);
+        };
         BindingContext = this;
 
         // Safely load folders in the background

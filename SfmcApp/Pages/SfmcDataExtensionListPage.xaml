@@ -4,7 +4,7 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:local="clr-namespace:SfmcApp.Pages"
              x:Class="SfmcApp.Pages.SfmcDataExtensionListPage"
-             Title="SfmcDataExtensionListPage">
+             Title="Data Extension Navigator">
     <Grid 
         ColumnDefinitions="*, 2*"
         RowDefinitions="Auto, *"
@@ -17,24 +17,24 @@
                               Padding="10"
                               VerticalOptions="Center"
                               HorizontalOptions="StartAndExpand">
-            <Label Text="Data Extension Folders!"
-                    VerticalOptions="Center"
-                    FontSize="Title" />
-            <SearchBar Placeholder="Search Data Extensions"
-                    WidthRequest="200"
-                    x:Name="SearchBarText"
-                    VerticalOptions="Center" />
+            <SearchBar
+                Placeholder="Search Data Extensions"
+                WidthRequest="200"
+                x:Name="SearchBarText"
+                VerticalOptions="Center"
+                BackgroundColor="White"
+                TextColor="Black"
+                PlaceholderColor="Gray"
+                HeightRequest="40"
+                >
+            </SearchBar>
+
             <Picker Title="Select Search Type"
                     WidthRequest="150"
+                    ItemsSource="{Binding SearchOptions}"
                     x:Name="SearchTypePicker"
+                    SelectedIndex="0"
                     VerticalOptions="Center">
-                <Picker.ItemsSource>
-                    <x:Array Type="{x:Type x:String}">
-                        <x:String>Like</x:String>
-                        <x:String>Starts With</x:String>
-                        <x:String>Ends With</x:String>
-                    </x:Array>
-                </Picker.ItemsSource>
             </Picker>
             <Button Text="Search"
                     VerticalOptions="Center"
