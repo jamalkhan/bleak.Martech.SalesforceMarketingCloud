@@ -203,6 +203,8 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
             if (!string.IsNullOrEmpty(nameEndsWith) || !string.IsNullOrEmpty(nameLike) || !string.IsNullOrEmpty(nameStartsWith))
             {
                 sb.AppendLine($"                <Filter xsi:type=\"SimpleFilterPart\">");
+
+                
                 sb.AppendLine($"                    <Property>Name</Property>");
                 if (!string.IsNullOrEmpty(nameEndsWith))
                 {

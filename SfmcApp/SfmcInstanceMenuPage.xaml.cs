@@ -3,6 +3,7 @@ using bleak.Martech.SalesforceMarketingCloud.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Models;
 using SfmcApp.Models;
 using SfmcApp.Pages;
+using SfmcApp.Pages.Content;
 
 namespace SfmcApp;
 
@@ -22,10 +23,13 @@ public partial class SfmcInstanceMenuPage : ContentPage
 		);
 		BindingContext = connection;
 	}
-	
+
 	public async void OnShowDataExtensionsClicked(object sender, EventArgs e)
 	{
-		
 		await Navigation.PushAsync(new SfmcDataExtensionListPage(_authRepository));
+	}
+	public async void OnShowContentClicked(object sender, EventArgs e)
+	{
+		await Navigation.PushAsync(new SfmcContentListPage(_authRepository));
 	}
 }

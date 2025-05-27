@@ -13,6 +13,10 @@ using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops;
 using bleak.Martech.SalesforceMarketingCloud.Wsdl;
 using SfmcApp.Models;
 using SfmcApp.Pages.BasePages;
+using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Content;
+using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
+
+
 
 
 
@@ -26,18 +30,87 @@ using UniformTypeIdentifiers;
 
 
 
+
+
 namespace SfmcApp.Pages.Content;
 
-public partial class SfmcContentListPage : BasePage
+public partial class SfmcContentListPage : ContentPage, INotifyPropertyChanged
 {
     public new event PropertyChangedEventHandler PropertyChanged;
 
-    private void OnPropertyChanged([CallerMemberName] string name = null) =>
+    private new void OnPropertyChanged([CallerMemberName] string name = "") =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
 
+    #region Bound Properties
+    private bool _isFoldersLoading;
+    public bool IsFoldersLoading
+    {
+        get => _isFoldersLoading;
+        set
+        {
+            _isFoldersLoading = value;
+            OnPropertyChanged(); // or SetProperty in CommunityToolkit
+        }
+    }
+
+    private bool _isFoldersLoaded;
+    public bool IsFoldersLoaded
+    {
+        get => _isFoldersLoaded;
+        set
+        {
+            _isFoldersLoaded = value;
+            OnPropertyChanged(); // or SetProperty in CommunityToolkit
+        }
+    }
+
+
+
+    
+    public ObservableCollection<FolderObject> Folders { get; set; } = new();
+    public ObservableCollection<DataExtensionPoco> DataExtensions { get; set; } = new();
+
+
+    private DataExtensionFolder _selectedFolder;
+    public DataExtensionFolder SelectedFolder
+    {
+        get => _selectedFolder;
+        set
+        {
+            if (_selectedFolder != value)
+            {
+                _selectedFolder = value;
+                OnPropertyChanged();
+                LoadContentForSelectedFolderAsync();
+            }
+        }
+    }
+
+    public ObservableCollection<StringSearchOptions> SearchOptions { get; }
+        = new ObservableCollection<StringSearchOptions>(
+            Enum.GetValues(typeof(StringSearchOptions)).Cast<StringSearchOptions>());
+
+    private StringSearchOptions _selectedSearchOption = StringSearchOptions.Like;
+    public StringSearchOptions SelectedSearchOption
+    {
+        get => _selectedSearchOption;
+        set
+        {
+            if (_selectedSearchOption != value)
+            {
+                _selectedSearchOption = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+    #endregion Bound Properties
+
+
+    private readonly IAuthRepository _authRepository;
+
+
     public SfmcContentListPage(IAuthRepository authRepository)
-        : base(authRepository: authRepository)
     {
         InitializeComponent();
         BindingContext = this;
@@ -51,6 +124,29 @@ public partial class SfmcContentListPage : BasePage
     }
     private async void LoadFoldersAsync()
     {
+        try
+        {
+            IsFoldersLoaded = false;
+            IsFoldersLoading = true;
+            await DisplayAlert("Instantiating API...", $"here we go...", "OK");
+            var folderApi = new ContentFolderRestApi(
+                authRepository: _authRepository,
+                config: new SfmcConnectionConfiguration()
+                );
+            await DisplayAlert("Loading Folders...", $"Loading...", "OK");
+            var folderTree = await folderApi.GetFolderTreeAsync(); // Must be async method
+            await DisplayAlert("Folders Loaded", $"Loaded: {folderTree.Count} folders in root", "OK");
+            foreach (FolderObject folder in folderTree)
+            {
+                Folders.Add(folder);
+            }
+            IsFoldersLoaded = true;
+            IsFoldersLoading = false;
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", $"Failed to load folders: {ex.ToString()}", "OK");
+        }
     }
 
     private async void OnSearchButtonClicked(object sender, EventArgs e)
@@ -106,6 +202,12 @@ public partial class SfmcContentListPage : BasePage
         // You can access the SearchBar and Picker values if they are named, e.g.:
         // var searchText = SearchBarName.Text; // If SearchBar has x:Name="SearchBarName"
         // var searchType = PickerName.SelectedItem?.ToString(); // If Picker has x:Name="PickerName"
+    }
+
+
+    private void LoadContentForSelectedFolderAsync()
+    {
+        throw new NotImplementedException();
     }
 
     private async void OnDownloadTapped(object sender, EventArgs e)

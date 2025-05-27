@@ -6,7 +6,7 @@
     <ScrollView>
         <VerticalStackLayout>
             <Label 
-                Text="Connected to SFMC / {Binding Name}"
+                Text="{Binding Name, StringFormat='Connected to SFMC \ {0}'}"
                 VerticalOptions="Center" 
                 HorizontalOptions="Center" />
             <Button
@@ -14,6 +14,12 @@
                 Text="Show Data Extensions" 
                 SemanticProperties.Hint="Show Data Extensions"
                 Clicked="OnShowDataExtensionsClicked"
+                HorizontalOptions="Fill" />
+            <Button
+                x:Name="ShowContentsBtn"
+                Text="Show Content" 
+                SemanticProperties.Hint="Show Content"
+                Clicked="OnShowContentClicked"
                 HorizontalOptions="Fill" />
         </VerticalStackLayout>
     </ScrollView>
