@@ -200,28 +200,59 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
                 sb.AppendLine($"                    <Value>{folderId.Value}</Value>");
                 sb.AppendLine($"                </Filter>");
             }
-            if (!string.IsNullOrEmpty(nameEndsWith) || !string.IsNullOrEmpty(nameLike) || !string.IsNullOrEmpty(nameStartsWith))
+
+
+
+            if (!string.IsNullOrEmpty(nameStartsWith))
             {
                 sb.AppendLine($"                <Filter xsi:type=\"SimpleFilterPart\">");
-
-                
                 sb.AppendLine($"                    <Property>Name</Property>");
-                if (!string.IsNullOrEmpty(nameEndsWith))
-                {
-                    sb.AppendLine($"                    <SimpleOperator>endsWith</SimpleOperator>");
-                    sb.AppendLine($"                    <Value>{nameEndsWith}</Value>");
-                }
-                else if (!string.IsNullOrEmpty(nameLike))
-                {
-                    sb.AppendLine($"                    <SimpleOperator>like</SimpleOperator>");
-                    sb.AppendLine($"                    <Value>{nameLike}</Value>");
-                }
-                else if (!string.IsNullOrEmpty(nameStartsWith))
-                {
-                    sb.AppendLine($"                    <SimpleOperator>startsWith</SimpleOperator>");
-                    sb.AppendLine($"                    <Value>{nameStartsWith}</Value>");
-                }
+                sb.AppendLine($"                    <SimpleOperator>startsWith</SimpleOperator>");
+                sb.AppendLine($"                    <Value>{nameStartsWith}</Value>");
                 sb.AppendLine($"                </Filter>");
+            }
+            else if (!string.IsNullOrEmpty(nameEndsWith))
+            {
+                sb.AppendLine($"                <Filter xsi:type=\"SimpleFilterPart\">");
+                sb.AppendLine($"                    <Property>Name</Property>");
+                sb.AppendLine($"                    <SimpleOperator>endsWith</SimpleOperator>");
+                sb.AppendLine($"                    <Value>{nameEndsWith}</Value>");
+                sb.AppendLine($"                </Filter>");
+            }
+            else if (!string.IsNullOrEmpty(nameLike))
+            {
+                /*
+                  <Filter xsi:type="ComplexFilterPart" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                    <LeftOperand xsi:type="SimpleFilterPart">
+                      <Property>EmailAddress</Property>
+                      <SimpleOperator>like</SimpleOperator>
+                      <Value>%@example.com%</Value>
+                    </LeftOperand>
+                    <LogicalOperator>OR</LogicalOperator>
+                    <RightOperand xsi:type="SimpleFilterPart">
+                      <Property>SubscriberKey</Property>
+                      <SimpleOperator>like</SimpleOperator>
+                      <Value>abc%</Value>
+                    </RightOperand>
+                  </Filter>
+                */
+                sb.AppendLine($"                <Filter xsi:type=\"ComplexFilterPart\">");
+                sb.AppendLine($"                    <LeftOperand xsi:type=\"SimpleFilterPart\">");
+                sb.AppendLine($"                        <Property>Name</Property>");
+                sb.AppendLine($"                        <SimpleOperator>like</SimpleOperator>");
+                sb.AppendLine($"                        <Value>{nameLike}</Value>");
+                sb.AppendLine($"                    </LeftOperand>");
+                sb.AppendLine($"                    <LogicalOperator>OR</LogicalOperator>");
+                sb.AppendLine($"                    <RightOperand xsi:type=\"SimpleFilterPart\">");
+                sb.AppendLine($"                        <Property>CustomerKey</Property>");
+                sb.AppendLine($"                        <SimpleOperator>like</SimpleOperator>");
+                sb.AppendLine($"                        <Value>{nameLike}</Value>");
+                sb.AppendLine($"                    </RightOperand>");
+                sb.AppendLine($"                </Filter>");
+            }
+            else
+            {
+                
             }
 
             sb.AppendLine($"            </RetrieveRequest>");
