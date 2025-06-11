@@ -70,7 +70,7 @@ public partial class SfmcConnectionEditPage : ContentPage
             }
             if (conn.Id == id)
             {
-                _logger?.LogInformation("Overwriting existing connection with Id: {Id}", id);
+                _logger?.LogInformation("Overwriting existing gconnection with Id: {Id}", id);
                 isFound = true;
                 conn.Name = NameEntry.Text;
                 conn.Subdomain = SubdomainEntry.Text;
