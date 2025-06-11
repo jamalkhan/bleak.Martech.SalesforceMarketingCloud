@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using CommunityToolkit.Maui;
+using SfmcApp.Logging;
 
 namespace SfmcApp;
 
@@ -17,9 +18,15 @@ public static class MauiProgram
 			})
 			.UseMauiCommunityToolkit()
 			;
+		
+		string logPath = Path.Combine(FileSystem.AppDataDirectory, "app.log");
+
+        builder.Logging.AddProvider(new FileLoggerProvider(logPath));
+        builder.Logging.SetMinimumLevel(LogLevel.Debug); // Or whatever level you want
+
        
 #if DEBUG
-        builder.Logging.AddDebug();
+		builder.Logging.AddDebug();
 #endif
 
 		return builder.Build();

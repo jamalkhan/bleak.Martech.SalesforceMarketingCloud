@@ -1,32 +1,43 @@
 namespace SfmcApp;
+
+using Microsoft.Extensions.Logging;
 using SfmcApp.Models;
+using System.Diagnostics;
 using System.Text.Json;
 
 public partial class SfmcConnectionEditPage : ContentPage
 {
-
 	const string ConnectionsPrefKey = "SfmcConnections";
+    private ILogger<SfmcConnectionEditPage>? _logger => 
+        App.Current?.Handler?.MauiContext?.Services?.GetService<ILogger<SfmcConnectionEditPage>>();
 
-	public SfmcConnectionEditPage()
-	{
-		InitializeComponent();
-        IdEntry.Text = Guid.NewGuid().ToString();
-    }
-
-	public SfmcConnectionEditPage(SfmcConnection? connection = null)
-	{
-		InitializeComponent();
-
-		if (connection != null)
-		{
+    public SfmcConnectionEditPage(SfmcConnection? connection = null)
+    {
+        InitializeComponent();
+        if (connection == null)
+        {
+            IdEntry.Text = Guid.NewGuid().ToString();
+        }
+        else if (connection != null)
+        {
             IdEntry.Text = connection.Id.ToString();
             NameEntry.Text = connection.Name;
-			SubdomainEntry.Text = connection.Subdomain;
-			ClientIdEntry.Text = connection.ClientId;
-			ClientSecretEntry.Text = connection.ClientSecret;
-			MemberIdEntry.Text = connection.MemberId;
-		}
-	}
+            SubdomainEntry.Text = connection.Subdomain;
+            ClientIdEntry.Text = connection.ClientId;
+            ClientSecretEntry.Text = connection.ClientSecret;
+            MemberIdEntry.Text = connection.MemberId;
+        }
+            try
+            {
+                _logger?.LogInformation("Initialized page");
+            }
+            catch (Exception ex)
+            {
+                DisplayAlert($"FUCK", $"Logger failed..", "Fuck");
+            }
+
+    }
+    
 
 
     private async void OnSaveClicked(object sender, EventArgs e)
@@ -39,16 +50,27 @@ public partial class SfmcConnectionEditPage : ContentPage
             ? new List<SfmcConnection>()
             : JsonSerializer.Deserialize<List<SfmcConnection>>(json) ?? new List<SfmcConnection>();
 
+
+
+        try
+        {
+            _logger?.LogInformation("Saving connection with Id: {Id}", id);
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert($"FUCK", $"Logger failed.. {ex}", "Fuck");
+        }
+
         foreach (var conn in connections)
         {
             if (conn.Id == Guid.Empty)
             {
-                DisplayAlert($"Found {SubdomainEntry.Text}", $"Id = {IdEntry.Text} Subdomain = {SubdomainEntry.Text} was not found.", "Fuck");
                 conn.Id = Guid.NewGuid();
+                _logger?.LogInformation("Saving NEW connection with Id: {Id}", id);
             }
             if (conn.Id == id)
             {
-                DisplayAlert($"Found {SubdomainEntry.Text}", $"Id = {IdEntry.Text} Subdomain = {SubdomainEntry.Text} was found.", "OK");
+                _logger?.LogInformation("Overwriting existing connection with Id: {Id}", id);
                 isFound = true;
                 conn.Name = NameEntry.Text;
                 conn.Subdomain = SubdomainEntry.Text;
@@ -71,7 +93,7 @@ public partial class SfmcConnectionEditPage : ContentPage
             };
             connections.Add(newConnection);
         }
-        
+
         var updatedJson = JsonSerializer.Serialize(connections);
         Preferences.Set(ConnectionsPrefKey, updatedJson);
 
