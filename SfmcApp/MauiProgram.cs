@@ -28,6 +28,11 @@ public static class MauiProgram
         builder.Logging.AddProvider(new FileLoggerProvider(logPath));
         builder.Logging.SetMinimumLevel(LogLevel.Debug); // Or whatever level you want
 		builder.Services.AddTransient<MainPage>();
+		builder.Services.AddTransient<SfmcConnectionEditPage>();
+		builder.Services.AddTransient<SfmcConnectionListPage>();
+
+		
+
 		builder.Services.AddSingleton<ContentFolderRestApi>();
 		builder.Services.AddTransient<IAuthRepository, MauiAuthRepository>();
 		builder.Services.AddSingleton<IContentFolderRestApi, ContentFolderRestApi>();

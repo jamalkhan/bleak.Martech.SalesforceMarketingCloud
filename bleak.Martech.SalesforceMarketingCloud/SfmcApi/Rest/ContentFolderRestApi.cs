@@ -33,19 +33,23 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Content
 
         public async Task<List<FolderObject>> GetFolderTreeAsync()
         {
+            _logger.LogError("GetFolderTreeAsync called");
             return await Task.Run(() => GetFolderTree());
         }
 
         public List<FolderObject> GetFolderTree()
         {
+            _logger.LogError("GetFolderTree() invoked");
             int page = 1;
             int currentPageSize = 0;
 
             var sfmcFolders = new List<SfmcFolder>();
             do
             {
+                _logger.LogError($"GetFolderTree() page: {page}");
                 currentPageSize = LoadFolder(page, sfmcFolders);
                 page++;
+                _logger.LogError($"GetFolderTree() page: {page}");
             }
             while (_sfmcConnectionConfiguration.PageSize == currentPageSize);
 
@@ -53,7 +57,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Content
             {
                 return BuildFolderTree(sfmcFolders);
             }
-
+            _logger.LogError("Error Loading Folders");
             throw new Exception("Error Loading Folders");
         }
 
