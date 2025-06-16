@@ -27,15 +27,15 @@ public partial class SfmcConnectionEditPage : ContentPage
             ClientSecretEntry.Text = connection.ClientSecret;
             MemberIdEntry.Text = connection.MemberId;
         }
-            try
-            {
-                _logger?.LogInformation("Initialized page");
-            }
-            catch (Exception ex)
-            {
-                DisplayAlert($"FUCK", $"Logger failed..", "Fuck");
-            }
 
+        try
+        {
+            _logger?.LogInformation("Initialized page");
+        }
+        catch (Exception ex)
+        {
+            DisplayAlert($"Error Initiatlizing SFMC Connection Edit Page", $"Logger failed..", ex.Message);
+        }
     }
     
 

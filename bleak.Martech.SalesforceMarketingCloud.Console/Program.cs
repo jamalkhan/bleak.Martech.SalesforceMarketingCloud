@@ -142,6 +142,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
         {
             var deapi = new Sfmc.Soap.DataExtensionSoapApi(
                 authRepository: _authRepository
+            ,   config: new SfmcConnectionConfiguration()
                 );
             var des = deapi.GetAllDataExtensions();
             foreach (var de in des)
@@ -157,7 +158,9 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                 config: new SfmcConnectionConfiguration());
 
             var folderTree = lf.GetFolderTree();
-            var deapi = new DataExtensionSoapApi(authRepository: _authRepository);
+            var deapi = new DataExtensionSoapApi(
+                authRepository: _authRepository
+                ,   config: new SfmcConnectionConfiguration());
             var dataExtensions = deapi.GetAllDataExtensions();
 
             AddDEsToFolder(folderTree, dataExtensions);
@@ -171,7 +174,9 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                 config: new SfmcConnectionConfiguration());
             var folderTree = lf.GetFolderTree();
 
-            var deapi = new DataExtensionSoapApi(authRepository: _authRepository);
+            var deapi = new DataExtensionSoapApi(
+                authRepository: _authRepository
+            ,   config: new SfmcConnectionConfiguration());
             var dataExtensions = deapi.GetAllDataExtensions();
 
             AddDEsToFolder(folderTree, dataExtensions);

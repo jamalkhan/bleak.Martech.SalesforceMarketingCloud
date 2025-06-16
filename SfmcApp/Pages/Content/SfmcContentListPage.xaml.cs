@@ -15,6 +15,8 @@ using SfmcApp.Models;
 using SfmcApp.Pages.BasePages;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Content;
 using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
+using Microsoft.Extensions.Logging;
+
 
 
 
@@ -36,6 +38,9 @@ namespace SfmcApp.Pages.Content;
 
 public partial class SfmcContentListPage : ContentPage, INotifyPropertyChanged
 {
+    private readonly IContentFolderRestApi _folderApi;
+    private readonly ILogger<SfmcContentListPage> _logger;
+
     public new event PropertyChangedEventHandler PropertyChanged;
 
     private new void OnPropertyChanged([CallerMemberName] string name = "") =>
@@ -110,7 +115,11 @@ public partial class SfmcContentListPage : ContentPage, INotifyPropertyChanged
     private readonly IAuthRepository _authRepository;
 
 
-    public SfmcContentListPage(IAuthRepository authRepository)
+    public SfmcContentListPage(
+        IAuthRepository authRepository,
+        ILogger<SfmcContentListPage> logger,
+        IContentFolderRestApi folderApi
+        )
     {
         InitializeComponent();
         BindingContext = this;
@@ -119,6 +128,7 @@ public partial class SfmcContentListPage : ContentPage, INotifyPropertyChanged
         {
             OnSearchButtonClicked(s, e);
         };
+        _folderApi = folderApi ?? throw new ArgumentNullException(nameof(folderApi));
         // Safely load folders in the background
         LoadFoldersAsync();
     }
@@ -128,14 +138,9 @@ public partial class SfmcContentListPage : ContentPage, INotifyPropertyChanged
         {
             IsFoldersLoaded = false;
             IsFoldersLoading = true;
-            await DisplayAlert("Instantiating API...", $"here we go...", "OK");
-            var folderApi = new ContentFolderRestApi(
-                authRepository: _authRepository,
-                config: new SfmcConnectionConfiguration()
-                );
-            await DisplayAlert("Loading Folders...", $"Loading...", "OK");
-            var folderTree = await folderApi.GetFolderTreeAsync(); // Must be async method
-            await DisplayAlert("Folders Loaded", $"Loaded: {folderTree.Count} folders in root", "OK");
+            _logger.LogInformation($"Preparing to Load folders from API");
+            var folderTree = await _folderApi.GetFolderTreeAsync(); // Must be async method
+            _logger.LogInformation($"Loaded {folderTree.Count} folders from API");
             foreach (FolderObject folder in folderTree)
             {
                 Folders.Add(folder);
@@ -151,6 +156,7 @@ public partial class SfmcContentListPage : ContentPage, INotifyPropertyChanged
 
     private async void OnSearchButtonClicked(object sender, EventArgs e)
     {
+        throw new NotImplementedException();
         /*
         var api = new DataExtensionSoapApi(
             authRepository: _authRepository,
@@ -212,5 +218,6 @@ public partial class SfmcContentListPage : ContentPage, INotifyPropertyChanged
 
     private async void OnDownloadTapped(object sender, EventArgs e)
     {
+        throw new NotImplementedException();
     }
 }

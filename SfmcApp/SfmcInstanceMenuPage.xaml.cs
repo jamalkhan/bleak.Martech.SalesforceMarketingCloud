@@ -4,6 +4,7 @@ using bleak.Martech.SalesforceMarketingCloud.Sfmc.Models;
 using SfmcApp.Models;
 using SfmcApp.Pages;
 using SfmcApp.Pages.Content;
+using SfmcApp;
 
 namespace SfmcApp;
 
@@ -30,6 +31,7 @@ public partial class SfmcInstanceMenuPage : ContentPage
 	}
 	public async void OnShowContentClicked(object sender, EventArgs e)
 	{
-		await Navigation.PushAsync(new SfmcContentListPage(_authRepository));
+		var page = App.Current.Services.GetRequiredService<SfmcContentListPage>();
+    	await Navigation.PushAsync(page);
 	}
 }

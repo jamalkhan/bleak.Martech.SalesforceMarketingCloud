@@ -84,14 +84,13 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                 authRepository: _authRepository,
                 fileWriter: new DelimitedFileWriter
                 (
-                    filePath: path,
                     options: new DelimitedFileWriterOptions { Delimiter = "," }
                 ),
                 startDate: startTime,
                 endDate: endTime
             );
 
-            api.LoadDataSet();
+            api.LoadDataSet(filePath: path);
             
             Console.WriteLine($"Downloaded Sends for {startTime:yyyy-MM-dd} through {endTime:yyyy-MM-dd}");
         }

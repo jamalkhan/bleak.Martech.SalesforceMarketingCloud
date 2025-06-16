@@ -4,37 +4,43 @@ using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.Models;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Rest;
+using Microsoft.Extensions.Logging;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Content
 {
-    public class ContentFolderRestApi : BaseRestApi
+    public interface IContentFolderRestApi
     {
+        List<FolderObject> GetFolderTree();
+        Task<List<FolderObject>> GetFolderTreeAsync();
+    }
+
+    public class ContentFolderRestApi : BaseRestApi, IContentFolderRestApi
+    {
+        private readonly ILogger<ContentFolderRestApi> _logger;
 
         private HttpVerbs verb = HttpVerbs.GET;
 
         public ContentFolderRestApi(
-            IAuthRepository authRepository)
-            : this(authRepository, new SfmcConnectionConfiguration())
-        {
-        }
-        public ContentFolderRestApi(
             IAuthRepository authRepository,
-            SfmcConnectionConfiguration config)
-            : base(authRepository: authRepository,config: config)
+            SfmcConnectionConfiguration config,
+            ILogger<ContentFolderRestApi> logger
+            )
+            : base(authRepository: authRepository, config: config)
         {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-        
+
 
         public async Task<List<FolderObject>> GetFolderTreeAsync()
         {
             return await Task.Run(() => GetFolderTree());
         }
-        
+
         public List<FolderObject> GetFolderTree()
         {
             int page = 1;
             int currentPageSize = 0;
-            
+
             var sfmcFolders = new List<SfmcFolder>();
             do
             {
@@ -77,15 +83,15 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Content
             try
             {
                 if (_sfmcConnectionConfiguration.Debug) { Console.WriteLine($"Loading Folder Page #{page}"); }
-                
+
                 RestResults<SfmcRestWrapper<SfmcFolder>, string> results;
                 //asset/v1/content/categories
                 string url = $"https://{_authRepository.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/categories/?$page={page}&$pagesize={_sfmcConnectionConfiguration.PageSize}";
-                
+
                 results = ExecuteRestMethodWithRetry(
                     loadFolderApiCall: LoadFolderApiCall,
                     url: url,
-                    authenticationError: "401", 
+                    authenticationError: "401",
                     resolveAuthentication: _authRepository.ResolveAuthentication
                 );
 
