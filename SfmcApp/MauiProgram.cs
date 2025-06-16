@@ -57,9 +57,20 @@ public static class MauiProgram
 			return new SfmcInstanceMenuPage(connection, logger);
 		});
 
+		builder.Services.AddTransient<Func<SfmcConnection, SfmcContentListPage>>(sp => connection =>
+		{
+			var logger = sp.GetRequiredService<ILogger<SfmcContentListPage>>();
+			var api = sp.GetRequiredService<IContentFolderRestApi>();
+			var authRepository = sp.GetRequiredService<IAuthRepository>();
+			return new SfmcContentListPage(
+				authRepository: authRepository,
+				logger: logger,
+				folderApi: api);
+		});
 
 
-		builder.Services.AddTransient<SfmcContentListPage>();
+
+		
 		builder.Services.AddSingleton<SfmcConnectionConfiguration>();
 		builder.Services.AddTransient<ContentFolderRestApi>();
 

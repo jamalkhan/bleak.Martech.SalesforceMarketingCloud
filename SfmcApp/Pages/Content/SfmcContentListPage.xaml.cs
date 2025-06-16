@@ -123,6 +123,9 @@ public partial class SfmcContentListPage : ContentPage, INotifyPropertyChanged
     {
         InitializeComponent();
         BindingContext = this;
+        /*
+        
+
 
         SearchBarText.SearchButtonPressed += (s, e) =>
         {
@@ -131,6 +134,7 @@ public partial class SfmcContentListPage : ContentPage, INotifyPropertyChanged
         _folderApi = folderApi ?? throw new ArgumentNullException(nameof(folderApi));
         // Safely load folders in the background
         LoadFoldersAsync();
+        */
     }
     private async void LoadFoldersAsync()
     {
