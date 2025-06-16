@@ -20,7 +20,6 @@ public partial class MainPage : ContentPage
     {
         var page = App.Current.Services.GetRequiredService<SfmcConnectionEditPage>();
         await Navigation.PushAsync(page);
-
     }
 
     private async void OnShowSfmcConnectionsClicked(object sender, EventArgs e)

@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using SfmcApp.Models;
 
 namespace SfmcApp;
@@ -10,9 +11,13 @@ public partial class SfmcConnectionListPage : ContentPage
 
     public ObservableCollection<SfmcConnection> Connections { get; set; } = new();
 
-    public SfmcConnectionListPage()
+    private readonly ILogger<SfmcConnectionListPage> _logger;
+    public SfmcConnectionListPage(
+        ILogger<SfmcConnectionListPage> logger
+    )
     {
         InitializeComponent();
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         BindingContext = this;
         LoadConnections();
     }
@@ -54,7 +59,17 @@ public partial class SfmcConnectionListPage : ContentPage
     {
         if (sender is Button button && button.CommandParameter is SfmcConnection connection)
         {
-            await Navigation.PushAsync(new SfmcInstanceMenuPage(connection));
+            if (App.Current?.Services is IServiceProvider services)
+            {
+                _logger.LogInformation("Preparing the SfmcInstanceMenuPage with connection: {ConnectionName}", connection.Name);
+                
+                var factory = services.GetRequiredService<Func<SfmcConnection, SfmcInstanceMenuPage>>();
+                var page = factory(connection);
+                
+                _logger.LogInformation("And... Push");
+                await Navigation.PushAsync(page);
+                _logger.LogInformation("Pushed.");
+            }
         }
     }
 
