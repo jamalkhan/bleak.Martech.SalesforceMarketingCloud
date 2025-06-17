@@ -28,28 +28,34 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Content
             : base(authRepository: authRepository, config: config)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            if (config == null) config = new SfmcConnectionConfiguration();
+            if (config.PageSize > 500)
+            {
+                _logger.LogWarning($"PageSize is set to {config.PageSize}, which exceeds the maximum allowed value of 500. Setting PageSize to 500.");
+                base._sfmcConnectionConfiguration.PageSize = 500; // Set a reasonable default max page size
+            }
         }
 
 
         public async Task<List<FolderObject>> GetFolderTreeAsync()
         {
-            _logger.LogError("GetFolderTreeAsync called");
+            _logger.LogInformation("GetFolderTreeAsync called");
             return await Task.Run(() => GetFolderTree());
         }
 
         public List<FolderObject> GetFolderTree()
         {
-            _logger.LogError("GetFolderTree() invoked");
+            _logger.LogInformation("GetFolderTree() invoked");
             int page = 1;
             int currentPageSize = 0;
 
             var sfmcFolders = new List<SfmcFolder>();
             do
             {
-                _logger.LogError($"GetFolderTree() page: {page}");
+                _logger.LogTrace($"Executing GetFolderTree() page: {page}");
                 currentPageSize = LoadFolder(page, sfmcFolders);
                 page++;
-                _logger.LogError($"GetFolderTree() page: {page}");
+                _logger.LogInformation($"LoadFolder() returned currentPageSize: {currentPageSize} and moving onto page {page}.");
             }
             while (_sfmcConnectionConfiguration.PageSize == currentPageSize);
 
@@ -86,12 +92,10 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Content
             int currentPageSize;
             try
             {
-                if (_sfmcConnectionConfiguration.Debug) { Console.WriteLine($"Loading Folder Page #{page}"); }
-
                 RestResults<SfmcRestWrapper<SfmcFolder>, string> results;
                 //asset/v1/content/categories
                 string url = $"https://{_authRepository.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/categories/?$page={page}&$pagesize={_sfmcConnectionConfiguration.PageSize}";
-
+                _logger.LogInformation($"Loading Folder Page #{page} with URL: {url}");
                 results = ExecuteRestMethodWithRetry(
                     loadFolderApiCall: LoadFolderApiCall,
                     url: url,
@@ -99,22 +103,21 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Content
                     resolveAuthentication: _authRepository.ResolveAuthentication
                 );
 
-                if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"results.Value = {results?.Results}");
-                if (results?.Error != null) Console.WriteLine($"results.Error = {results.Error}");
+                _logger.LogTrace($"results.Value = {results?.Results}");
+                _logger.LogError($"results.Error = {results?.Error}");
 
                 currentPageSize = results!.Results.items.Count();
                 sfmcFolders.AddRange(results.Results.items);
-                if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {sfmcFolders.Count()} Total Folders Identified.");
+                _logger.LogInformation($"Current Page had {currentPageSize} records. There are now {sfmcFolders.Count()} Total Folders Identified.");
 
                 if (_sfmcConnectionConfiguration.PageSize == currentPageSize)
                 {
-                    if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"Running Loop Again");
+                    _logger.LogInformation($"Running Loop Again");
                 }
-
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine($"{ex.Message}");
+                _logger.LogError($"{ex.Message}");
                 throw;
             }
 

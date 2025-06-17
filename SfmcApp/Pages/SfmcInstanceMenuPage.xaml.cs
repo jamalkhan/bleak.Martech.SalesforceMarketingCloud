@@ -38,19 +38,14 @@ public partial class SfmcInstanceMenuPage : ContentPage
 	}
 	public async void OnShowContentClicked(object sender, EventArgs e)
 	{
-		_logger.LogInformation("Navigating to Content List Page");
-
 		if (App.Current?.Services is IServiceProvider services)
 		{
 			if (BindingContext is SfmcConnection connection)
 			{
-				_logger.LogInformation("Getting factory for SfmcContentListPage");
 				var factory = services.GetRequiredService<Func<SfmcConnection, SfmcContentListPage>>();
 				_logger.LogInformation("Creating SfmcContentListPage with connection");
 				var page = factory(connection);
-				_logger.LogInformation("And... Push");
 				await Navigation.PushAsync(page);
-				_logger.LogInformation("Pushed.");
 			}
 			else
 			{

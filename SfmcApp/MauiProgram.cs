@@ -65,13 +65,20 @@ public static class MauiProgram
 			sp => connection =>
 			{
 				var logger = sp.GetRequiredService<ILogger<SfmcContentListPage>>();
+				var apiLogger = sp.GetRequiredService<ILogger<ContentFolderRestApi>>();
 				//var api = sp.GetRequiredService<IContentFolderRestApi>();
 				//var authRepository = sp.GetRequiredService<IAuthRepository>();
 				var authRepoFactory = sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>();
 				var authRepository = authRepoFactory(connection);
+				
+				var api = new ContentFolderRestApi(
+					authRepository: authRepository,
+					config: new SfmcConnectionConfiguration(),
+					logger: apiLogger
+				);
 				return new SfmcContentListPage(
 					logger: logger,
-					authRepository: authRepository
+					api: api
 					);
 			}
 		);

@@ -34,7 +34,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Rest
 
         public BaseRestApi(
             IRestManager restManager,
-            IAuthRepository authRepository, 
+            IAuthRepository authRepository,
             SfmcConnectionConfiguration config)
         {
             _restManager = restManager;

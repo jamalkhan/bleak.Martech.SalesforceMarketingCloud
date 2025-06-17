@@ -38,7 +38,6 @@ namespace SfmcApp.Pages.Content;
 
 public partial class SfmcContentListPage : ContentPage, INotifyPropertyChanged
 {
-    private readonly IContentFolderRestApi _folderApi;
     private readonly ILogger<SfmcContentListPage> _logger;
 
     public new event PropertyChangedEventHandler PropertyChanged;
@@ -111,29 +110,30 @@ public partial class SfmcContentListPage : ContentPage, INotifyPropertyChanged
     }
     #endregion Bound Properties
 
-
-    private readonly IAuthRepository _authRepository;
-    IContentFolderRestApi folderApi;
+    private readonly IContentFolderRestApi _api;
 
     public SfmcContentListPage(
-        IAuthRepository authRepository,
-        ILogger<SfmcContentListPage> logger    
+        ILogger<SfmcContentListPage> logger,
+        IContentFolderRestApi api
         )
     {
         InitializeComponent();
         BindingContext = this;
-        /*
-        
-
-
         SearchBarText.SearchButtonPressed += (s, e) =>
         {
             OnSearchButtonClicked(s, e);
         };
-        _folderApi = folderApi ?? throw new ArgumentNullException(nameof(folderApi));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _api = api ?? throw new ArgumentNullException(nameof(api));
+        _logger.LogInformation("SfmcContentListPage initialized with API and logger");
+        /*
+        _folderApi = new ContentFolderRestApi(
+            authRepository: authRepository,
+            config: new SfmcConnectionConfiguration()
+        );
+        */
         // Safely load folders in the background
         LoadFoldersAsync();
-        */
     }
     private async void LoadFoldersAsync()
     {
@@ -142,18 +142,19 @@ public partial class SfmcContentListPage : ContentPage, INotifyPropertyChanged
             IsFoldersLoaded = false;
             IsFoldersLoading = true;
             _logger.LogInformation($"Preparing to Load folders from API");
-            var folderTree = await _folderApi.GetFolderTreeAsync(); // Must be async method
+            var folderTree = await _api.GetFolderTreeAsync(); // Must be async method
             _logger.LogInformation($"Loaded {folderTree.Count} folders from API");
             foreach (FolderObject folder in folderTree)
             {
                 Folders.Add(folder);
             }
+            _logger.LogInformation($"Rendered {folderTree.Count} Folders");
             IsFoldersLoaded = true;
             IsFoldersLoading = false;
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Error", $"Failed to load folders: {ex.ToString()}", "OK");
+            _logger.LogError($"Failed to load folders: {ex.ToString()}");
         }
     }
 

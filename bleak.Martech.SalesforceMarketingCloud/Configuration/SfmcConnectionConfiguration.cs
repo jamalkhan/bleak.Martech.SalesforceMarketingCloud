@@ -2,9 +2,9 @@ namespace bleak.Martech.SalesforceMarketingCloud.Configuration
 {
     public class SfmcConnectionConfiguration
     {
-        public int MaxDegreesOfParallelism { get; private set; } = 10;
-        public int PageSize { get; private set; } = 2500;
-        public bool Debug { get; private set; } = false;
+        public int MaxDegreesOfParallelism { get; set; } = 10;
+        public int PageSize { get; set; } = 2500;
+        public bool Debug { get; set; } = false;
 
         public SfmcConnectionConfiguration()
         {
