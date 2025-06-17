@@ -206,7 +206,10 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
             const int root_folder = 0;
 
             // Find root folders
-            var wsdlFolderRoots = wsdlFolders.Where(f => f.ParentFolder.ID == root_folder).ToList();
+            var wsdlFolderRoots = wsdlFolders
+                                    .Where(f => f.ParentFolder.ID == root_folder)
+                                    .OrderBy(f => f.Name)
+                                    .ToList();
             var retval = new List<DataExtensionFolder>();
             foreach (var wsdlFolder in wsdlFolderRoots)
             {
@@ -223,7 +226,10 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
 
         void AddChildren(DataExtensionFolder folderObject, List<Wsdl.DataFolder> wsdlFolders)
         {
-            var children = wsdlFolders.Where(f => f.ParentFolder.ID == folderObject.Id).ToList();
+            var children = wsdlFolders
+                            .Where(f => f.ParentFolder.ID == folderObject.Id)
+                            .OrderBy(f => f.Name)
+                            .ToList();
             var childrenCount = children.Count;
             foreach (var child in children)
             {
