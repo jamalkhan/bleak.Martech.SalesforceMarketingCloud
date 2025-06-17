@@ -34,8 +34,11 @@ public static class MauiProgram
 		builder.Services.AddTransient<SfmcConnectionConfiguration>();
 
 		// Auth Repository
-		builder.Services.AddTransient<MauiAuthRepository>();
-		builder.Services.AddTransient<IAuthRepository, MauiAuthRepository>();
+		builder.Services.AddTransient<Func<SfmcConnection, IAuthRepository>>(sp => connection =>
+		{
+			var logger = sp.GetRequiredService<ILogger<MauiAuthRepository>>();
+			return new MauiAuthRepository(connection, logger);
+		});
 
 		// Content Folder API
 		builder.Services.AddSingleton<ContentFolderRestApi>();
@@ -57,19 +60,21 @@ public static class MauiProgram
 			return new SfmcInstanceMenuPage(connection, logger);
 		});
 
-		builder.Services.AddTransient<Func<SfmcConnection, SfmcContentListPage>>(sp => connection =>
-		{
-			var logger = sp.GetRequiredService<ILogger<SfmcContentListPage>>();
-			var api = sp.GetRequiredService<IContentFolderRestApi>();
-			var authRepository = sp.GetRequiredService<IAuthRepository>();
-			return new SfmcContentListPage(
-				authRepository: authRepository,
-				logger: logger,
-				folderApi: api);
-		});
-
-
-
+		builder.Services.AddTransient<Func<SfmcConnection, SfmcContentListPage>>
+		(
+			sp => connection =>
+			{
+				var logger = sp.GetRequiredService<ILogger<SfmcContentListPage>>();
+				//var api = sp.GetRequiredService<IContentFolderRestApi>();
+				//var authRepository = sp.GetRequiredService<IAuthRepository>();
+				var authRepoFactory = sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>();
+				var authRepository = authRepoFactory(connection);
+				return new SfmcContentListPage(
+					logger: logger,
+					authRepository: authRepository
+					);
+			}
+		);
 		
 		builder.Services.AddSingleton<SfmcConnectionConfiguration>();
 		builder.Services.AddTransient<ContentFolderRestApi>();

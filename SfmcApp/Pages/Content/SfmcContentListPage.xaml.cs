@@ -113,12 +113,11 @@ public partial class SfmcContentListPage : ContentPage, INotifyPropertyChanged
 
 
     private readonly IAuthRepository _authRepository;
-
+    IContentFolderRestApi folderApi;
 
     public SfmcContentListPage(
         IAuthRepository authRepository,
-        ILogger<SfmcContentListPage> logger,
-        IContentFolderRestApi folderApi
+        ILogger<SfmcContentListPage> logger    
         )
     {
         InitializeComponent();

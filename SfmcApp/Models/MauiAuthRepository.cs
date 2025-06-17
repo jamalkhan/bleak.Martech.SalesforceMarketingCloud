@@ -1,5 +1,7 @@
 using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.Authentication;
+using Microsoft.Extensions.Logging;
+using SfmcApp.Models;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
 {
@@ -79,6 +81,16 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
             throw new NotImplementedException();
         }
 
+        public MauiAuthRepository(SfmcConnection connection, ILogger<MauiAuthRepository> logger)
+        {
+            if (connection == null) throw new ArgumentNullException(nameof(connection));
+            Subdomain = connection.Subdomain;
+            ClientId = connection.ClientId;
+            ClientSecret = connection.ClientSecret;
+            MemberId = connection.MemberId;
+            _jsonSerializer = new JsonSerializer();
+            _restManager = new RestManager(_jsonSerializer, _jsonSerializer);
+        }
         public MauiAuthRepository(string subdomain, string clientId, string clientSecret, string memberId)
         {
             Subdomain = subdomain;
