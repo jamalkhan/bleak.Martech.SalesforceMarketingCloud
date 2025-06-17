@@ -30,12 +30,12 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.DataExtens
         {
             return await Task.Run(() => GetFolderTree());
         }
-        
+
         public List<FolderObject> GetFolderTree()
         {
             int page = 1;
             int currentPageSize = 0;
-            
+
             var sfmcFolders = new List<SfmcFolder>();
             do
             {
@@ -50,6 +50,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.DataExtens
             }
 
             throw new Exception("Error Loading Folders");
+            
         }
 
         List<FolderObject> BuildFolderTree(List<SfmcFolder> sfmcFolders)

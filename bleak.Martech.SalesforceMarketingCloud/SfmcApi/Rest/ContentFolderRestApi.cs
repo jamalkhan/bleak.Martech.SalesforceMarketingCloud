@@ -8,12 +8,6 @@ using Microsoft.Extensions.Logging;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Content
 {
-    public interface IContentFolderRestApi
-    {
-        List<FolderObject> GetFolderTree();
-        Task<List<FolderObject>> GetFolderTreeAsync();
-    }
-
     public class ContentFolderRestApi : BaseRestApi, IContentFolderRestApi
     {
         private readonly ILogger<ContentFolderRestApi> _logger;
@@ -78,13 +72,41 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Content
             {
                 var folderObject = sfmcRoot.ToFolderObject();
                 folderObject.FullPath = "/";
-
-                // TODO: Reimplement this
-                // GetAssetsByFolder(folderObject);
-                // AddChildren(folderObject, sfmcFolders);
+                AddChildren(folderObject, folderObject.FullPath, sfmcFolders);
                 retval.Add(folderObject);
+                _logger.LogInformation($"Added root folder: {folderObject.Name} (ID: {folderObject.Id}) with FullPath: {folderObject.FullPath} with {folderObject.SubFolders?.Count ?? 0} subfolders.");
             }
             return retval;
+        }
+
+        private void AddChildren(FolderObject parentFolder, string path, List<SfmcFolder> sfmcFolders)
+        {
+            var childFolders = sfmcFolders
+                .Where(f => f.parentId == parentFolder.Id)
+                .OrderBy(f => f.name);
+            if (!childFolders.Any())
+            {
+                _logger.LogTrace($"No child folders found for parent folder: {parentFolder.Name} (ID: {parentFolder.Id})");
+                return;
+            }
+            
+
+            _logger.LogTrace($"Found {childFolders.Count()} child folders for parent folder: {parentFolder.Name} (ID: {parentFolder.Id})");
+            parentFolder.SubFolders = new List<FolderObject>();
+
+            foreach (var childFolder in childFolders)
+            {
+                var childFolderObject = childFolder.ToFolderObject();
+                childFolderObject.FullPath =  path + childFolderObject.Name + "/";
+                _logger.LogTrace($"Adding child folder: {childFolderObject.Name} (ID: {childFolderObject.Id}) to parent folder: {parentFolder.Name} (ID: {parentFolder.Id})");
+                parentFolder.SubFolders.Add(childFolderObject);
+
+                // Recursively add children to the child folder
+                AddChildren(
+                    parentFolder: childFolderObject,
+                    path: childFolderObject.FullPath,
+                    sfmcFolders: sfmcFolders);
+            }
         }
 
         private int LoadFolder(int page, List<SfmcFolder> sfmcFolders)

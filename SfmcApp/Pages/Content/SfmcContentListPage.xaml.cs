@@ -1,227 +1,205 @@
 using System.Collections.ObjectModel;
-using bleak.Api.Rest;
-using bleak.Martech.SalesforceMarketingCloud.Authentication;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.DataExtensions;
 using bleak.Martech.SalesforceMarketingCloud.Models;
-using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Windows.Input;
-using bleak.Martech.SalesforceMarketingCloud.Rest;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops;
-using bleak.Martech.SalesforceMarketingCloud.Wsdl;
 using SfmcApp.Models;
-using SfmcApp.Pages.BasePages;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Content;
-using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using Microsoft.Extensions.Logging;
 
-
-
-
-
-
-
 #if MACCATALYST
-using UIKit;
+/*using UIKit;
 using Foundation;
 using CoreGraphics;
-using UniformTypeIdentifiers;
+using UniformTypeIdentifiers;*/
 #endif
 
-
-
-
-
-namespace SfmcApp.Pages.Content;
-
-public partial class SfmcContentListPage : ContentPage, INotifyPropertyChanged
+namespace SfmcApp.Pages.Content
 {
-    private readonly ILogger<SfmcContentListPage> _logger;
 
-    public new event PropertyChangedEventHandler PropertyChanged;
-
-    private new void OnPropertyChanged([CallerMemberName] string name = "") =>
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-
-
-    #region Bound Properties
-    private bool _isFoldersLoading;
-    public bool IsFoldersLoading
+    public partial class SfmcContentListPage : ContentPage, INotifyPropertyChanged
     {
-        get => _isFoldersLoading;
-        set
+        private readonly ILogger<SfmcContentListPage> _logger;
+
+        public new event PropertyChangedEventHandler PropertyChanged;
+
+        private new void OnPropertyChanged([CallerMemberName] string name = "") =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+
+        #region Bound Properties
+        private bool _isFoldersLoading;
+        public bool IsFoldersLoading
         {
-            _isFoldersLoading = value;
-            OnPropertyChanged(); // or SetProperty in CommunityToolkit
-        }
-    }
-
-    private bool _isFoldersLoaded;
-    public bool IsFoldersLoaded
-    {
-        get => _isFoldersLoaded;
-        set
-        {
-            _isFoldersLoaded = value;
-            OnPropertyChanged(); // or SetProperty in CommunityToolkit
-        }
-    }
-
-
-
-    
-    public ObservableCollection<FolderObject> Folders { get; set; } = new();
-    public ObservableCollection<DataExtensionPoco> DataExtensions { get; set; } = new();
-
-
-    private DataExtensionFolder _selectedFolder;
-    public DataExtensionFolder SelectedFolder
-    {
-        get => _selectedFolder;
-        set
-        {
-            if (_selectedFolder != value)
+            get => _isFoldersLoading;
+            set
             {
-                _selectedFolder = value;
-                OnPropertyChanged();
-                LoadContentForSelectedFolderAsync();
+                _isFoldersLoading = value;
+                OnPropertyChanged(); // or SetProperty in CommunityToolkit
             }
         }
-    }
 
-    public ObservableCollection<StringSearchOptions> SearchOptions { get; }
-        = new ObservableCollection<StringSearchOptions>(
-            Enum.GetValues(typeof(StringSearchOptions)).Cast<StringSearchOptions>());
-
-    private StringSearchOptions _selectedSearchOption = StringSearchOptions.Like;
-    public StringSearchOptions SelectedSearchOption
-    {
-        get => _selectedSearchOption;
-        set
+        private bool _isFoldersLoaded;
+        public bool IsFoldersLoaded
         {
-            if (_selectedSearchOption != value)
+            get => _isFoldersLoaded;
+            set
             {
-                _selectedSearchOption = value;
-                OnPropertyChanged();
+                _isFoldersLoaded = value;
+                OnPropertyChanged(); // or SetProperty in CommunityToolkit
             }
         }
-    }
-    #endregion Bound Properties
+        private string _searchBarText = string.Empty;
+        public ObservableCollection<FolderObject> Folders { get; set; } = new();
+        public ObservableCollection<DataExtensionPoco> DataExtensions { get; set; } = new();
 
-    private readonly IContentFolderRestApi _api;
-
-    public SfmcContentListPage(
-        ILogger<SfmcContentListPage> logger,
-        IContentFolderRestApi api
-        )
-    {
-        InitializeComponent();
-        BindingContext = this;
-        SearchBarText.SearchButtonPressed += (s, e) =>
+        private DataExtensionFolder _selectedFolder;
+        public DataExtensionFolder SelectedFolder
         {
-            OnSearchButtonClicked(s, e);
-        };
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _api = api ?? throw new ArgumentNullException(nameof(api));
-        _logger.LogInformation("SfmcContentListPage initialized with API and logger");
-        /*
-        _folderApi = new ContentFolderRestApi(
-            authRepository: authRepository,
-            config: new SfmcConnectionConfiguration()
-        );
-        */
-        // Safely load folders in the background
-        LoadFoldersAsync();
-    }
-    private async void LoadFoldersAsync()
-    {
-        try
-        {
-            IsFoldersLoaded = false;
-            IsFoldersLoading = true;
-            _logger.LogInformation($"Preparing to Load folders from API");
-            var folderTree = await _api.GetFolderTreeAsync(); // Must be async method
-            _logger.LogInformation($"Loaded {folderTree.Count} folders from API");
-            foreach (FolderObject folder in folderTree)
+            get => _selectedFolder;
+            set
             {
-                Folders.Add(folder);
+                if (_selectedFolder != value)
+                {
+                    _selectedFolder = value;
+                    OnPropertyChanged();
+                    LoadContentForSelectedFolderAsync();
+                }
             }
-            _logger.LogInformation($"Rendered {folderTree.Count} Folders");
-            IsFoldersLoaded = true;
-            IsFoldersLoading = false;
         }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Failed to load folders: {ex.ToString()}");
-        }
-    }
 
-    private async void OnSearchButtonClicked(object sender, EventArgs e)
-    {
-        throw new NotImplementedException();
-        /*
-        var api = new DataExtensionSoapApi(
-            authRepository: _authRepository,
-            config: new SfmcConnectionConfiguration()
+        public ObservableCollection<StringSearchOptions> SearchOptions { get; }
+            = new ObservableCollection<StringSearchOptions>(
+                Enum.GetValues(typeof(StringSearchOptions)).Cast<StringSearchOptions>());
+
+        private StringSearchOptions _selectedSearchOption = StringSearchOptions.Like;
+        public StringSearchOptions SelectedSearchOption
+        {
+            get => _selectedSearchOption;
+            set
+            {
+                if (_selectedSearchOption != value)
+                {
+                    _selectedSearchOption = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+        #endregion Bound Properties
+
+        private readonly IContentFolderRestApi _api;
+
+        public SfmcContentListPage(
+            ILogger<SfmcContentListPage> logger,
+            IContentFolderRestApi api
+            )
+        {
+            InitializeComponent();
+            BindingContext = this;
+            SearchBarText.SearchButtonPressed += (s, e) =>
+            {
+                OnSearchButtonClicked(s, e);
+            };
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _api = api ?? throw new ArgumentNullException(nameof(api));
+            _logger.LogInformation("SfmcContentListPage initialized with API and logger");
+            /*
+            _folderApi = new ContentFolderRestApi(
+                authRepository: authRepository,
+                config: new SfmcConnectionConfiguration()
             );
-
-        DataExtensions.Clear();
-        string searchType = SearchTypePicker.SelectedItem?.ToString() ?? "Like";
-        string searchText = SearchBarText.Text?.Trim() ?? string.Empty;
-
-        // Check if search text is empty
-        if (string.IsNullOrEmpty(searchText))
-        {
-            await DisplayAlert("Error", "Please enter a search term.", "OK");
-            return;
+            */
+            // Safely load folders in the background
+            LoadFoldersAsync();
         }
-
-        try
+        private async void LoadFoldersAsync()
         {
-            // Assume DataExtensions is a property in the view model or code-behind
-            // and api is an instance of your API client
-            List<DataExtensionPoco> results = new List<DataExtensionPoco>();
-            switch (searchType)
+            try
             {
-                case "Starts With":
-                    results = await api.GetDataExtensionsNameStartsWithAsync(searchText);
-
-                    break;
-                case "Like":
-                    results = await api.GetDataExtensionsNameLikeAsync(searchText);
-                    break;
-                case "Ends With":
-                    results = await api.GetDataExtensionsNameEndsWithAsync(searchText);
-                    break;
-                default:
-                    results = await api.GetDataExtensionsNameLikeAsync(searchText);
-                    break;
+                IsFoldersLoaded = false;
+                IsFoldersLoading = true;
+                _logger.LogInformation($"Preparing to Load folders from API");
+                var folderTree = await _api.GetFolderTreeAsync(); // Must be async method
+                _logger.LogInformation($"Loaded {folderTree.Count} folders from API");
+                foreach (FolderObject folder in folderTree)
+                {
+                    Folders.Add(folder);
+                }
+                _logger.LogInformation($"Rendered {folderTree.Count} Folders");
+                IsFoldersLoaded = true;
+                IsFoldersLoading = false;
             }
-            foreach (var item in results)
+            catch (Exception ex)
             {
-                DataExtensions.Add(item);
+                _logger.LogError($"Failed to load folders: {ex.ToString()}");
             }
         }
-        catch (Exception ex)
+
+        private async void OnSearchButtonClicked(object sender, EventArgs e)
         {
-            await DisplayAlert("Error", $"Failed to perform search: {ex.Message}", "OK");
-        }*/
+            throw new NotImplementedException();
+            /*
+            var api = new DataExtensionSoapApi(
+                authRepository: _authRepository,
+                config: new SfmcConnectionConfiguration()
+                );
 
-        // You can access the SearchBar and Picker values if they are named, e.g.:
-        // var searchText = SearchBarName.Text; // If SearchBar has x:Name="SearchBarName"
-        // var searchType = PickerName.SelectedItem?.ToString(); // If Picker has x:Name="PickerName"
-    }
+            DataExtensions.Clear();
+            string searchType = SearchTypePicker.SelectedItem?.ToString() ?? "Like";
+            string searchText = SearchBarText.Text?.Trim() ?? string.Empty;
+
+            // Check if search text is empty
+            if (string.IsNullOrEmpty(searchText))
+            {
+                await DisplayAlert("Error", "Please enter a search term.", "OK");
+                return;
+            }
+
+            try
+            {
+                // Assume DataExtensions is a property in the view model or code-behind
+                // and api is an instance of your API client
+                List<DataExtensionPoco> results = new List<DataExtensionPoco>();
+                switch (searchType)
+                {
+                    case "Starts With":
+                        results = await api.GetDataExtensionsNameStartsWithAsync(searchText);
+
+                        break;
+                    case "Like":
+                        results = await api.GetDataExtensionsNameLikeAsync(searchText);
+                        break;
+                    case "Ends With":
+                        results = await api.GetDataExtensionsNameEndsWithAsync(searchText);
+                        break;
+                    default:
+                        results = await api.GetDataExtensionsNameLikeAsync(searchText);
+                        break;
+                }
+                foreach (var item in results)
+                {
+                    DataExtensions.Add(item);
+                }
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", $"Failed to perform search: {ex.Message}", "OK");
+            }*/
+
+            // You can access the SearchBar and Picker values if they are named, e.g.:
+            // var searchText = SearchBarName.Text; // If SearchBar has x:Name="SearchBarName"
+            // var searchType = PickerName.SelectedItem?.ToString(); // If Picker has x:Name="PickerName"
+        }
 
 
-    private void LoadContentForSelectedFolderAsync()
-    {
-        throw new NotImplementedException();
-    }
+        private void LoadContentForSelectedFolderAsync()
+        {
+            throw new NotImplementedException();
+        }
 
-    private async void OnDownloadTapped(object sender, EventArgs e)
-    {
-        throw new NotImplementedException();
+        private async void OnDownloadTapped(object sender, EventArgs e)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
