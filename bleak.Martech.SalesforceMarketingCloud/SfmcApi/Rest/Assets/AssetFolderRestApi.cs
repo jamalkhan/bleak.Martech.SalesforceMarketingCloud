@@ -119,7 +119,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Assets
                 RestResults<SfmcRestWrapper<SfmcFolder>, string> results;
                 //asset/v1/content/categories
                 string url = $"https://{_authRepository.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/categories/?$page={page}&$pagesize={_sfmcConnectionConfiguration.PageSize}";
-                _logger.LogInformation($"Loading Folder Page #{page} with URL: {url}");
+                _logger.LogTrace($"Loading Folder Page #{page} with URL: {url}");
                 results = ExecuteRestMethodWithRetry(
                     loadFolderApiCall: LoadFolderApiCall,
                     url: url,
@@ -128,7 +128,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Assets
                 );
 
                 _logger.LogTrace($"results.Value = {results?.Results}");
-                _logger.LogError($"results.Error = {results?.Error}");
+                if (results?.Error != null) _logger.LogError($"results.Error = {results?.Error}");
 
                 currentPageSize = results!.Results.items.Count();
                 sfmcFolders.AddRange(results.Results.items);
@@ -136,7 +136,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Assets
 
                 if (_sfmcConnectionConfiguration.PageSize == currentPageSize)
                 {
-                    _logger.LogInformation($"Running Loop Again");
+                    _logger.LogTrace($"Running Loop Again");
                 }
             }
             catch (System.Exception ex)

@@ -48,23 +48,28 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Assets
             do
             {
                 _logger.LogTrace($"Executing GetAssets() page: {page}");
-                assets.AddRange(
-                    LoadAssets(folderId, page)
-                        .ToPocoList()
-                    );
-                page++;
-                _logger.LogInformation($"LoadAssets() returned currentPageSize: {currentPageSize} and moving onto page {page}.");
+                var loadedAssets = LoadAssets(folderId, page).ToPocoList();
+                assets.AddRange(loadedAssets);
+                currentPageSize = loadedAssets.Count;
+                if (_sfmcConnectionConfiguration.PageSize == currentPageSize)
+                {
+                    _logger.LogInformation($"LoadAssets() returned currentPageSize: {loadedAssets.Count}. So far {assets.Count} assets have been loaded. Moving onto page {page}.");
+                    page++;
+                }
+                else
+                {
+                    _logger.LogInformation($"LoadAssets() returned currentPageSize: {loadedAssets.Count}. Loaded {assets.Count} assets total. No more pages to load.");
+                    break; // exit the loop if the current page size is less than the configured page size
+                }
             }
-            while (_sfmcConnectionConfiguration.PageSize == currentPageSize);
+            while (true);
 
-            _logger.LogError("Error Loading Folders");
-            throw new Exception("Error Loading Folders");
+            return assets;
         }
 
         private List<SfmcAsset> LoadAssets(int folderId, int page)
         {
             var retval = new List<SfmcAsset>();
-            int currentPageSize;
             try
             {
                 RestResults<SfmcRestWrapper<SfmcAsset>, string> results;
@@ -79,19 +84,18 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Assets
                 );
 
                 _logger.LogTrace($"results.Value = {results?.Results}");
-                _logger.LogError($"results.Error = {results?.Error}");
+                if (results?.Error != null) _logger.LogError($"results.Error = {results?.Error}");
 
-                currentPageSize = results!.Results.items.Count();
+//                var currentPageSize = results!.Results.items.Count();
                 retval.AddRange(results.Results.items);
-                _logger.LogInformation($"Current Page had {currentPageSize} records. There are now {retval.Count()} Total Folders Identified.");
+                _logger.LogInformation($"Current Page had {retval.Count()} records in page {page}");
+                return retval;
             }
             catch (System.Exception ex)
             {
                 _logger.LogError($"{ex.Message}");
                 throw;
             }
-
-            return retval;
         }
 
         private RestResults<SfmcRestWrapper<SfmcAsset>, string> LoadFolderApiCall(

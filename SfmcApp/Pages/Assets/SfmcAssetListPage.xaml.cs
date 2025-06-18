@@ -189,10 +189,13 @@ namespace SfmcApp.Pages.Assets
             get => _selectedFolder;
             set
             {
+                _logger.LogInformation($"Changing SelectedFolder to: {value?.Name ?? "None"}");
                 if (_selectedFolder != value)
                 {
                     _selectedFolder = value;
+                    _logger.LogInformation($"SelectedFolder changed to: {value?.Name ?? "None"}");
                     OnPropertyChanged();
+                    _logger.LogInformation($"Calling LoadAssetForSelectedFolderAsync for folder: {_selectedFolder?.Name ?? "None"}");
                     LoadAssetForSelectedFolderAsync();
                 }
             }
