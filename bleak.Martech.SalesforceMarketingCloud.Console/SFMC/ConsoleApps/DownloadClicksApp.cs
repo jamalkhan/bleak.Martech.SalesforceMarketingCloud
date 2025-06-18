@@ -1,6 +1,6 @@
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Authentication;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops;
+using bleak.Martech.SalesforceMarketingCloud.Fileops;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 {

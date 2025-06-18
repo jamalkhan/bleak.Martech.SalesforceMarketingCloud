@@ -4,7 +4,7 @@ using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.Models;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Rest;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops;
+using bleak.Martech.SalesforceMarketingCloud.Fileops;
 using System.Formats.Asn1;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Rest

@@ -7,7 +7,7 @@ using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using System.Diagnostics;
 using System;
 using System.IO;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops;
+using bleak.Martech.SalesforceMarketingCloud.Fileops;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 {

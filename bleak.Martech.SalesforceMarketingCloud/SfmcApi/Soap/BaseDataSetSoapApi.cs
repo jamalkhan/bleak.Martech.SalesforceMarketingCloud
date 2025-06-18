@@ -1,7 +1,7 @@
 using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.Wsdl;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops;
+using bleak.Martech.SalesforceMarketingCloud.Fileops;
 using System.Net;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 

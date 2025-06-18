@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops
+namespace bleak.Martech.SalesforceMarketingCloud.Fileops
 {
     public interface IFileWriter
     {

@@ -6,7 +6,7 @@ using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.Wsdl;
 using System.Text;
 using System.Security.Cryptography.Pkcs;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops;
+using bleak.Martech.SalesforceMarketingCloud.Fileops;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap

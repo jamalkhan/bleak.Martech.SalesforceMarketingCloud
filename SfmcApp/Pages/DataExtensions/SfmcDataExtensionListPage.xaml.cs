@@ -1,27 +1,22 @@
-using System.Collections.ObjectModel;
-using bleak.Api.Rest;
+using bleak.Martech.SalesforceMarketingCloud.Rest;
+using bleak.Martech.SalesforceMarketingCloud.Fileops;
 using bleak.Martech.SalesforceMarketingCloud.Authentication;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.DataExtensions;
-using bleak.Martech.SalesforceMarketingCloud.Models;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
+using Microsoft.Extensions.Logging;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
-using bleak.Martech.SalesforceMarketingCloud.Rest;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops;
-using bleak.Martech.SalesforceMarketingCloud.Wsdl;
 using SfmcApp.Models;
-using SfmcApp.Pages.BasePages;
-
-
-
 
 #if MACCATALYST
+/*
 using UIKit;
 using Foundation;
 using CoreGraphics;
 using UniformTypeIdentifiers;
+*/
 #endif
 
 

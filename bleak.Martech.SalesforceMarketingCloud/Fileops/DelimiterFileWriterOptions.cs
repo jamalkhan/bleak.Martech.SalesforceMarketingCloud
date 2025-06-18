@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Fileops
+namespace bleak.Martech.SalesforceMarketingCloud.Fileops
 {
     public class DelimitedFileWriterOptions
     {
