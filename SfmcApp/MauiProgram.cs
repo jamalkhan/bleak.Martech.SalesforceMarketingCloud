@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
 using CommunityToolkit.Maui;
 using SfmcApp.Logging;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Content;
+using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Assets;
 using bleak.Martech.SalesforceMarketingCloud.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Models;
-using SfmcApp.Pages.Content;
+using SfmcApp.Pages.Assets;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using SfmcApp.Models;
 
@@ -41,8 +41,8 @@ public static class MauiProgram
 		});
 
 		// Content Folder API
-		builder.Services.AddSingleton<ContentFolderRestApi>();
-		builder.Services.AddSingleton<IContentFolderRestApi, ContentFolderRestApi>();
+		builder.Services.AddSingleton<AssetFolderRestApi>();
+		builder.Services.AddSingleton<IAssetFolderRestApi, AssetFolderRestApi>();
 
 		// Pages
 		builder.Services.AddTransient<MainPage>();
@@ -60,31 +60,31 @@ public static class MauiProgram
 			return new SfmcInstanceMenuPage(connection, logger);
 		});
 
-		builder.Services.AddTransient<Func<SfmcConnection, SfmcContentListPage>>
+		builder.Services.AddTransient<Func<SfmcConnection, SfmcAssetListPage>>
 		(
 			sp => connection =>
 			{
-				var logger = sp.GetRequiredService<ILogger<SfmcContentListPage>>();
-				var apiLogger = sp.GetRequiredService<ILogger<ContentFolderRestApi>>();
+				var logger = sp.GetRequiredService<ILogger<SfmcAssetListPage>>();
+				var folderApiLogger = sp.GetRequiredService<ILogger<AssetFolderRestApi>>();
 				//var api = sp.GetRequiredService<IContentFolderRestApi>();
 				//var authRepository = sp.GetRequiredService<IAuthRepository>();
 				var authRepoFactory = sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>();
 				var authRepository = authRepoFactory(connection);
 				
-				var api = new ContentFolderRestApi(
+				var folderApi = new AssetFolderRestApi(
 					authRepository: authRepository,
 					config: new SfmcConnectionConfiguration(),
-					logger: apiLogger
+					logger: folderApiLogger
 				);
-				return new SfmcContentListPage(
+				return new SfmcAssetListPage(
 					logger: logger,
-					api: api
+					folderApi: folderApi
 					);
 			}
 		);
 		
 		builder.Services.AddSingleton<SfmcConnectionConfiguration>();
-		builder.Services.AddTransient<ContentFolderRestApi>();
+		builder.Services.AddTransient<AssetFolderRestApi>();
 
 
 #if DEBUG

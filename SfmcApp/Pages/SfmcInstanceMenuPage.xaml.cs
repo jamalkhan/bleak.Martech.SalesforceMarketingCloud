@@ -3,10 +3,8 @@ using bleak.Martech.SalesforceMarketingCloud.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Models;
 using SfmcApp.Models;
 using SfmcApp.Pages;
-using SfmcApp.Pages.Content;
-using SfmcApp;
 using Microsoft.Extensions.Logging;
-using MetalPerformanceShadersGraph;
+using SfmcApp.Pages.Assets;
 
 namespace SfmcApp;
 
@@ -36,13 +34,13 @@ public partial class SfmcInstanceMenuPage : ContentPage
 	{
 		await Navigation.PushAsync(new SfmcDataExtensionListPage(_authRepository));
 	}
-	public async void OnShowContentClicked(object sender, EventArgs e)
+	public async void OnShowAssetClicked(object sender, EventArgs e)
 	{
 		if (App.Current?.Services is IServiceProvider services)
 		{
 			if (BindingContext is SfmcConnection connection)
 			{
-				var factory = services.GetRequiredService<Func<SfmcConnection, SfmcContentListPage>>();
+				var factory = services.GetRequiredService<Func<SfmcConnection, SfmcAssetListPage>>();
 				_logger.LogInformation("Creating SfmcContentListPage with connection");
 				var page = factory(connection);
 				await Navigation.PushAsync(page);

@@ -2,9 +2,9 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             xmlns:local="clr-namespace:SfmcApp.Pages.Content"
-             x:Class="SfmcApp.Pages.Content.SfmcContentListPage"
-             Title="Content Navigator">
+             xmlns:local="clr-namespace:SfmcApp.Pages.Assets"
+             x:Class="SfmcApp.Pages.Assets.SfmcAssetListPage"
+             Title="Asset Navigator">
 
    <Grid 
         ColumnDefinitions="*, 2*"
@@ -77,7 +77,7 @@
                                         <Label Text="{Binding Name}">
                                             <Label.GestureRecognizers>
                                                 <TapGestureRecognizer
-                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcContentListPage}}, Path=BindingContext.FolderTappedCommand}"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcAssetListPage}}, Path=BindingContext.FolderTappedCommand}"
                                                     CommandParameter="{Binding .}" />
                                             </Label.GestureRecognizers>
                                         </Label>
@@ -96,7 +96,7 @@
                                                             <Label Text="{Binding Name}">
                                                                 <Label.GestureRecognizers>
                                                                     <TapGestureRecognizer
-                                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcContentListPage}}, Path=BindingContext.FolderTappedCommand}"
+                                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcAssetListPage}}, Path=BindingContext.FolderTappedCommand}"
                                                                         CommandParameter="{Binding .}" />
                                                                 </Label.GestureRecognizers>
                                                             </Label>
@@ -113,7 +113,7 @@
                                                                         <Label Text="{Binding Name}">
                                                                             <Label.GestureRecognizers>
                                                                                 <TapGestureRecognizer
-                                                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcContentListPage}}, Path=BindingContext.FolderTappedCommand}"
+                                                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcAssetListPage}}, Path=BindingContext.FolderTappedCommand}"
                                                                                     CommandParameter="{Binding .}" />
                                                                             </Label.GestureRecognizers>
                                                                         </Label>
@@ -147,7 +147,7 @@
             StrokeShape="RoundRectangle 8"
             >
             <CollectionView
-                ItemsSource="{Binding DataExtensions}"
+                ItemsSource="{Binding Assets}"
                 IsVisible="{Binding IsFoldersLoaded}"
                 >
                 <CollectionView.ItemsLayout>

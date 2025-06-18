@@ -10,7 +10,8 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using SfmcApp.Models;
 using bleak.Martech.SalesforceMarketingCloud.Models;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Content;
+using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Assets;
+using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 
 #if MACCATALYST
 /*using UIKit;
@@ -19,20 +20,22 @@ using CoreGraphics;
 using UniformTypeIdentifiers;*/
 #endif
 
-namespace SfmcApp.Pages.Content
+namespace SfmcApp.Pages.Assets
 {
-    public partial class SfmcContentListPage : ContentPage, INotifyPropertyChanged
+    public partial class SfmcAssetListPage : ContentPage, INotifyPropertyChanged
     {
-        private readonly ILogger<SfmcContentListPage> _logger;
+        #region Move To Base?
+        private readonly ILogger<SfmcAssetListPage> _logger;
         public new event PropertyChangedEventHandler PropertyChanged;
 
         private new void OnPropertyChanged([CallerMemberName] string name = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
+        #endregion Move To Base?
+        
 
-
-        #region Bound Properties
+        #region Folders
         private bool _isFoldersLoading;
         public bool IsFoldersLoading
         {
@@ -55,28 +58,15 @@ namespace SfmcApp.Pages.Content
         }
         
         public ObservableCollection<FolderObject> Folders { get; set; } = new();
-        public ObservableCollection<DataExtensionPoco> DataExtensions { get; set; } = new();
-        private DataExtensionFolder _selectedFolder;
-        public DataExtensionFolder SelectedFolder
-        {
-            get => _selectedFolder;
-            set
-            {
-                if (_selectedFolder != value)
-                {
-                    _selectedFolder = value;
-                    OnPropertyChanged();
-                    LoadContentForSelectedFolderAsync();
-                }
-            }
-        }
-        #endregion Bound Properties
+        #endregion Folders
 
-        private readonly IContentFolderRestApi _api;
+        private readonly IAssetFolderRestApi _folderApi;
+        private readonly IAssetRestApi _objectApi;
 
-        public SfmcContentListPage(
-            ILogger<SfmcContentListPage> logger,
-            IContentFolderRestApi api
+        #region Constructor
+        public SfmcAssetListPage(
+            ILogger<SfmcAssetListPage> logger,
+            IAssetFolderRestApi folderApi
             )
         {
             InitializeComponent();
@@ -86,11 +76,12 @@ namespace SfmcApp.Pages.Content
                 OnSearchButtonClicked(s, e);
             };
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _api = api ?? throw new ArgumentNullException(nameof(api));
-            _logger.LogInformation("SfmcContentListPage initialized with API and logger");
+            _folderApi = folderApi ?? throw new ArgumentNullException(nameof(folderApi));
+            _logger.LogInformation("SfmcAssetListPage initialized with API and logger");
             // Safely load folders in the background
             LoadFoldersAsync();
         }
+        #endregion Constructor
 
         private async void LoadFoldersAsync()
         {
@@ -98,8 +89,8 @@ namespace SfmcApp.Pages.Content
             {
                 IsFoldersLoaded = false;
                 IsFoldersLoading = true;
-                var folderTree = await _api.GetFolderTreeAsync(); // Must be async method
-                _logger.LogInformation($"Loaded {folderTree.Count} Content Folders from API");
+                var folderTree = await _folderApi.GetFolderTreeAsync(); // Must be async method
+                _logger.LogInformation($"Loaded {folderTree.Count} Asset Folders from API");
                 foreach (FolderObject folder in folderTree)
                 {
                     Folders.Add(folder);
@@ -109,7 +100,7 @@ namespace SfmcApp.Pages.Content
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Failed to load Content Folders: {ex.ToString()}");
+                _logger.LogError($"Failed to load Asset Folders: {ex.ToString()}");
             }
         }
 
@@ -189,10 +180,52 @@ namespace SfmcApp.Pages.Content
         }
         #endregion Search Functionality
 
-        private void LoadContentForSelectedFolderAsync()
+        #region Folder Selection
+        public ObservableCollection<AssetPoco> Assets { get; set; } = new();
+        private DataExtensionFolder _selectedFolder;
+        public DataExtensionFolder SelectedFolder
         {
-            throw new NotImplementedException();
+            get => _selectedFolder;
+            set
+            {
+                if (_selectedFolder != value)
+                {
+                    _selectedFolder = value;
+                    OnPropertyChanged();
+                    LoadAssetForSelectedFolderAsync();
+                }
+            }
         }
+
+        public ICommand FolderTappedCommand => new Command<DataExtensionFolder>(folder =>
+        {
+            SelectedFolder = folder;
+        });
+
+
+        private async void LoadAssetForSelectedFolderAsync()
+        {
+             try
+            {
+                Assets.Clear();
+
+                if (_selectedFolder == null)
+                    return;
+
+                // Replace with actual logic to fetch Data Extensions for the selected folder
+                var assets = await _objectApi.GetAssetsAsync(_selectedFolder.Id);
+
+                foreach (var asset in assets)
+                {
+                    Assets.Add(asset);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to load Assets for folder {_selectedFolder.Name}: {ex.ToString()}");
+            }
+        }
+#endregion Folder Selection
 
         private async void OnDownloadTapped(object sender, EventArgs e)
         {

@@ -16,10 +16,10 @@
                 Clicked="OnShowDataExtensionsClicked"
                 HorizontalOptions="Fill" />
             <Button
-                x:Name="ShowContentsBtn"
-                Text="Show Content" 
-                SemanticProperties.Hint="Show Content"
-                Clicked="OnShowContentClicked"
+                x:Name="ShowAssetsBtn"
+                Text="Show Assets" 
+                SemanticProperties.Hint="Show Assets"
+                Clicked="OnShowAssetClicked"
                 HorizontalOptions="Fill" />
         </VerticalStackLayout>
     </ScrollView>

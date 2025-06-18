@@ -120,6 +120,7 @@ namespace SfmcApp.Pages
         }
 
 
+#region Folder Selection
         public ICommand FolderTappedCommand => new Command<DataExtensionFolder>(folder =>
         {
             SelectedFolder = folder;
@@ -153,6 +154,7 @@ namespace SfmcApp.Pages
                 await DisplayAlert("Error", $"Failed to load data extensions: {ex.Message}", "OK");
             }
         }
+        #endregion Folder Selection
 
         private async void OnDownloadCsvTapped(object sender, EventArgs e)
         {
