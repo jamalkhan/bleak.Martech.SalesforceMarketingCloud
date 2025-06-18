@@ -55,7 +55,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp
                 switch (input)
                 {
                     case "1":
-                        var downloadContent = new DownloadContent(_restManager, _authRepository);
+                        var downloadContent = new DownloadContentApp(_restManager, _authRepository);
                         downloadContent.Execute();
                         break;
 

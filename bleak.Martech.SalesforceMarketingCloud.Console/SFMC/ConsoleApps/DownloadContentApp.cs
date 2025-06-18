@@ -11,7 +11,7 @@ using System.IO;
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 {
 
-    public class DownloadContent : IConsoleApp
+    public class DownloadContentApp : IConsoleApp
     {
         static JsonSerializer serializer = new JsonSerializer();
         private static int assetCounter = 0;
@@ -19,7 +19,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
         private static HashSet<string> assetTypes = new HashSet<string>();
         RestManager _restManager;
         IAuthRepository _authRepository;
-        public DownloadContent( RestManager restManager, IAuthRepository authRepository)
+        public DownloadContentApp( RestManager restManager, IAuthRepository authRepository)
         {
             _restManager = restManager;
             _authRepository = authRepository;

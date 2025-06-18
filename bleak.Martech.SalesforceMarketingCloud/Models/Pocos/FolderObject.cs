@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Models
 {
@@ -14,7 +15,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Models
         public string CategoryType { get; set; } = string.Empty;
         public string FullPath { get; set; } = string.Empty;
         public List<FolderObject> SubFolders { get; set; } = [];
-        public List<AssetObject> Assets { get; set; } = new();
+        public List<AssetPoco> Assets { get; set; } = new();
 
         #region Helper Methods
          // Method to build the folder structure

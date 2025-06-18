@@ -6,18 +6,20 @@ using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Rest;
 using Microsoft.Extensions.Logging;
 
-namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Content
+namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Assets
 {
-    public class ContentFolderRestApi : BaseRestApi, IContentFolderRestApi
+    public class AssetFolderRestApi
+    : BaseRestApi
+    , IAssetFolderRestApi
     {
-        private readonly ILogger<ContentFolderRestApi> _logger;
+        private readonly ILogger<AssetFolderRestApi> _logger;
 
         private HttpVerbs verb = HttpVerbs.GET;
 
-        public ContentFolderRestApi(
+        public AssetFolderRestApi(
             IAuthRepository authRepository,
             SfmcConnectionConfiguration config,
-            ILogger<ContentFolderRestApi> logger
+            ILogger<AssetFolderRestApi> logger
             )
             : base(authRepository: authRepository, config: config)
         {

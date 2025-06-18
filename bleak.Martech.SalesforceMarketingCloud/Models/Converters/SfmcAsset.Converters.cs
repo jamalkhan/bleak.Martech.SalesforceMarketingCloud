@@ -1,3 +1,5 @@
+using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
+
 namespace bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos
 {
     public partial class DataExtensionDataDto
@@ -50,22 +52,32 @@ namespace bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos
 
 
 
+    public static class AssetConverters
+    {
+        public static AssetPoco ToPoco(this SfmcAsset asset)
+        {
+            return asset.ToPoco();
+        }
+        public static List<AssetPoco> ToPocoList(this IEnumerable<SfmcAsset> assets)
+        {
+            return assets.Select(asset => asset.ToPoco()).ToList();
+        }
+    }
 
     public partial class SfmcAsset
     {
-        
-        public AssetObject ToAssetObject()
+        public AssetPoco ToPoco()
         {
-            var retval = new AssetObject()
+            var retval = new AssetPoco()
             {
                 Id = id,
                 CustomerKey = customerKey,
                 ObjectID = objectID,
-                AssetType = new AssetObject.AssetTypeObject()
+                AssetType = new AssetPoco.AssetTypeObject()
                 {
                     Id = assetType.id,
                     Name = assetType.name,
-                    DisplayName = assetType.displayName 
+                    DisplayName = assetType.displayName
                 },
                 Name = name,
                 Description = description,
@@ -75,7 +87,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos
                 ModifiedDate = modifiedDate,
                 // TODO:
                 //ModifiedBy = modifiedBy,
-                EnterpriseId= enterpriseId,
+                EnterpriseId = enterpriseId,
                 MemberId = memberId,
                 // TODO:
                 //Status { get; set; } = new();
@@ -89,16 +101,16 @@ namespace bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos
             };
             if (views != null)
             {
-                retval.Views = new AssetObject.ViewsObject();
+                retval.Views = new AssetPoco.ViewsObject();
                 if (views.html != null)
                 {
-                    retval.Views.Html = new AssetObject.HtmlObject();
+                    retval.Views.Html = new AssetPoco.HtmlObject();
                     retval.Views.Html.Content = views.html.content;
                 }
             }
             if (fileProperties != null)
             {
-                retval.FileProperties = new AssetObject.FilePropertiesObject();
+                retval.FileProperties = new AssetPoco.FilePropertiesObject();
                 retval.FileProperties.FileName = fileProperties.fileName;
                 retval.FileProperties.Extension = fileProperties.extension;
                 retval.FileProperties.FileSize = fileProperties.fileSize;

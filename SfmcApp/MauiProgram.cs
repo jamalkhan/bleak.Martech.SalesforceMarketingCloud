@@ -40,17 +40,19 @@ public static class MauiProgram
 			return new MauiAuthRepository(connection, logger);
 		});
 
-		// Content Folder API
-		builder.Services.AddSingleton<AssetFolderRestApi>();
-		builder.Services.AddSingleton<IAssetFolderRestApi, AssetFolderRestApi>();
+		// Asset Folder API
+		builder.Services.AddTransient<AssetFolderRestApi>();
+		builder.Services.AddTransient<IAssetFolderRestApi, AssetFolderRestApi>();
+
+		// Asset  API
+		builder.Services.AddTransient<AssetRestApi>();
+		builder.Services.AddTransient<IAssetRestApi, AssetRestApi>();
 
 		// Pages
 		builder.Services.AddTransient<MainPage>();
 		builder.Services.AddTransient<SfmcConnectionEditPage>();
 		builder.Services.AddTransient<SfmcConnectionListPage>();
 		builder.Services.AddTransient<SfmcInstanceMenuPage>();
-
-
 
 		// This lets the DI container resolve everything except SfmcConnection
 		// which you provide at runtime.
@@ -66,6 +68,7 @@ public static class MauiProgram
 			{
 				var logger = sp.GetRequiredService<ILogger<SfmcAssetListPage>>();
 				var folderApiLogger = sp.GetRequiredService<ILogger<AssetFolderRestApi>>();
+
 				//var api = sp.GetRequiredService<IContentFolderRestApi>();
 				//var authRepository = sp.GetRequiredService<IAuthRepository>();
 				var authRepoFactory = sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>();

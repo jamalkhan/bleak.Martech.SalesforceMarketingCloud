@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace bleak.Martech.SalesforceMarketingCloud.Models
+namespace bleak.Martech.SalesforceMarketingCloud.Models.Pocos
 {
-    public class AssetObject
+    public class AssetPoco
     {
         public int Id { get; set; }
         public string CustomerKey { get; set; } = string.Empty;
