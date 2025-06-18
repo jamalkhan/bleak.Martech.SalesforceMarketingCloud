@@ -61,14 +61,10 @@ public partial class SfmcConnectionListPage : ContentPage
         {
             if (App.Current?.Services is IServiceProvider services)
             {
-                _logger.LogInformation("Preparing the SfmcInstanceMenuPage with connection: {ConnectionName}", connection.Name);
-                
+                _logger.LogTrace($"Preparing the SfmcInstanceMenuPage with connection: {connection.Name}");
                 var factory = services.GetRequiredService<Func<SfmcConnection, SfmcInstanceMenuPage>>();
                 var page = factory(connection);
-                
-                _logger.LogInformation("And... Push");
                 await Navigation.PushAsync(page);
-                _logger.LogInformation("Pushed.");
             }
         }
     }

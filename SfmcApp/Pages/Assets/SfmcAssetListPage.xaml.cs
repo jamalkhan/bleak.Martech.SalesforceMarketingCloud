@@ -66,7 +66,8 @@ namespace SfmcApp.Pages.Assets
         #region Constructor
         public SfmcAssetListPage(
             ILogger<SfmcAssetListPage> logger,
-            IAssetFolderRestApi folderApi
+            IAssetFolderRestApi folderApi,
+            IAssetRestApi objectApi
             )
         {
             InitializeComponent();
@@ -77,8 +78,8 @@ namespace SfmcApp.Pages.Assets
             };
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _folderApi = folderApi ?? throw new ArgumentNullException(nameof(folderApi));
+            _objectApi = objectApi ?? throw new ArgumentNullException(nameof(objectApi));
             _logger.LogInformation("SfmcAssetListPage initialized with API and logger");
-            // Safely load folders in the background
             LoadFoldersAsync();
         }
         #endregion Constructor
@@ -182,8 +183,8 @@ namespace SfmcApp.Pages.Assets
 
         #region Folder Selection
         public ObservableCollection<AssetPoco> Assets { get; set; } = new();
-        private DataExtensionFolder _selectedFolder;
-        public DataExtensionFolder SelectedFolder
+        private FolderObject _selectedFolder;
+        public FolderObject SelectedFolder
         {
             get => _selectedFolder;
             set
@@ -197,7 +198,7 @@ namespace SfmcApp.Pages.Assets
             }
         }
 
-        public ICommand FolderTappedCommand => new Command<DataExtensionFolder>(folder =>
+        public ICommand FolderTappedCommand => new Command<FolderObject>(folder =>
         {
             SelectedFolder = folder;
         });
@@ -205,8 +206,9 @@ namespace SfmcApp.Pages.Assets
 
         private async void LoadAssetForSelectedFolderAsync()
         {
-             try
+            try
             {
+                _logger.LogInformation($"Loading Assets for folder: {_selectedFolder?.Name ?? "None"}");
                 Assets.Clear();
 
                 if (_selectedFolder == null)
@@ -214,11 +216,12 @@ namespace SfmcApp.Pages.Assets
 
                 // Replace with actual logic to fetch Data Extensions for the selected folder
                 var assets = await _objectApi.GetAssetsAsync(_selectedFolder.Id);
-
+                _logger.LogInformation($"Loaded {assets.Count} Assets for folder {_selectedFolder.Name}");
                 foreach (var asset in assets)
                 {
                     Assets.Add(asset);
                 }
+                _logger.LogInformation($"Assets loaded for folder {_selectedFolder.Name}");
             }
             catch (Exception ex)
             {

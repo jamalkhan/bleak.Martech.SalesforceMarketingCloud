@@ -68,20 +68,24 @@ public static class MauiProgram
 			{
 				var logger = sp.GetRequiredService<ILogger<SfmcAssetListPage>>();
 				var folderApiLogger = sp.GetRequiredService<ILogger<AssetFolderRestApi>>();
-
-				//var api = sp.GetRequiredService<IContentFolderRestApi>();
-				//var authRepository = sp.GetRequiredService<IAuthRepository>();
+				var objectApiLogger = sp.GetRequiredService<ILogger<AssetRestApi>>();
 				var authRepoFactory = sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>();
 				var authRepository = authRepoFactory(connection);
-				
+				var sfmcConnectionConfiguration = new SfmcConnectionConfiguration();
 				var folderApi = new AssetFolderRestApi(
 					authRepository: authRepository,
-					config: new SfmcConnectionConfiguration(),
+					config: sfmcConnectionConfiguration,
 					logger: folderApiLogger
+				);
+				var objectApi = new AssetRestApi(
+					authRepository: authRepository,
+					config: sfmcConnectionConfiguration,
+					logger: objectApiLogger
 				);
 				return new SfmcAssetListPage(
 					logger: logger,
-					folderApi: folderApi
+					folderApi: folderApi,
+					objectApi: objectApi
 					);
 			}
 		);
