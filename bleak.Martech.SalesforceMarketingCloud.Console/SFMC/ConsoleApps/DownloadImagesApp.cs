@@ -129,9 +129,6 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                                 Console.WriteLine($"Failed to download image from {imageUrl}: {ex.Message}");
                             }
                         }
-
-
-
                         break;
                     default:
                         break;

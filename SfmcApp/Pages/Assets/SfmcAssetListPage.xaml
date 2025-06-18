@@ -171,7 +171,7 @@
                                 <!-- lemon.gif spanning 3 rows -->
                                 <Image Grid.RowSpan="3"
                                     Grid.Column="0"
-                                    Source="lemon.gif"
+                                    Source="{Binding Icon}"
                                     WidthRequest="60"
                                     HeightRequest="60"
                                     VerticalOptions="Center" />

@@ -12,6 +12,7 @@ using SfmcApp.Models;
 using bleak.Martech.SalesforceMarketingCloud.Models;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Assets;
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
+using SfmcApp.Models.ViewModels;
 
 #if MACCATALYST
 /*using UIKit;
@@ -182,7 +183,7 @@ namespace SfmcApp.Pages.Assets
         #endregion Search Functionality
 
         #region Folder Selection
-        public ObservableCollection<AssetPoco> Assets { get; set; } = new();
+        public ObservableCollection<AssetViewModel> Assets { get; set; } = new();
         private FolderObject _selectedFolder;
         public FolderObject SelectedFolder
         {
@@ -220,7 +221,8 @@ namespace SfmcApp.Pages.Assets
                 // Replace with actual logic to fetch Data Extensions for the selected folder
                 var assets = await _objectApi.GetAssetsAsync(_selectedFolder.Id);
                 _logger.LogInformation($"Loaded {assets.Count} Assets for folder {_selectedFolder.Name}");
-                foreach (var asset in assets)
+
+                foreach (var asset in assets.ToViewModelList())
                 {
                     Assets.Add(asset);
                 }

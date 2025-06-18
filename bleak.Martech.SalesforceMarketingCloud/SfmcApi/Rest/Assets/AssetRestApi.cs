@@ -43,7 +43,6 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Assets
             _logger.LogTrace("GetAssets() invoked");
             int page = 1;
             int currentPageSize = 0;
-
             var assets = new List<AssetPoco>();
             do
             {
@@ -63,7 +62,6 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Assets
                 }
             }
             while (true);
-
             return assets;
         }
 
@@ -86,8 +84,10 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Assets
                 _logger.LogTrace($"results.Value = {results?.Results}");
                 if (results?.Error != null) _logger.LogError($"results.Error = {results?.Error}");
 
-//                var currentPageSize = results!.Results.items.Count();
-                retval.AddRange(results.Results.items);
+                if (results?.Results?.items != null)
+                {
+                    retval.AddRange(results.Results.items);
+                }
                 _logger.LogInformation($"Current Page had {retval.Count()} records in page {page}");
                 return retval;
             }
