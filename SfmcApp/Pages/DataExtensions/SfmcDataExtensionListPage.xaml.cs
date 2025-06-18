@@ -19,137 +19,193 @@ using UniformTypeIdentifiers;
 */
 #endif
 
-
-
-namespace SfmcApp.Pages;
-
-
-public partial class SfmcDataExtensionListPage : ContentPage, INotifyPropertyChanged
+namespace SfmcApp.Pages
 {
-    public new event PropertyChangedEventHandler PropertyChanged;
-
-    private void OnPropertyChanged([CallerMemberName] string name = null) =>
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-
-
-    #region Bound Properties
-    private bool _isFoldersLoading;
-    public bool IsFoldersLoading
+    public partial class SfmcDataExtensionListPage : ContentPage, INotifyPropertyChanged
     {
-        get => _isFoldersLoading;
-        set
+        //private readonly ILogger<SfmcDataExtensionListPage> _logger;
+        public new event PropertyChangedEventHandler PropertyChanged;
+
+        private new void OnPropertyChanged([CallerMemberName] string name = "")
         {
-            _isFoldersLoading = value;
-            OnPropertyChanged(); // or SetProperty in CommunityToolkit
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
-    }
 
-    private bool _isFoldersLoaded;
-    public bool IsFoldersLoaded
-    {
-        get => _isFoldersLoaded;
-        set
+
+        #region Bound Properties
+        private bool _isFoldersLoading;
+        public bool IsFoldersLoading
         {
-            _isFoldersLoaded = value;
-            OnPropertyChanged(); // or SetProperty in CommunityToolkit
-        }
-    }
-
-
-
-    
-    public ObservableCollection<DataExtensionFolder> Folders { get; set; } = new();
-    public ObservableCollection<DataExtensionPoco> DataExtensions { get; set; } = new();
-
-
-    private DataExtensionFolder _selectedFolder;
-    public DataExtensionFolder SelectedFolder
-    {
-        get => _selectedFolder;
-        set
-        {
-            if (_selectedFolder != value)
+            get => _isFoldersLoading;
+            set
             {
-                _selectedFolder = value;
-                OnPropertyChanged();
-                LoadDataExtensionsForSelectedFolderAsync();
+                _isFoldersLoading = value;
+                OnPropertyChanged(); // or SetProperty in CommunityToolkit
             }
         }
-    }
-
-
-
-    public ObservableCollection<StringSearchOptions> SearchOptions { get; }
-        = new ObservableCollection<StringSearchOptions>(
-            Enum.GetValues(typeof(StringSearchOptions)).Cast<StringSearchOptions>());
-
-    private StringSearchOptions _selectedSearchOption = StringSearchOptions.Like;
-    public StringSearchOptions SelectedSearchOption
-    {
-        get => _selectedSearchOption;
-        set
+        private bool _isFoldersLoaded;
+        public bool IsFoldersLoaded
         {
-            if (_selectedSearchOption != value)
+            get => _isFoldersLoaded;
+            set
             {
-                _selectedSearchOption = value;
-                OnPropertyChanged();
+                _isFoldersLoaded = value;
+                OnPropertyChanged(); // or SetProperty in CommunityToolkit
             }
         }
-    }
-    #endregion Bound Properties
 
-    private readonly IAuthRepository _authRepository;
-
-    public SfmcDataExtensionListPage(IAuthRepository authRepository)
-    {
-        InitializeComponent();
-
-        BindingContext = this;
-        _authRepository = authRepository;
-
-        SearchBarText.SearchButtonPressed += (s, e) =>
+        public ObservableCollection<DataExtensionFolder> Folders { get; set; } = new();
+        public ObservableCollection<DataExtensionPoco> DataExtensions { get; set; } = new();
+        private DataExtensionFolder _selectedFolder;
+        public DataExtensionFolder SelectedFolder
         {
-            OnSearchButtonClicked(s, e);
-        };
-
-        // Safely load folders in the background
-        LoadFoldersAsync();
-    }
-
-    private async void LoadFoldersAsync()
-    {
-        try
-        {
-            IsFoldersLoaded = false;
-            IsFoldersLoading = true;
-            var folderApi = new DataExtensionFolderSoapApi(
-            authRepository: _authRepository,
-            config: new SfmcConnectionConfiguration()
-            );
-            var folderTree = await folderApi.GetFolderTreeAsync(); // Must be async method
-            foreach (var folder in folderTree)
+            get => _selectedFolder;
+            set
             {
-                Folders.Add(folder);
+                if (_selectedFolder != value)
+                {
+                    _selectedFolder = value;
+                    OnPropertyChanged();
+                    LoadDataExtensionsForSelectedFolderAsync();
+                }
             }
-            IsFoldersLoaded = true;
-            IsFoldersLoading = false;
         }
-        catch (Exception ex)
+
+        #endregion Bound Properties
+
+        private readonly IAuthRepository _authRepository;
+
+        public SfmcDataExtensionListPage(
+            //ILogger<SfmcDataExtensionListPage> logger, IContentFolderRestApi api
+            IAuthRepository authRepository
+            )
         {
-            await DisplayAlert("Error", $"Failed to load folders: {ex.Message}", "OK");
+            InitializeComponent();
+            BindingContext = this;
+            SearchBarText.SearchButtonPressed += (s, e) =>
+            {
+                OnSearchButtonClicked(s, e);
+            };
+            //_logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _authRepository = authRepository;
+            //_logger.LogInformation("SfmcDataExtensionListPage initialized with API and logger");
+            // Safely load folders in the background
+            LoadFoldersAsync();
         }
-    }
+
+        private async void LoadFoldersAsync()
+        {
+            try
+            {
+                IsFoldersLoaded = false;
+                IsFoldersLoading = true;
+                var folderApi = new DataExtensionFolderSoapApi(
+                    authRepository: _authRepository,
+                    config: new SfmcConnectionConfiguration()
+                    );
+                //_logger.LogInformation($"Loaded {folderTree.Count} Data Extension Folders from API");
+                var folderTree = await folderApi.GetFolderTreeAsync(); // Must be async method
+                foreach (var folder in folderTree)
+                {
+                    Folders.Add(folder);
+                }
+                IsFoldersLoaded = true;
+                IsFoldersLoading = false;
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", $"Failed to load Data Extension Folders: {ex.Message}", "OK");
+                //_logger.LogError($"Failed to load Data Extension Folders: {ex.ToString()}");
+            }
+        }
 
 
-    public ICommand FolderTappedCommand => new Command<DataExtensionFolder>(folder =>
-    {
-        SelectedFolder = folder;
-    });
+        public ICommand FolderTappedCommand => new Command<DataExtensionFolder>(folder =>
+        {
+            SelectedFolder = folder;
+        });
 
 
-    private async void LoadDataExtensionsForSelectedFolderAsync()
-    {
-        try
+        private async void LoadDataExtensionsForSelectedFolderAsync()
+        {
+            try
+            {
+                var api = new DataExtensionSoapApi(
+                    authRepository: _authRepository,
+                    config: new SfmcConnectionConfiguration()
+                    );
+
+                DataExtensions.Clear();
+
+                if (_selectedFolder == null)
+                    return;
+
+                // Replace with actual logic to fetch Data Extensions for the selected folder
+                var dataExtensions = await api.GetDataExtensionsByFolderAsync(_selectedFolder.Id);
+
+                foreach (var de in dataExtensions)
+                {
+                    DataExtensions.Add(de);
+                }
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", $"Failed to load data extensions: {ex.Message}", "OK");
+            }
+        }
+
+        private async void OnDownloadCsvTapped(object sender, EventArgs e)
+        {
+            if (sender is Image image && image.BindingContext is DataExtensionPoco dataExtension)
+            {
+                var filePath = Path.Combine(FileSystem.AppDataDirectory, $"{dataExtension.Name}.csv");
+
+                try
+                {
+                    // Optional: Show loading UI
+                    await DisplayAlert("Downloading", $"Starting download of {dataExtension.Name} to {filePath}...", "OK");
+
+                    var api = new DataExtensionRestApi(_authRepository);
+                    IFileWriter fileWriter = new DelimitedFileWriter(
+                        new DelimitedFileWriterOptions { Delimiter = "," });
+
+                    // Run long sync task in background
+                    long records = await Task.Run(() =>
+                        api.DownloadDataExtension(
+                            dataExtensionCustomerKey: dataExtension.CustomerKey,
+                            fileWriter: fileWriter,
+                            fileName: filePath
+                        )
+                    );
+
+                    await DisplayAlert("Success", $"Downloaded {records} records to {filePath}", "OK");
+                }
+                catch (Exception ex)
+                {
+                    await DisplayAlert("Error", $"Download failed: {ex.ToString()}", "OK");
+                }
+            }
+        }
+
+        #region Search Functionality
+        public ObservableCollection<StringSearchOptions> SearchOptions { get; }
+            = new ObservableCollection<StringSearchOptions>(
+                Enum.GetValues(typeof(StringSearchOptions)).Cast<StringSearchOptions>());
+
+        private StringSearchOptions _selectedSearchOption = StringSearchOptions.Like;
+        public StringSearchOptions SelectedSearchOption
+        {
+            get => _selectedSearchOption;
+            set
+            {
+                if (_selectedSearchOption != value)
+                {
+                    _selectedSearchOption = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+        private async void OnSearchButtonClicked(object sender, EventArgs e)
         {
             var api = new DataExtensionSoapApi(
                 authRepository: _authRepository,
@@ -157,152 +213,91 @@ public partial class SfmcDataExtensionListPage : ContentPage, INotifyPropertyCha
                 );
 
             DataExtensions.Clear();
+            string searchType = SearchTypePicker.SelectedItem?.ToString() ?? "Like";
+            string searchText = SearchBarText.Text?.Trim() ?? string.Empty;
 
-            if (_selectedFolder == null)
-                return;
-
-            // Replace with actual logic to fetch Data Extensions for the selected folder
-            var dataExtensions = await api.GetDataExtensionsByFolderAsync(_selectedFolder.Id);
-
-            foreach (var de in dataExtensions)
+            // Check if search text is empty
+            if (string.IsNullOrEmpty(searchText))
             {
-                DataExtensions.Add(de);
+                await DisplayAlert("Error", "Please enter a search term.", "OK");
+                return;
             }
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Error", $"Failed to load data extensions: {ex.Message}", "OK");
-        }
-    }
-
-
-
-
-    private async void OnDownloadCsvTapped(object sender, EventArgs e)
-    {
-        if (sender is Image image && image.BindingContext is DataExtensionPoco dataExtension)
-        {
-            var filePath = Path.Combine(FileSystem.AppDataDirectory, $"{dataExtension.Name}.csv");
 
             try
             {
-                // Optional: Show loading UI
-                await DisplayAlert("Downloading", $"Starting download of {dataExtension.Name} to {filePath}...", "OK");
-
-                var api = new DataExtensionRestApi(_authRepository);
-                IFileWriter fileWriter = new DelimitedFileWriter(
-                    new DelimitedFileWriterOptions { Delimiter = "," });
-
-                // Run long sync task in background
-                long records = await Task.Run(() =>
-                    api.DownloadDataExtension(
-                        dataExtensionCustomerKey: dataExtension.CustomerKey,
-                        fileWriter: fileWriter,
-                        fileName: filePath
-                    )
-                );
-
-                await DisplayAlert("Success", $"Downloaded {records} records to {filePath}", "OK");
+                // Assume DataExtensions is a property in the view model or code-behind
+                // and api is an instance of your API client
+                List<DataExtensionPoco> results = new List<DataExtensionPoco>();
+                switch (searchType)
+                {
+                    case "Starts With":
+                        results = await api.GetDataExtensionsNameStartsWithAsync(searchText);
+                        break;
+                    case "Like":
+                        results = await api.GetDataExtensionsNameLikeAsync(searchText);
+                        break;
+                    case "Ends With":
+                        results = await api.GetDataExtensionsNameEndsWithAsync(searchText);
+                        break;
+                    default:
+                        results = await api.GetDataExtensionsNameLikeAsync(searchText);
+                        break;
+                }
+                foreach (var item in results)
+                {
+                    DataExtensions.Add(item);
+                }
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Error", $"Download failed: {ex.ToString()}", "OK");
+                await DisplayAlert("Error", $"Failed to perform search: {ex.Message}", "OK");
             }
+
+            // You can access the SearchBar and Picker values if they are named, e.g.:
+            // var searchText = SearchBarName.Text; // If SearchBar has x:Name="SearchBarName"
+            // var searchType = PickerName.SelectedItem?.ToString(); // If Picker has x:Name="PickerName"
         }
-    }
+        #endregion Search Functionality
 
-
-    private async void OnSearchButtonClicked(object sender, EventArgs e)
-    {
-        var api = new DataExtensionSoapApi(
-            authRepository: _authRepository,
-            config: new SfmcConnectionConfiguration()
-            );
-
-        DataExtensions.Clear();
-        string searchType = SearchTypePicker.SelectedItem?.ToString() ?? "Like";
-        string searchText = SearchBarText.Text?.Trim() ?? string.Empty;
-
-        // Check if search text is empty
-        if (string.IsNullOrEmpty(searchText))
+        /*private async Task<string?> PromptUserForSaveLocationAsync(string suggestedFileName)
         {
-            await DisplayAlert("Error", "Please enter a search term.", "OK");
-            return;
-        }
+        #if MACCATALYST
+            var panel = new UIKit.UIDocumentPickerViewController(
+                new[] { UTType.CommaSeparatedText },
+                UIDocumentPickerMode.ExportToService);
 
-        try
-        {
-            // Assume DataExtensions is a property in the view model or code-behind
-            // and api is an instance of your API client
-            List<DataExtensionPoco> results = new List<DataExtensionPoco>();
-            switch (searchType)
+            string? selectedPath = null;
+
+            var tcs = new TaskCompletionSource<string?>();
+
+            panel.DidPickDocument += (sender, args) =>
             {
-                case "Starts With":
-                    results = await api.GetDataExtensionsNameStartsWithAsync(searchText);
-                    break;
-                case "Like":
-                    results = await api.GetDataExtensionsNameLikeAsync(searchText);
-                    break;
-                case "Ends With":
-                    results = await api.GetDataExtensionsNameEndsWithAsync(searchText);
-                    break;
-                default:
-                    results = await api.GetDataExtensionsNameLikeAsync(searchText);
-                    break;
-            }
-            foreach (var item in results)
+                var url = args.Url;
+                if (url != null)
+                {
+                    selectedPath = url.Path;
+                }
+                tcs.SetResult(selectedPath);
+            };
+
+            panel.WasCancelled += (sender, e) => tcs.SetResult(null);
+
+            var windowScene = UIApplication.SharedApplication.ConnectedScenes
+                .OfType<UIWindowScene>().FirstOrDefault();
+
+            var window = windowScene?.Windows.FirstOrDefault();
+            if (window?.RootViewController != null)
             {
-                DataExtensions.Add(item);
+                window.RootViewController.PresentViewController(panel, true, null);
             }
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Error", $"Failed to perform search: {ex.Message}", "OK");
-        }
 
-        // You can access the SearchBar and Picker values if they are named, e.g.:
-        // var searchText = SearchBarName.Text; // If SearchBar has x:Name="SearchBarName"
-        // var searchType = PickerName.SelectedItem?.ToString(); // If Picker has x:Name="PickerName"
+            return await tcs.Task;
+        #else
+            // Fallback or throw for other platforms
+            await Application.Current.MainPage.DisplayAlert("Unsupported", "File picker only supported on macOS in this build.", "OK");
+            return null;
+        #endif
+        }
+    */
     }
-
-    /*private async Task<string?> PromptUserForSaveLocationAsync(string suggestedFileName)
-    {
-    #if MACCATALYST
-        var panel = new UIKit.UIDocumentPickerViewController(
-            new[] { UTType.CommaSeparatedText },
-            UIDocumentPickerMode.ExportToService);
-
-        string? selectedPath = null;
-
-        var tcs = new TaskCompletionSource<string?>();
-
-        panel.DidPickDocument += (sender, args) =>
-        {
-            var url = args.Url;
-            if (url != null)
-            {
-                selectedPath = url.Path;
-            }
-            tcs.SetResult(selectedPath);
-        };
-
-        panel.WasCancelled += (sender, e) => tcs.SetResult(null);
-
-        var windowScene = UIApplication.SharedApplication.ConnectedScenes
-            .OfType<UIWindowScene>().FirstOrDefault();
-
-        var window = windowScene?.Windows.FirstOrDefault();
-        if (window?.RootViewController != null)
-        {
-            window.RootViewController.PresentViewController(panel, true, null);
-        }
-
-        return await tcs.Task;
-    #else
-        // Fallback or throw for other platforms
-        await Application.Current.MainPage.DisplayAlert("Unsupported", "File picker only supported on macOS in this build.", "OK");
-        return null;
-    #endif
-    }
-*/
 }

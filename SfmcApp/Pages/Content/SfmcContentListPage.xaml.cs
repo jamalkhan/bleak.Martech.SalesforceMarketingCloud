@@ -21,15 +21,15 @@ using UniformTypeIdentifiers;*/
 
 namespace SfmcApp.Pages.Content
 {
-
     public partial class SfmcContentListPage : ContentPage, INotifyPropertyChanged
     {
         private readonly ILogger<SfmcContentListPage> _logger;
-
         public new event PropertyChangedEventHandler PropertyChanged;
 
-        private new void OnPropertyChanged([CallerMemberName] string name = "") =>
+        private new void OnPropertyChanged([CallerMemberName] string name = "")
+        {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
 
 
         #region Bound Properties
@@ -43,7 +43,6 @@ namespace SfmcApp.Pages.Content
                 OnPropertyChanged(); // or SetProperty in CommunityToolkit
             }
         }
-
         private bool _isFoldersLoaded;
         public bool IsFoldersLoaded
         {
@@ -54,10 +53,9 @@ namespace SfmcApp.Pages.Content
                 OnPropertyChanged(); // or SetProperty in CommunityToolkit
             }
         }
-        private string _searchBarText = string.Empty;
+        
         public ObservableCollection<FolderObject> Folders { get; set; } = new();
         public ObservableCollection<DataExtensionPoco> DataExtensions { get; set; } = new();
-
         private DataExtensionFolder _selectedFolder;
         public DataExtensionFolder SelectedFolder
         {
@@ -69,24 +67,6 @@ namespace SfmcApp.Pages.Content
                     _selectedFolder = value;
                     OnPropertyChanged();
                     LoadContentForSelectedFolderAsync();
-                }
-            }
-        }
-
-        public ObservableCollection<StringSearchOptions> SearchOptions { get; }
-            = new ObservableCollection<StringSearchOptions>(
-                Enum.GetValues(typeof(StringSearchOptions)).Cast<StringSearchOptions>());
-
-        private StringSearchOptions _selectedSearchOption = StringSearchOptions.Like;
-        public StringSearchOptions SelectedSearchOption
-        {
-            get => _selectedSearchOption;
-            set
-            {
-                if (_selectedSearchOption != value)
-                {
-                    _selectedSearchOption = value;
-                    OnPropertyChanged();
                 }
             }
         }
@@ -108,38 +88,50 @@ namespace SfmcApp.Pages.Content
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _api = api ?? throw new ArgumentNullException(nameof(api));
             _logger.LogInformation("SfmcContentListPage initialized with API and logger");
-            /*
-            _folderApi = new ContentFolderRestApi(
-                authRepository: authRepository,
-                config: new SfmcConnectionConfiguration()
-            );
-            */
             // Safely load folders in the background
             LoadFoldersAsync();
         }
+
         private async void LoadFoldersAsync()
         {
             try
             {
                 IsFoldersLoaded = false;
                 IsFoldersLoading = true;
-                _logger.LogInformation($"Preparing to Load folders from API");
                 var folderTree = await _api.GetFolderTreeAsync(); // Must be async method
-                _logger.LogInformation($"Loaded {folderTree.Count} folders from API");
+                _logger.LogInformation($"Loaded {folderTree.Count} Content Folders from API");
                 foreach (FolderObject folder in folderTree)
                 {
                     Folders.Add(folder);
                 }
-                _logger.LogInformation($"Rendered {folderTree.Count} Folders");
                 IsFoldersLoaded = true;
                 IsFoldersLoading = false;
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Failed to load folders: {ex.ToString()}");
+                _logger.LogError($"Failed to load Content Folders: {ex.ToString()}");
             }
         }
 
+
+        #region Search Functionality
+        public ObservableCollection<StringSearchOptions> SearchOptions { get; }
+            = new ObservableCollection<StringSearchOptions>(
+                Enum.GetValues(typeof(StringSearchOptions)).Cast<StringSearchOptions>());
+
+        private StringSearchOptions _selectedSearchOption = StringSearchOptions.Like;
+        public StringSearchOptions SelectedSearchOption
+        {
+            get => _selectedSearchOption;
+            set
+            {
+                if (_selectedSearchOption != value)
+                {
+                    _selectedSearchOption = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
         private async void OnSearchButtonClicked(object sender, EventArgs e)
         {
             throw new NotImplementedException();
@@ -195,7 +187,7 @@ namespace SfmcApp.Pages.Content
             // var searchText = SearchBarName.Text; // If SearchBar has x:Name="SearchBarName"
             // var searchType = PickerName.SelectedItem?.ToString(); // If Picker has x:Name="PickerName"
         }
-
+        #endregion Search Functionality
 
         private void LoadContentForSelectedFolderAsync()
         {
