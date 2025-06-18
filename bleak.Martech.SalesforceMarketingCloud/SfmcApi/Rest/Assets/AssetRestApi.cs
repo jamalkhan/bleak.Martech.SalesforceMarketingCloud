@@ -6,7 +6,7 @@ using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 using bleak.Martech.SalesforceMarketingCloud.Rest;
 using Microsoft.Extensions.Logging;
 
-namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Assets
+namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
 {
     public class AssetRestApi
     : BaseRestApi

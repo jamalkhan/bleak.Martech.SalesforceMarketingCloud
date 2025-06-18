@@ -10,9 +10,11 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using SfmcApp.Models;
 using bleak.Martech.SalesforceMarketingCloud.Models;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Assets;
+using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 using SfmcApp.Models.ViewModels;
+using System.Text.Json.Serialization;
+using bleak.Api.Rest;
 
 #if MACCATALYST
 /*using UIKit;
@@ -233,11 +235,56 @@ namespace SfmcApp.Pages.Assets
                 _logger.LogError($"Failed to load Assets for folder {_selectedFolder.Name}: {ex.ToString()}");
             }
         }
-#endregion Folder Selection
+        #endregion Folder Selection
 
+        // TODO: Make this a configuration option
+        bool usePublishedUrlName = true;
+
+        private string GetFileName(AssetViewModel asset)
+        {
+            if (usePublishedUrlName)
+            {
+                string url = asset.FileProperties.PublishedURL;
+                Uri uri = new Uri(url);
+                string fileName = Path.GetFileName(uri.LocalPath);
+                return fileName;
+            }
+            return asset.FileProperties.FileName;
+        }
         private async void OnDownloadTapped(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            JsonSerializer serializer = new JsonSerializer();
+
+            if (sender is Image image && image.BindingContext is AssetViewModel asset)
+            {
+                string fileName = GetFileName(asset);
+                
+                // TODO: Make the file path include the connection name or some identifier
+                var metadataFile = Path.Combine(FileSystem.AppDataDirectory, "Downloads", "Assets", $"{fileName}.metadata.json");
+            
+                Directory.CreateDirectory(Path.GetDirectoryName(metadataFile)!);
+                _logger.LogTrace($"Trying to save {metadataFile}");
+
+                File.WriteAllText(metadataFile, serializer.Serialize(asset));
+
+                var imageUrl = asset.FileProperties.PublishedURL;
+                using (var client = new HttpClient())
+                {
+                    try
+                    {
+                        
+                        var imageFilePath = Path.Combine(FileSystem.AppDataDirectory, "Downloads", "Assets", fileName);
+                        var imageBytes = client.GetByteArrayAsync(imageUrl).Result;
+                        Directory.CreateDirectory(Path.GetDirectoryName(imageFilePath)!);
+                        File.WriteAllBytes(imageFilePath, imageBytes);
+                        _logger.LogInformation($"Image saved to {imageFilePath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError($"Failed to download image from {imageUrl}: {ex.Message}");
+                    }
+                }
+            }
         }
     }
 }

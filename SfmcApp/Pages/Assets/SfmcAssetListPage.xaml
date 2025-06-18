@@ -19,7 +19,7 @@
                               VerticalOptions="Center"
                               HorizontalOptions="StartAndExpand">
             <SearchBar
-                Placeholder="Search Data Extensions"
+                Placeholder="Search Assets"
                 WidthRequest="200"
                 x:Name="SearchBarText"
                 VerticalOptions="Center"
@@ -163,7 +163,7 @@
                             StrokeShape="RoundRectangle 4">
 
                             <Grid ColumnDefinitions="Auto, *, Auto, Auto"
-                                RowDefinitions="Auto, Auto, Auto"
+                                RowDefinitions="Auto, Auto, Auto, Auto"
                                 Padding="10"
                                 ColumnSpacing="10"
                                 VerticalOptions="Center">
@@ -189,8 +189,14 @@
                                     Grid.Column="1"
                                     Grid.Row="1"
                                     VerticalOptions="Center">
-                                    <Label Text="Customer Key: " />
-                                    <Label Text="{Binding CustomerKey}" />
+                                    <Grid ColumnDefinitions="Auto, *, Auto, Auto"
+                                        RowDefinitions="Auto"
+                                        VerticalOptions="Center">
+                                        <Label Text="Customer Key: " Grid.Column="0" Padding="5,25" />
+                                        <Label Text="{Binding CustomerKey}" Grid.Column="1" Padding="5,25" />
+                                        <Label Text="ID: " Grid.Column="2" Padding="5,25" />
+                                        <Label Text="{Binding Id}" Grid.Column="3" Padding="5,25" />
+                                    </Grid>
                                 </HorizontalStackLayout>
 
                                 <!-- Description -->
@@ -199,30 +205,35 @@
                                     Text="{Binding Description}"
                                     VerticalOptions="Center" />
 
-                                <!-- mail.png, only visible if IsSendable -->
+                                <Label Grid.Column="1"
+                                    Grid.Row="3"
+                                    Text="{Binding AssetType.Name}"
+                                    VerticalOptions="Center" />
+
+                                <!-- TODO: do something with this -->
                                 <Image Grid.Column="2"
-                                    Grid.RowSpan="3"
+                                    Grid.RowSpan="4"
                                     Source="mail.png"
                                     WidthRequest="30"
                                     HeightRequest="30"
                                     VerticalOptions="Center"
                                     HorizontalOptions="End"
-                                    IsVisible="{Binding IsSendable}"
+                                    IsVisible="false"
                                     SemanticProperties.Description="Is Sendable = true" />
 
                                 <Image Grid.Column="3"
-                                    Grid.RowSpan="3"
-                                    Source="csv_download.png"
+                                    Grid.RowSpan="4"
+                                    Source="download.png"
                                     WidthRequest="30"
                                     HeightRequest="30"
                                     VerticalOptions="Center"
                                     HorizontalOptions="End"
-                                    SemanticProperties.Description="Download CSV"
-                                >
-                                <Image.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnDownloadTapped" />
-                                </Image.GestureRecognizers>
-                            </Image>
+                                    IsVisible="{Binding IsDownloadbaleImage}"
+                                    SemanticProperties.Description="Download Image">
+                                    <Image.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnDownloadTapped" />
+                                    </Image.GestureRecognizers>
+                                </Image>
                             </Grid>
                         </Border>
                     </DataTemplate>

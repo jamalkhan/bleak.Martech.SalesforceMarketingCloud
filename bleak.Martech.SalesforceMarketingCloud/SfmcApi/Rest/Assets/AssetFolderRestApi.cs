@@ -6,7 +6,7 @@ using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Rest;
 using Microsoft.Extensions.Logging;
 
-namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Assets
+namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
 {
     public class AssetFolderRestApi
     : BaseRestApi
@@ -35,13 +35,13 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Assets
 
         public async Task<List<FolderObject>> GetFolderTreeAsync()
         {
-            _logger.LogInformation("GetFolderTreeAsync called");
+            _logger.LogTrace("GetFolderTreeAsync called");
             return await Task.Run(() => GetFolderTree());
         }
 
         public List<FolderObject> GetFolderTree()
         {
-            _logger.LogInformation("GetFolderTree() invoked");
+            _logger.LogTrace("GetFolderTree() invoked");
             int page = 1;
             int currentPageSize = 0;
 
@@ -51,10 +51,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Assets
                 _logger.LogTrace($"Executing GetFolderTree() page: {page}");
                 currentPageSize = LoadFolder(page, sfmcFolders);
                 page++;
-                _logger.LogInformation($"LoadFolder() returned currentPageSize: {currentPageSize} and moving onto page {page}.");
+                _logger.LogTrace($"LoadFolder() returned currentPageSize: {currentPageSize} and moving onto page {page}.");
             }
             while (_sfmcConnectionConfiguration.PageSize == currentPageSize);
 
+            _logger.LogInformation($"LoadFolder() loaded {sfmcFolders.Count()} Folders");
             if (sfmcFolders.Any())
             {
                 return BuildFolderTree(sfmcFolders);
@@ -76,7 +77,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Assets
                 folderObject.FullPath = "/";
                 AddChildren(folderObject, folderObject.FullPath, sfmcFolders);
                 retval.Add(folderObject);
-                _logger.LogInformation($"Added root folder: {folderObject.Name} (ID: {folderObject.Id}) with FullPath: {folderObject.FullPath} with {folderObject.SubFolders?.Count ?? 0} subfolders.");
+                _logger.LogTrace($"Added root folder: {folderObject.Name} (ID: {folderObject.Id}) with FullPath: {folderObject.FullPath} with {folderObject.SubFolders?.Count ?? 0} subfolders.");
             }
             return retval;
         }
@@ -132,7 +133,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Assets
 
                 currentPageSize = results!.Results.items.Count();
                 sfmcFolders.AddRange(results.Results.items);
-                _logger.LogInformation($"Current Page had {currentPageSize} records. There are now {sfmcFolders.Count()} Total Folders Identified.");
+                _logger.LogTrace($"Current Page had {currentPageSize} records. There are now {sfmcFolders.Count()} Total Folders Identified.");
 
                 if (_sfmcConnectionConfiguration.PageSize == currentPageSize)
                 {
@@ -152,7 +153,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Assets
             string url
         )
         {
-            if (_sfmcConnectionConfiguration.Debug) { Console.WriteLine($"Attempting to {verb} to {url} with accessToken: {_authRepository.Token.access_token}"); }
+            _logger.LogTrace($"Attempting to {verb} to {url} with accessToken: {_authRepository.Token.access_token}");
 
             SetAuthHeader();
             var results = _restManager.ExecuteRestMethod<SfmcRestWrapper<SfmcFolder>, string>(
@@ -176,17 +177,14 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Assets
             // Check if an error occurred and it matches the specified errorText
             if (results != null && results.UnhandledError != null && results.UnhandledError.Contains(authenticationError))
             {
-                Console.WriteLine($"Unauthenticated: {results.UnhandledError}");
+                _logger.LogTrace($"Unauthenticated: {results.UnhandledError}");
 
                 // Resolve authentication
                 resolveAuthentication();
-                Console.WriteLine("Authentication Header has been reset");
+                _logger.LogTrace("Authentication Header has been reset");
 
                 // Retry the REST method
                 results = loadFolderApiCall(url);
-
-                Console.WriteLine("Press Enter to Continue");
-                Console.ReadLine();
             }
 
             return results!;

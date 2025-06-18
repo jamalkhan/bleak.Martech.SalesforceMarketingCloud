@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using CommunityToolkit.Maui;
 using SfmcApp.Logging;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.Assets;
+using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
 using bleak.Martech.SalesforceMarketingCloud.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Models;
 using SfmcApp.Pages.Assets;
