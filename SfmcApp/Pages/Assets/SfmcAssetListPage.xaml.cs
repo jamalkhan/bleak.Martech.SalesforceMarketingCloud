@@ -240,6 +240,22 @@ namespace SfmcApp.Pages.Assets
         // TODO: Make this a configuration option
         bool usePublishedUrlName = true;
 
+        
+        private async void OnDownloadTapped(object sender, EventArgs e)
+        {
+
+            if (sender is Image image && image.BindingContext is AssetViewModel asset)
+            {
+                if (asset.IsBinaryDownloadable)
+                {
+                    await DownloadBinaryAsync(asset);
+                }
+                else
+                {
+                    await DownloadTextAsync(asset);
+                }
+            }
+        }
         private string GetFileName(AssetViewModel asset)
         {
             if (usePublishedUrlName)
@@ -251,38 +267,54 @@ namespace SfmcApp.Pages.Assets
             }
             return asset.FileProperties.FileName;
         }
-        private async void OnDownloadTapped(object sender, EventArgs e)
+        private string GetTextFileName(AssetViewModel asset)
+        {
+            return $"{asset.Name}-{asset.CustomerKey}.{asset.AssetType.Name}.ampscript";
+        }
+        private async Task DownloadTextAsync(AssetViewModel asset)
+        {
+            var serializer = new JsonSerializer();
+            var fileName = GetTextFileName(asset);
+            var metadataFile = Path.Combine(FileSystem.AppDataDirectory, "Downloads", "Assets", $"{fileName}.metadata.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(metadataFile)!);
+            // Write Metadata to Named as Customer Key
+            //var metaDataCustomerKey = AppConfiguration.Instance.OutputFolder + "/" + asset.FullPath + "/customerkey-" + asset.CustomerKey + ".metadata";
+
+            _logger.LogTrace($"Writing {fileName} metadata file to {metadataFile}");
+            await File.WriteAllTextAsync(metadataFile, serializer.Serialize(asset));
+            string outputFileName = Path.Combine(FileSystem.AppDataDirectory, "Downloads", "Assets", fileName);
+            _logger.LogTrace($"Writing {fileName} {asset.AssetType.Name} content to {outputFileName}");
+            await File.WriteAllTextAsync(outputFileName, asset.Content);
+            _logger.LogInformation($"File Written to File System: {outputFileName}");
+        }
+
+        private async Task DownloadBinaryAsync(AssetViewModel asset)
         {
             JsonSerializer serializer = new JsonSerializer();
-
-            if (sender is Image image && image.BindingContext is AssetViewModel asset)
-            {
-                string fileName = GetFileName(asset);
-                
-                // TODO: Make the file path include the connection name or some identifier
-                var metadataFile = Path.Combine(FileSystem.AppDataDirectory, "Downloads", "Assets", $"{fileName}.metadata.json");
+            string fileName = GetFileName(asset);
             
-                Directory.CreateDirectory(Path.GetDirectoryName(metadataFile)!);
-                _logger.LogTrace($"Trying to save {metadataFile}");
+            // TODO: Make the file path include the connection name or some identifier
+            var metadataFile = Path.Combine(FileSystem.AppDataDirectory, "Downloads", "Assets", $"{fileName}.metadata.json");
+        
+            Directory.CreateDirectory(Path.GetDirectoryName(metadataFile)!);
+            _logger.LogTrace($"Trying to save {metadataFile}");
 
-                File.WriteAllText(metadataFile, serializer.Serialize(asset));
+            File.WriteAllText(metadataFile, serializer.Serialize(asset));
 
-                var imageUrl = asset.FileProperties.PublishedURL;
-                using (var client = new HttpClient())
+            var imageUrl = asset.FileProperties.PublishedURL;
+            using (var client = new HttpClient())
+            {
+                try
                 {
-                    try
-                    {
-                        
-                        var imageFilePath = Path.Combine(FileSystem.AppDataDirectory, "Downloads", "Assets", fileName);
-                        var imageBytes = client.GetByteArrayAsync(imageUrl).Result;
-                        Directory.CreateDirectory(Path.GetDirectoryName(imageFilePath)!);
-                        File.WriteAllBytes(imageFilePath, imageBytes);
-                        _logger.LogInformation($"Image saved to {imageFilePath}");
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError($"Failed to download image from {imageUrl}: {ex.Message}");
-                    }
+                    var imageFilePath = Path.Combine(FileSystem.AppDataDirectory, "Downloads", "Assets", fileName);
+                    var imageBytes = client.GetByteArrayAsync(imageUrl).Result;
+                    Directory.CreateDirectory(Path.GetDirectoryName(imageFilePath)!);
+                    await File.WriteAllBytesAsync(imageFilePath, imageBytes);
+                    _logger.LogInformation($"Image saved to {imageFilePath}");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Failed to download image from {imageUrl}: {ex.Message}");
                 }
             }
         }

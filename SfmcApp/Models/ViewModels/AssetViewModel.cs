@@ -1,5 +1,5 @@
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
-
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SfmcApp.Models.ViewModels
 {
@@ -40,14 +40,39 @@ namespace SfmcApp.Models.ViewModels
                 };
             }
         }
+        public bool IsDownloading
+        { get; set; } = false;
 
-
-        public bool IsDownloadbaleImage
+        public bool IsBinaryDownloadable
         {
             get
             {
                 return AssetType?.Name switch
                 {
+                    "jpg" => true,
+                    "png" => true,
+                    "gif" => true,
+                    _ => false
+                };
+            }
+        }
+
+        public bool IsDownloadbale
+        {
+            get
+            {
+                return AssetType?.Name switch
+                {
+                    // html assets
+                    "webpage" => true,
+                    "htmlemail" => true,
+                    "htmlblock" => true,
+                    "templatebasedemail" => true,
+                    "template" => true,
+                    // code blocks
+                    "codesnippetblock" => true,
+                    "defaulttemplate" => true,
+                    "freeformblock" => true,
                     // images
                     "jpg" => true,
                     "png" => true,
