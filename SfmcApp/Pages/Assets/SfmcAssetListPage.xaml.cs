@@ -29,7 +29,7 @@ namespace SfmcApp.Pages.Assets
     {
         #region Move To Base?
         private readonly ILogger<SfmcAssetListPage> _logger;
-        public new event PropertyChangedEventHandler PropertyChanged;
+        public new event PropertyChangedEventHandler? PropertyChanged;
 
         private new void OnPropertyChanged([CallerMemberName] string name = "")
         {
@@ -186,8 +186,8 @@ namespace SfmcApp.Pages.Assets
 
         #region Folder Selection
         public ObservableCollection<AssetViewModel> Assets { get; set; } = new();
-        private FolderObject _selectedFolder;
-        public FolderObject SelectedFolder
+        private FolderObject? _selectedFolder;
+        public FolderObject? SelectedFolder
         {
             get => _selectedFolder;
             set
@@ -232,7 +232,7 @@ namespace SfmcApp.Pages.Assets
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Failed to load Assets for folder {_selectedFolder.Name}: {ex.ToString()}");
+                _logger.LogError($"Failed to load Assets for folder {_selectedFolder?.Name ?? "None"}: {ex.ToString()}");
             }
         }
         #endregion Folder Selection
