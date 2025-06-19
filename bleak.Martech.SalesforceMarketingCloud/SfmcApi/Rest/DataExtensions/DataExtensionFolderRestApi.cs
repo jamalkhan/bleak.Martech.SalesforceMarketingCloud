@@ -5,22 +5,22 @@ using bleak.Martech.SalesforceMarketingCloud.Models;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Rest;
 
-namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.DataExtensions
+namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions
 {
-    public class DataExtensionFolderRestApi : BaseRestApi
-    {
 
+    public class DataExtensionFolderRestApi : BaseRestApi, IDataExtensionFolderRestApi
+    {
         private HttpVerbs verb = HttpVerbs.GET;
 
         public DataExtensionFolderRestApi(
-            RestManager restManager, 
+            RestManager restManager,
             IAuthRepository authRepository)
             : this(restManager, authRepository, new SfmcConnectionConfiguration())
         {
         }
         public DataExtensionFolderRestApi(
-            RestManager restManager, 
-            IAuthRepository authRepository, 
+            RestManager restManager,
+            IAuthRepository authRepository,
             SfmcConnectionConfiguration sfmcConnectionConfiguration)
             : base(restManager, authRepository, sfmcConnectionConfiguration)
         {
@@ -50,7 +50,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.DataExtens
             }
 
             throw new Exception("Error Loading Folders");
-            
+
         }
 
         List<FolderObject> BuildFolderTree(List<SfmcFolder> sfmcFolders)
@@ -79,15 +79,15 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Rest.DataExtens
             try
             {
                 if (_sfmcConnectionConfiguration.Debug) { Console.WriteLine($"Loading Folder Page #{page}"); }
-                
+
                 RestResults<SfmcRestWrapper<SfmcFolder>, string> results;
                 ///legacy/v1/beta/object/
                 string url = $"https://{_authRepository.Subdomain}.rest.marketingcloudapis.com/legacy/v1/beta/object/?$page={page}&$pagesize={_sfmcConnectionConfiguration.PageSize}";
-                
+
                 results = ExecuteRestMethodWithRetry(
                     loadFolderApiCall: LoadFolderApiCall,
                     url: url,
-                    authenticationError: "401", 
+                    authenticationError: "401",
                     resolveAuthentication: _authRepository.ResolveAuthentication
                 );
 

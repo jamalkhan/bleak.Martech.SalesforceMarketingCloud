@@ -5,6 +5,7 @@ using SfmcApp.Models;
 using SfmcApp.Pages;
 using Microsoft.Extensions.Logging;
 using SfmcApp.Pages.Assets;
+using SfmcApp.Pages.DataExtensions;
 
 namespace SfmcApp;
 

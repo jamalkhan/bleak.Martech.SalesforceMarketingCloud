@@ -2,9 +2,9 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             xmlns:local="clr-namespace:SfmcApp.Pages"
+             xmlns:local="clr-namespace:SfmcApp.Pages.DataExtensions"
              xmlns:localbase="clr-namespace:SfmcApp.Pages.BasePages"
-             x:Class="SfmcApp.Pages.SfmcDataExtensionListPage"
+             x:Class="SfmcApp.Pages.DataExtensions.SfmcDataExtensionListPage"
              Title="Data Extension Navigator">
     <Grid 
         ColumnDefinitions="*, 2*"

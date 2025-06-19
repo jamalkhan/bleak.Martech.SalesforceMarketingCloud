@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using SfmcApp.Models;
+using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions;
 
 #if MACCATALYST
 /*
@@ -21,9 +22,23 @@ using UniformTypeIdentifiers;
 
 namespace SfmcApp.Pages
 {
-    public partial class SfmcDataExtensionListPage : ContentPage, INotifyPropertyChanged
+    /*public abstract class BaseListPage<T> : ContentPage
     {
-        //private readonly ILogger<SfmcDataExtensionListPage> _logger;
+        public new event PropertyChangedEventHandler PropertyChanged;
+        public SfmcDataExtensionListPage()
+        {
+            InitializeComponent();
+        }
+    }*/
+}
+
+namespace SfmcApp.Pages.DataExtensions
+{
+    public partial class SfmcDataExtensionListPage
+    : ContentPage
+    , INotifyPropertyChanged
+    {
+        private readonly ILogger<SfmcDataExtensionListPage> _logger;
         public new event PropertyChangedEventHandler PropertyChanged;
 
         private new void OnPropertyChanged([CallerMemberName] string name = "")
@@ -120,7 +135,7 @@ namespace SfmcApp.Pages
         }
 
 
-#region Folder Selection
+        #region Folder Selection
         public ICommand FolderTappedCommand => new Command<DataExtensionFolder>(folder =>
         {
             SelectedFolder = folder;

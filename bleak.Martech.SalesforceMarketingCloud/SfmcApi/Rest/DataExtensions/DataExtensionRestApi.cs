@@ -7,20 +7,20 @@ using bleak.Martech.SalesforceMarketingCloud.Rest;
 using bleak.Martech.SalesforceMarketingCloud.Fileops;
 using System.Formats.Asn1;
 
-namespace bleak.Martech.SalesforceMarketingCloud.Rest
+namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions
 {
 
-    public class DataExtensionRestApi : BaseRestApi
+    public class DataExtensionRestApi : BaseRestApi, IDataExtensionRestApi
     {
         public DataExtensionRestApi(
             IAuthRepository authRepository)
             : this(authRepository, new SfmcConnectionConfiguration())
         {
         }
-        public DataExtensionRestApi( 
-            IAuthRepository authRepository, 
+        public DataExtensionRestApi(
+            IAuthRepository authRepository,
             SfmcConnectionConfiguration config)
-            : base(authRepository, config) 
+            : base(authRepository, config)
         {
         }
 
@@ -55,7 +55,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Rest
                     RestResults<DataExtensionDataDto, string> results = LoadApiWithRetry<DataExtensionDataDto>(
                         loadApiCall: LoadApiCall,
                         url: url,
-                        authenticationError: "401", 
+                        authenticationError: "401",
                         resolveAuthentication: _authRepository.ResolveAuthentication
                     );
                     if (results?.Error != null)
@@ -73,10 +73,10 @@ namespace bleak.Martech.SalesforceMarketingCloud.Rest
 
                     // add data to return value.
                     fileWriter.WriteToFile(fileName, results.Results.ToDictionaryList());
-                    
+
 
                     if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {totalRecords} Records Identified.");
-                    
+
                     if (results == null || results?.Results == null || results.Results.links == null || results!.Results.links == null)
                     {
                         if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"No more pages to process. Exiting loop.");
@@ -85,7 +85,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Rest
                     if (results!.Results.links.next != null)
                     {
                         if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"Running Loop Again");
-                        url = $"{baseUrl}{results.Results.links.next}"; 
+                        url = $"{baseUrl}{results.Results.links.next}";
                     }
                 } while (true);
             }
@@ -143,7 +143,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Rest
 
             return results!;
         }
-        
+
 
     }
 }
