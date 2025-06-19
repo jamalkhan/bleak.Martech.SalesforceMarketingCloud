@@ -11,6 +11,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Models.Pocos
         public AssetTypeObject AssetType { get; set; } = new();
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
+        public string ContentType { get; set; } = string.Empty;
         public DateTime CreatedDate { get; set; }
         public UserObject CreatedBy { get; set; } = new();
         public DateTime ModifiedDate { get; set; }

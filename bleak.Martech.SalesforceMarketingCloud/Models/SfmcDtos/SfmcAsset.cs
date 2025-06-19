@@ -1,6 +1,7 @@
 namespace bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos
 {
-    public partial class SfmcAsset:ISfmcPoco
+    public partial class SfmcAsset
+        : ISfmcPoco
     {
         public int id { get; set; }
         public string customerKey { get; set; } = string.Empty;
@@ -18,6 +19,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos
         public SfmcThumbnail thumbnail { get; set; } = new();
         public SfmcCategory category { get; set; } = new();
         public string content { get; set; } = string.Empty;
+        public string contentType { get; set; } = string.Empty;
         public SfmcData data { get; set; } = new();
         public SfmcViews views { get; set; } = new();
         public SfmcFileProperties fileProperties { get; set; } = new();

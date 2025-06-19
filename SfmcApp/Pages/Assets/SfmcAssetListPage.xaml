@@ -41,7 +41,25 @@
                     VerticalOptions="Center"
                     x:Name="SearchButton"
                     Clicked="OnSearchButtonClicked" />
+            <Label Text="Folders: "
+                   VerticalOptions="Center"
+                   FontSize="Medium"
+                   FontAttributes="Bold" />
+            <Label Text="{Binding Folders.Count}"
+                   VerticalOptions="Center"
+                   FontSize="Medium"
+                   FontAttributes="Bold" />
+            <Label Text="Assets: "
+                   VerticalOptions="Center"
+                   FontSize="Medium"
+                   FontAttributes="Bold" />
+            <Label Text="{Binding Assets.Count}"
+                   VerticalOptions="Center"
+                   FontSize="Medium"
+                   FontAttributes="Bold" />
         </HorizontalStackLayout>
+
+
 
         <!-- Left Column -->
         <Border 
@@ -190,12 +208,18 @@
                                     Grid.Row="1"
                                     VerticalOptions="Center">
                                     <Grid ColumnDefinitions="Auto, *, Auto, Auto"
-                                        RowDefinitions="Auto"
+                                        RowDefinitions="Auto, Auto"
+                                        Padding="5"
                                         VerticalOptions="Center">
-                                        <Label Text="Customer Key: " Grid.Column="0" Padding="5,25" />
-                                        <Label Text="{Binding CustomerKey}" Grid.Column="1" Padding="5,25" />
-                                        <Label Text="ID: " Grid.Column="2" Padding="5,25" />
-                                        <Label Text="{Binding Id}" Grid.Column="3" Padding="5,25" />
+                                        <Label Text="Customer Key: " Grid.Row="0" Grid.Column="0"  />
+                                        <Label Text="{Binding CustomerKey}" Grid.Row="0" Grid.Column="1" />
+                                        <Label Text="ID: " Grid.Row="0" Grid.Column="2" />
+                                        <Label Text="{Binding Id}" Grid.Row="0" Grid.Column="3" />
+                                        <Label Text="Type: " Grid.Row="1" Grid.Column="0" />
+                                        <Label Text="{Binding AssetType.Name}" Grid.Row="1" Grid.Column="1" />
+
+                                        <Label Text="ContentType: " Grid.Row="1" Grid.Column="2" IsVisible="{Binding ContentTypeVisible}" />
+                                        <Label Text="{Binding ContentType}" Grid.Row="1" Grid.Column="3" />
                                     </Grid>
                                 </HorizontalStackLayout>
 
@@ -203,11 +227,6 @@
                                 <Label Grid.Column="1"
                                     Grid.Row="2"
                                     Text="{Binding Description}"
-                                    VerticalOptions="Center" />
-
-                                <Label Grid.Column="1"
-                                    Grid.Row="3"
-                                    Text="{Binding AssetType.Name}"
                                     VerticalOptions="Center" />
 
                                 <!-- TODO: do something with this -->

@@ -51,73 +51,64 @@ namespace bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos
     }
 
 
-
-    public static class AssetConverters
+    public static class SfmcAssetConverters
     {
-        public static AssetPoco ToPoco(this SfmcAsset asset)
-        {
-            return asset.ToPoco();
-        }
         public static List<AssetPoco> ToPocoList(this IEnumerable<SfmcAsset> assets)
         {
             return assets.Select(asset => asset.ToPoco()).ToList();
         }
-    }
-
-    public partial class SfmcAsset
-    {
-        public AssetPoco ToPoco()
+        public static AssetPoco ToPoco(this SfmcAsset asset)
         {
             var retval = new AssetPoco()
             {
-                Id = id,
-                CustomerKey = customerKey,
-                ObjectID = objectID,
+                Id = asset.id,
+                CustomerKey = asset.customerKey,
+                ObjectID = asset.objectID,
                 AssetType = new AssetPoco.AssetTypeObject()
                 {
-                    Id = assetType.id,
-                    Name = assetType.name,
-                    DisplayName = assetType.displayName
+                    Id = asset.assetType.id,
+                    Name = asset.assetType.name,
+                    DisplayName = asset.assetType.displayName
                 },
-                Name = name,
-                Description = description,
-                CreatedDate = createdDate,
+                Name = asset.name,
+                Description = asset.description,
+                CreatedDate = asset.createdDate,
                 // TODO
                 // UserObject = null
-                ModifiedDate = modifiedDate,
+                ModifiedDate = asset.modifiedDate,
                 // TODO:
                 //ModifiedBy = modifiedBy,
-                EnterpriseId = enterpriseId,
-                MemberId = memberId,
+                EnterpriseId = asset.enterpriseId,
+                MemberId = asset.memberId,
                 // TODO:
                 //Status { get; set; } = new();
                 // TODO:
                 //Thumbnail { get; set; } = new();
                 // TODO:
                 //Category = new CategoryObject() { // TODO: }
-                Content = content,
+                Content = asset.content,
+                ContentType = asset.contentType,
                 //Data = new DataObject
-
             };
-            if (views != null)
+            if (asset.views != null)
             {
                 retval.Views = new AssetPoco.ViewsObject();
-                if (views.html != null)
+                if (asset.views.html != null)
                 {
                     retval.Views.Html = new AssetPoco.HtmlObject();
-                    retval.Views.Html.Content = views.html.content;
+                    retval.Views.Html.Content = asset.views.html.content;
                 }
             }
-            if (fileProperties != null)
+            if (asset.fileProperties != null)
             {
                 retval.FileProperties = new AssetPoco.FilePropertiesObject();
-                retval.FileProperties.FileName = fileProperties.fileName;
-                retval.FileProperties.Extension = fileProperties.extension;
-                retval.FileProperties.FileSize = fileProperties.fileSize;
-                retval.FileProperties.FileCreatedDate = fileProperties.fileCreatedDate;
-                retval.FileProperties.Width = fileProperties.width;
-                retval.FileProperties.Height = fileProperties.height;
-                retval.FileProperties.PublishedURL = fileProperties.publishedURL;
+                retval.FileProperties.FileName = asset.fileProperties.fileName;
+                retval.FileProperties.Extension = asset.fileProperties.extension;
+                retval.FileProperties.FileSize = asset.fileProperties.fileSize;
+                retval.FileProperties.FileCreatedDate = asset.fileProperties.fileCreatedDate;
+                retval.FileProperties.Width = asset.fileProperties.width;
+                retval.FileProperties.Height = asset.fileProperties.height;
+                retval.FileProperties.PublishedURL = asset.fileProperties.publishedURL;
             }
 
             return retval;

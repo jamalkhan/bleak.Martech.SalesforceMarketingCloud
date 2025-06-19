@@ -8,6 +8,14 @@ namespace SfmcApp.Models.ViewModels
     /// </summary>
     public class AssetViewModel : AssetPoco
     {
+        public bool HasContentType
+        {
+            get
+            {
+                return !string.IsNullOrEmpty(this.ContentType);
+            }
+        }
+
         public string Icon
         {
             get
