@@ -1,5 +1,5 @@
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
-using CommunityToolkit.Mvvm.ComponentModel;
+//using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SfmcApp.Models.ViewModels
 {

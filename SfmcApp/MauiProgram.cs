@@ -7,6 +7,7 @@ using bleak.Martech.SalesforceMarketingCloud.Sfmc.Models;
 using SfmcApp.Pages.Assets;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using SfmcApp.Models;
+using SfmcApp.Models.ViewModels;
 
 namespace SfmcApp;
 
@@ -40,6 +41,10 @@ public static class MauiProgram
 			return new MauiAuthRepository(connection, logger);
 		});
 
+		// Asset View Model
+		builder.Services.AddTransient<SfmcAssetListViewModel>();
+
+
 		// Asset Folder API
 		builder.Services.AddTransient<AssetFolderRestApi>();
 		builder.Services.AddTransient<IAssetFolderRestApi, AssetFolderRestApi>();
@@ -66,6 +71,7 @@ public static class MauiProgram
 		(
 			sp => connection =>
 			{
+				var viewModelLogger = sp.GetRequiredService<ILogger<SfmcAssetListViewModel>>();
 				var logger = sp.GetRequiredService<ILogger<SfmcAssetListPage>>();
 				var folderApiLogger = sp.GetRequiredService<ILogger<AssetFolderRestApi>>();
 				var objectApiLogger = sp.GetRequiredService<ILogger<AssetRestApi>>();
@@ -83,7 +89,7 @@ public static class MauiProgram
 					logger: objectApiLogger
 				);
 				return new SfmcAssetListPage(
-					logger: logger,
+					logger: viewModelLogger,
 					folderApi: folderApi,
 					objectApi: objectApi
 					);

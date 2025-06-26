@@ -1,0 +1,241 @@
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Globalization;
+using System.Runtime.CompilerServices;
+using System.Windows.Input;
+using bleak.Api.Rest;
+using bleak.Martech.SalesforceMarketingCloud.Models;
+using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
+using Microsoft.Extensions.Logging;
+using SfmcApp.Models;
+using SfmcApp.Models.ViewModels;
+
+namespace SfmcApp.Models.ViewModels
+{
+    public class SfmcAssetListViewModel : INotifyPropertyChanged
+    {
+        private readonly ILogger<SfmcAssetListViewModel> _logger;
+        private readonly IAssetFolderRestApi _folderApi;
+        private readonly IAssetRestApi _objectApi;
+
+        public ObservableCollection<FolderObject> Folders { get; } = new();
+        public ObservableCollection<AssetViewModel> Assets { get; } = new();
+
+        private bool _isFoldersLoading;
+        public bool IsFoldersLoading
+        {
+            get => _isFoldersLoading;
+            set => SetProperty(ref _isFoldersLoading, value);
+        }
+
+        private bool _isFoldersLoaded;
+        public bool IsFoldersLoaded
+        {
+            get => _isFoldersLoaded;
+            set => SetProperty(ref _isFoldersLoaded, value);
+        }
+
+
+
+        private bool _isAssetsLoading;
+        public bool IsAssetsLoading
+        {
+            get => _isAssetsLoading;
+            set => SetProperty(ref _isAssetsLoading, value);
+        }
+
+        private bool _isAssetsLoaded;
+        public bool IsAssetsLoaded
+        {
+            get => _isAssetsLoaded;
+            set => SetProperty(ref _isAssetsLoaded, value);
+        }
+
+        private FolderObject? _selectedFolder;
+        public FolderObject? SelectedFolder
+        {
+            get => _selectedFolder;
+            set
+            {
+                if (SetProperty(ref _selectedFolder, value))
+                {
+                    LoadAssetForSelectedFolderAsync();
+                }
+            }
+        }
+
+        public ICommand FolderTappedCommand { get; }
+        public ICommand SearchCommand { get; }
+
+        public ObservableCollection<StringSearchOptions> SearchOptions { get; } =
+            new(Enum.GetValues(typeof(StringSearchOptions)).Cast<StringSearchOptions>());
+
+        private StringSearchOptions _selectedSearchOption = StringSearchOptions.Like;
+        public StringSearchOptions SelectedSearchOption
+        {
+            get => _selectedSearchOption;
+            set => SetProperty(ref _selectedSearchOption, value);
+        }
+
+        public SfmcAssetListViewModel(
+            ILogger<SfmcAssetListViewModel> logger,
+            IAssetFolderRestApi folderApi,
+            IAssetRestApi objectApi)
+        {
+            _logger = logger;
+            _folderApi = folderApi;
+            _objectApi = objectApi;
+
+            FolderTappedCommand = new Command<FolderObject>(folder => SelectedFolder = folder);
+            SearchCommand = new Command(() => OnSearchButtonClicked());
+
+            LoadFoldersAsync();
+        }
+
+        private async void LoadFoldersAsync()
+        {
+            try
+            {
+                IsFoldersLoaded = false;
+                IsFoldersLoading = true;
+                var folderTree = await _folderApi.GetFolderTreeAsync();
+                Folders.Clear();
+                foreach (var folder in folderTree)
+                    Folders.Add(folder);
+
+                IsFoldersLoaded = true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading folders.");
+            }
+            finally
+            {
+                IsFoldersLoading = false;
+            }
+        }
+
+        private async void LoadAssetForSelectedFolderAsync()
+        {
+            if (_selectedFolder == null) return;
+
+            try
+            {
+                IsAssetsLoaded = false;
+                IsAssetsLoading = true;
+                Assets.Clear();
+                var assets = await _objectApi.GetAssetsAsync(_selectedFolder.Id);
+                foreach (var asset in assets.ToViewModelList())
+                {
+                    try
+                    {
+                        Assets.Add(asset);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Error processing asset {asset.Name}.");
+                        continue;
+                    }
+                    _logger.LogInformation($"Added asset: {asset.Name} ({asset.AssetType.Name}) Count {Assets.Count}");
+                }
+                IsAssetsLoading = false;
+                IsAssetsLoaded = true;
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to load assets. {ex.Message}");
+            }
+        }
+
+        private void OnSearchButtonClicked()
+        {
+            // Search logic goes here
+        }
+
+        public ICommand DownloadCommand => new Command<AssetViewModel>(async asset =>
+        {
+            if (asset.IsBinaryDownloadable)
+                await DownloadBinaryAsync(asset);
+            else
+                await DownloadTextAsync(asset);
+        });
+
+        // TODO: Make this a configuration option
+        bool usePublishedUrlName = true;
+
+        private string GetFileName(AssetViewModel asset)
+        {
+            if (usePublishedUrlName)
+            {
+                string url = asset.FileProperties.PublishedURL;
+                Uri uri = new Uri(url);
+                string fileName = Path.GetFileName(uri.LocalPath);
+                return fileName;
+            }
+            return asset.FileProperties.FileName;
+        }
+        private string GetTextFileName(AssetViewModel asset)
+        {
+            return $"{asset.Name}-{asset.CustomerKey}.{asset.AssetType.Name}.ampscript";
+        }
+        private async Task DownloadTextAsync(AssetViewModel asset)
+        {
+            var serializer = new JsonSerializer();
+            var fileName = GetTextFileName(asset);
+            var metadataFile = Path.Combine(FileSystem.AppDataDirectory, "Downloads", "Assets", $"{fileName}.metadata.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(metadataFile)!);
+            // Write Metadata to Named as Customer Key
+            //var metaDataCustomerKey = AppConfiguration.Instance.OutputFolder + "/" + asset.FullPath + "/customerkey-" + asset.CustomerKey + ".metadata";
+
+            _logger.LogTrace($"Writing {fileName} metadata file to {metadataFile}");
+            await File.WriteAllTextAsync(metadataFile, serializer.Serialize(asset));
+            string outputFileName = Path.Combine(FileSystem.AppDataDirectory, "Downloads", "Assets", fileName);
+            _logger.LogTrace($"Writing {fileName} {asset.AssetType.Name} content to {outputFileName}");
+            await File.WriteAllTextAsync(outputFileName, asset.Content);
+            _logger.LogInformation($"File Written to File System: {outputFileName}");
+        }
+        private async Task DownloadBinaryAsync(AssetViewModel asset)
+        {
+            JsonSerializer serializer = new JsonSerializer();
+            string fileName = GetFileName(asset);
+
+            // TODO: Make the file path include the connection name or some identifier
+            var metadataFile = Path.Combine(FileSystem.AppDataDirectory, "Downloads", "Assets", $"{fileName}.metadata.json");
+
+            Directory.CreateDirectory(Path.GetDirectoryName(metadataFile)!);
+            _logger.LogTrace($"Trying to save {metadataFile}");
+
+            File.WriteAllText(metadataFile, serializer.Serialize(asset));
+
+            var imageUrl = asset.FileProperties.PublishedURL;
+            using (var client = new HttpClient())
+            {
+                try
+                {
+                    var imageFilePath = Path.Combine(FileSystem.AppDataDirectory, "Downloads", "Assets", fileName);
+                    var imageBytes = client.GetByteArrayAsync(imageUrl).Result;
+                    Directory.CreateDirectory(Path.GetDirectoryName(imageFilePath)!);
+                    await File.WriteAllBytesAsync(imageFilePath, imageBytes);
+                    _logger.LogInformation($"Image saved to {imageFilePath}");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Failed to download image from {imageUrl}: {ex.Message}");
+                }
+            }
+        }
+
+        // Common SetProperty helper
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected bool SetProperty<T>(ref T backingStore, T value, [CallerMemberName] string propertyName = "")
+        {
+            if (EqualityComparer<T>.Default.Equals(backingStore, value))
+                return false;
+
+            backingStore = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            return true;
+        }
+    }
+}

@@ -3,6 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:local="clr-namespace:SfmcApp.Pages.Assets"
+             xmlns:converters="clr-namespace:SfmcApp.Converters"
+
              x:Class="SfmcApp.Pages.Assets.SfmcAssetListPage"
              Title="Asset Navigator">
 
@@ -33,14 +35,14 @@
             <Picker Title="Select Search Type"
                     WidthRequest="150"
                     ItemsSource="{Binding SearchOptions}"
+                    SelectedItem="{Binding SelectedSearchOption}"
                     x:Name="SearchTypePicker"
                     SelectedIndex="0"
                     VerticalOptions="Center">
             </Picker>
             <Button Text="Search"
                     VerticalOptions="Center"
-                    x:Name="SearchButton"
-                    Clicked="OnSearchButtonClicked" />
+                    Command="{Binding SearchCommand}" />
             <Label Text="Folders: "
                    VerticalOptions="Center"
                    FontSize="Medium"
@@ -80,11 +82,10 @@
                        VerticalOptions="Center"
                        IsVisible="{Binding IsFoldersLoading}" />
                 <CollectionView
-                            ItemsSource="{Binding Folders}"
-                            SelectionMode="Single"
-                            SelectedItem="{Binding SelectedFolder}"
-                            IsVisible="{Binding IsFoldersLoaded}"
-                            >
+                    ItemsSource="{Binding Folders}"
+                    SelectionMode="Single"
+                    SelectedItem="{Binding SelectedFolder}"
+                    IsVisible="{Binding IsFoldersLoaded}">
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
                             <toolkit:Expander>
@@ -96,7 +97,10 @@
                                             <Label.GestureRecognizers>
                                                 <TapGestureRecognizer
                                                     Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcAssetListPage}}, Path=BindingContext.FolderTappedCommand}"
-                                                    CommandParameter="{Binding .}" />
+                                                    CommandParameter="{Binding .}"
+                                                    x:Class="SfmcApp.Pages.Assets.SfmcAssetListPage"
+                                                    x:Name="RootPage"
+                                                    />
                                             </Label.GestureRecognizers>
                                         </Label>
                                     </HorizontalStackLayout>
@@ -149,6 +153,7 @@
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>
+                
             </Grid>
         </Border>
         
@@ -166,7 +171,7 @@
             >
             <CollectionView
                 ItemsSource="{Binding Assets}"
-                IsVisible="{Binding IsFoldersLoaded}"
+                IsVisible="{Binding IsAssetsLoaded}"
                 >
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout Orientation="Vertical" ItemSpacing="20" />
@@ -247,10 +252,12 @@
                                     HeightRequest="30"
                                     VerticalOptions="Center"
                                     HorizontalOptions="End"
-                                    IsVisible="{Binding IsDownloadbaleImage}"
+                                    IsVisible="{Binding IsDownloadableImage}"
                                     SemanticProperties.Description="Download Image">
                                     <Image.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="OnDownloadTapped" />
+                                        <TapGestureRecognizer
+                                            Command="{Binding BindingContext.DownloadCommand, Source={RelativeSource AncestorType={x:Type local:SfmcAssetListPage}}}"
+                                            CommandParameter="{Binding .}" />
                                     </Image.GestureRecognizers>
                                 </Image>
                             </Grid>
