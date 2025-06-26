@@ -7,7 +7,29 @@
 
              x:Class="SfmcApp.Pages.Assets.SfmcAssetListPage"
              Title="Asset Navigator">
+    <ContentPage.Resources>
+        <DataTemplate x:Key="FolderTemplate">
+            <toolkit:Expander>
+                <toolkit:Expander.Header>
+                    <HorizontalStackLayout Spacing="5">
+                        <Image Source="folder_icon.png" HeightRequest="18" WidthRequest="18" />
+                        <Label Text="{Binding Name}">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcAssetListPage}}, Path=BindingContext.FolderTappedCommand}"
+                                    CommandParameter="{Binding .}" />
+                            </Label.GestureRecognizers>
+                        </Label>
+                    </HorizontalStackLayout>
+                </toolkit:Expander.Header>
 
+                <VerticalStackLayout Padding="20,0,0,0">
+                    <CollectionView ItemsSource="{Binding SubFolders}"
+                                    ItemTemplate="{StaticResource FolderTemplate}" />
+                </VerticalStackLayout>
+            </toolkit:Expander>
+        </DataTemplate>
+    </ContentPage.Resources>
    <Grid 
         ColumnDefinitions="*, 2*"
         RowDefinitions="Auto, *"
@@ -85,78 +107,11 @@
                     ItemsSource="{Binding Folders}"
                     SelectionMode="Single"
                     SelectedItem="{Binding SelectedFolder}"
-                    IsVisible="{Binding IsFoldersLoaded}">
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate>
-                            <toolkit:Expander>
-                                <!-- Folder -->
-                                <toolkit:Expander.Header>
-                                    <HorizontalStackLayout Spacing="5">
-                                        <Image Source="folder_icon.png" HeightRequest="20" WidthRequest="20" />
-                                        <Label Text="{Binding Name}">
-                                            <Label.GestureRecognizers>
-                                                <TapGestureRecognizer
-                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcAssetListPage}}, Path=BindingContext.FolderTappedCommand}"
-                                                    CommandParameter="{Binding .}"
-                                                    x:Class="SfmcApp.Pages.Assets.SfmcAssetListPage"
-                                                    x:Name="RootPage"
-                                                    />
-                                            </Label.GestureRecognizers>
-                                        </Label>
-                                    </HorizontalStackLayout>
-                                </toolkit:Expander.Header>
-
-                                <!-- Subfolders -->
-                                <VerticalStackLayout Padding="20,0,0,0">
-                                    <CollectionView ItemsSource="{Binding SubFolders}">
-                                        <CollectionView.ItemTemplate>
-                                            <DataTemplate>
-                                                <toolkit:Expander>
-                                                    <toolkit:Expander.Header>
-                                                        <HorizontalStackLayout Spacing="5">
-                                                            <Image Source="folder_icon.png" HeightRequest="18" WidthRequest="18" />
-                                                            <Label Text="{Binding Name}">
-                                                                <Label.GestureRecognizers>
-                                                                    <TapGestureRecognizer
-                                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcAssetListPage}}, Path=BindingContext.FolderTappedCommand}"
-                                                                        CommandParameter="{Binding .}" />
-                                                                </Label.GestureRecognizers>
-                                                            </Label>
-                                                        </HorizontalStackLayout>
-                                                    </toolkit:Expander.Header>
-
-                                                    <!-- (Optional) Recursive subfolders -->
-                                                    <VerticalStackLayout Padding="20,0,0,0">
-                                                        <CollectionView ItemsSource="{Binding SubFolders}">
-                                                            <CollectionView.ItemTemplate>
-                                                                <DataTemplate>
-                                                                    <HorizontalStackLayout Spacing="5">
-                                                                        <Image Source="folder_icon.png" HeightRequest="18" WidthRequest="18" />
-                                                                        <Label Text="{Binding Name}">
-                                                                            <Label.GestureRecognizers>
-                                                                                <TapGestureRecognizer
-                                                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcAssetListPage}}, Path=BindingContext.FolderTappedCommand}"
-                                                                                    CommandParameter="{Binding .}" />
-                                                                            </Label.GestureRecognizers>
-                                                                        </Label>
-                                                                    </HorizontalStackLayout>
-                                                                </DataTemplate>
-                                                            </CollectionView.ItemTemplate>
-                                                        </CollectionView>
-                                                    </VerticalStackLayout>
-                                                </toolkit:Expander>
-                                            </DataTemplate>
-                                        </CollectionView.ItemTemplate>
-                                    </CollectionView>
-                                </VerticalStackLayout>
-                            </toolkit:Expander>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
+                    IsVisible="{Binding IsFoldersLoaded}"
+                    ItemTemplate="{StaticResource FolderTemplate}">
                 </CollectionView>
-                
             </Grid>
         </Border>
-        
 
         <!-- Right Column -->
         <Border 
