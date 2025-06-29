@@ -9,6 +9,7 @@ using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
 using Microsoft.Extensions.Logging;
 using SfmcApp.Models;
 using SfmcApp.Models.ViewModels;
+using SfmcApp.Models.ViewModels.Converters;
 
 namespace SfmcApp.Models.ViewModels
 {
@@ -18,7 +19,7 @@ namespace SfmcApp.Models.ViewModels
         private readonly IAssetFolderRestApi _folderApi;
         private readonly IAssetRestApi _objectApi;
 
-        public ObservableCollection<FolderObject> Folders { get; } = new();
+        public ObservableCollection<FolderViewModel> Folders { get; } = new();
         public ObservableCollection<AssetViewModel> Assets { get; } = new();
 
         private bool _isFoldersLoading;
@@ -51,8 +52,8 @@ namespace SfmcApp.Models.ViewModels
             set => SetProperty(ref _isAssetsLoaded, value);
         }
 
-        private FolderObject? _selectedFolder;
-        public FolderObject? SelectedFolder
+        private FolderViewModel? _selectedFolder;
+        public FolderViewModel? SelectedFolder
         {
             get => _selectedFolder;
             set
@@ -86,7 +87,7 @@ namespace SfmcApp.Models.ViewModels
             _folderApi = folderApi;
             _objectApi = objectApi;
 
-            FolderTappedCommand = new Command<FolderObject>(folder => SelectedFolder = folder);
+            FolderTappedCommand = new Command<FolderViewModel>(folder => SelectedFolder = folder);
             SearchCommand = new Command(() => OnSearchButtonClicked());
 
             LoadFoldersAsync();
@@ -100,18 +101,16 @@ namespace SfmcApp.Models.ViewModels
                 IsFoldersLoading = true;
                 var folderTree = await _folderApi.GetFolderTreeAsync();
                 Folders.Clear();
-                foreach (var folder in folderTree)
+                foreach (var folder in folderTree.ToViewModel())
+                {
                     Folders.Add(folder);
-
+                }
                 IsFoldersLoaded = true;
+                IsFoldersLoading = false;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading folders.");
-            }
-            finally
-            {
-                IsFoldersLoading = false;
+                _logger.LogError($"Error loading folders. {ex.Message}");
             }
         }
 
@@ -125,7 +124,7 @@ namespace SfmcApp.Models.ViewModels
                 IsAssetsLoading = true;
                 Assets.Clear();
                 var assets = await _objectApi.GetAssetsAsync(_selectedFolder.Id);
-                foreach (var asset in assets.ToViewModelList())
+                foreach (var asset in assets.ToViewModel())
                 {
                     try
                     {
