@@ -30,13 +30,14 @@ namespace SfmcApp.Pages.Assets
         private readonly SfmcAssetListViewModel _viewModel;
 
         public SfmcAssetListPage(
+            SfmcConnection sfmcConnection,
             ILogger<SfmcAssetListViewModel> logger,
             IAssetFolderRestApi folderApi,
             IAssetRestApi objectApi)
         {
             InitializeComponent();
 
-            _viewModel = new SfmcAssetListViewModel(logger, folderApi, objectApi);
+            _viewModel = new SfmcAssetListViewModel(sfmcConnection, logger, folderApi, objectApi);
             BindingContext = _viewModel;
 
             SearchBarText.SearchButtonPressed += (s, e) => _viewModel.SearchCommand.Execute(null);

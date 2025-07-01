@@ -6,7 +6,7 @@
              xmlns:converters="clr-namespace:SfmcApp.Converters"
 
              x:Class="SfmcApp.Pages.Assets.SfmcAssetListPage"
-             Title="Asset Navigator">
+             Title="{Binding Title}">
     <ContentPage.Resources>
         <DataTemplate x:Key="FolderTemplate">
             <toolkit:Expander>

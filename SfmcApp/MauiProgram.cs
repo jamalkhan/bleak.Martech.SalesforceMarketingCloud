@@ -89,6 +89,7 @@ public static class MauiProgram
 					logger: objectApiLogger
 				);
 				return new SfmcAssetListPage(
+					sfmcConnection: connection,
 					logger: viewModelLogger,
 					folderApi: folderApi,
 					objectApi: objectApi

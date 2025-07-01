@@ -18,6 +18,7 @@ namespace SfmcApp.Models.ViewModels
         private readonly ILogger<SfmcAssetListViewModel> _logger;
         private readonly IAssetFolderRestApi _folderApi;
         private readonly IAssetRestApi _objectApi;
+        private readonly SfmcConnection _sfmcConnection;
 
         public ObservableCollection<FolderViewModel> Folders { get; } = new();
         public ObservableCollection<AssetViewModel> Assets { get; } = new();
@@ -36,7 +37,8 @@ namespace SfmcApp.Models.ViewModels
             set => SetProperty(ref _isFoldersLoaded, value);
         }
 
-
+        public string ConnectionName => _sfmcConnection.Name;
+        public string Title => $"Asset Navigator: Connected to {_sfmcConnection.Name}";
 
         private bool _isAssetsLoading;
         public bool IsAssetsLoading
@@ -79,10 +81,14 @@ namespace SfmcApp.Models.ViewModels
         }
 
         public SfmcAssetListViewModel(
+            SfmcConnection sfmcConnection,
             ILogger<SfmcAssetListViewModel> logger,
             IAssetFolderRestApi folderApi,
-            IAssetRestApi objectApi)
+            IAssetRestApi objectApi
+            
+            )
         {
+            _sfmcConnection = sfmcConnection;
             _logger = logger;
             _folderApi = folderApi;
             _objectApi = objectApi;
