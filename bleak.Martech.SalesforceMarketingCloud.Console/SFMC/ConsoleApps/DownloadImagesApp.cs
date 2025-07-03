@@ -8,6 +8,8 @@ using System.Diagnostics;
 using System;
 using System.IO;
 using bleak.Martech.SalesforceMarketingCloud.Wsdl;
+using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
+using bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 {
@@ -150,7 +152,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
             PublishedURLName,
         }
         private FileNameFormat? _fileNameFormat = null; 
-        private string GetFileName(AssetObject asset)
+        private string GetFileName(AssetPoco asset)
         {
             AskFileNameFormat();
 
@@ -216,11 +218,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 
         
         
-        private List<AssetObject> GetAssetsByFolder(int folderId)
+        private List<AssetPoco> GetAssetsByFolder(int folderId)
         {
             int page = 1;
             int currentPageSize = 0;
-            var retval = new List<AssetObject>();
+            var retval = new List<AssetPoco>();
             do
             {
                 try
@@ -245,7 +247,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
             return retval;
         }
 
-        private static int ProcessSfmcAssets(int folderId, List<AssetObject> retval, RestResults<SfmcRestWrapper<SfmcAsset>, string> results)
+        private static int ProcessSfmcAssets(int folderId, List<AssetPoco> retval, RestResults<SfmcRestWrapper<SfmcAsset>, string> results)
         {
             int currentPageSize = results!.Results.items.Count();
             if (currentPageSize > 0)
@@ -254,7 +256,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                 Console.WriteLine($"There are {sfmcAssets.Count()} assets in folderId {folderId}");
                 foreach (SfmcAsset sfmcAsset in sfmcAssets)
                 {
-                    var asset = sfmcAsset.ToAssetObject();
+                    var asset = sfmcAsset.ToPoco();
                     retval.Add(asset);
                     //asset.FullPath = folderId.FullPath;
                     //folderId.Assets.Add(asset);

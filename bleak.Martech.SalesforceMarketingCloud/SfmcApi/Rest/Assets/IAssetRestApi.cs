@@ -4,6 +4,8 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
 {
     public interface IAssetRestApi
     {
+        //AssetPoco GetAsset(int assetId, bool expandAmpscript);
+        //Task<AssetPoco> GetAssetAsync(int assetId, bool expandAmpscript);
         List<AssetPoco> GetAssets(int folderId);
         Task<List<AssetPoco>> GetAssetsAsync(int folderId);
     }

@@ -20,6 +20,11 @@
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
   </ItemGroup>
 
+
+	<ItemGroup>
+		<ProjectReference Include="..\bleak.Martech.SalesforceMarketingCloud\bleak.Martech.SalesforceMarketingCloud.csproj" />
+	</ItemGroup>
+
    <Target Name="CopyConfigFile" AfterTargets="Build">
     <Copy SourceFiles="config.json.user" DestinationFiles="$(OutDir)config.json" />
   </Target>

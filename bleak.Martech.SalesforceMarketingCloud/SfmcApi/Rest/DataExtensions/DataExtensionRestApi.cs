@@ -6,6 +6,7 @@ using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Rest;
 using bleak.Martech.SalesforceMarketingCloud.Fileops;
 using System.Formats.Asn1;
+using bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions
 {

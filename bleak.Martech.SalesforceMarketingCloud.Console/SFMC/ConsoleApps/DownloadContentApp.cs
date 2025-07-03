@@ -7,6 +7,7 @@ using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using System.Diagnostics;
 using System;
 using System.IO;
+using bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 {
@@ -232,7 +233,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                 Console.WriteLine($"There are {sfmcAssets.Count()} assets in {folderObject.FullPath}");
                 foreach (SfmcAsset sfmcAsset in sfmcAssets)
                 {
-                    var asset = sfmcAsset.ToAssetObject();
+                    var asset = sfmcAsset.ToPoco();
                     asset.FullPath = folderObject.FullPath;
                     folderObject.Assets.Add(asset);
                 }

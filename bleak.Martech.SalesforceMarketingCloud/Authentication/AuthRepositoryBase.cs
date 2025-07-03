@@ -9,8 +9,8 @@ namespace bleak.Martech.SalesforceMarketingCloud.Authentication
         protected string ClientSecret { get; set; }
         protected string MemberId { get; set; }
         protected const double Threshold = 600.07;
-        private static Lazy<SfmcAuthToken> _cachedToken;
-        public SfmcAuthToken Token => _cachedToken.Value;
+        private static Lazy<SfmcAuthToken>? _cachedToken;
+        public SfmcAuthToken Token => _cachedToken != null ? _cachedToken.Value : throw new InvalidOperationException("_cachedToken is not initialized.");
         protected readonly JsonSerializer _jsonSerializer;
         protected readonly RestManager _restManager;
         private static readonly object _lock = new();

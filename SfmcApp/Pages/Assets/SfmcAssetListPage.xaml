@@ -37,51 +37,82 @@
         >
 
         <!-- Header -->
-        <HorizontalStackLayout Grid.Row="0"
-                              Spacing="10"
-                              Padding="10"
-                              VerticalOptions="Center"
-                              HorizontalOptions="StartAndExpand">
-            <SearchBar
-                Placeholder="Search Assets"
-                WidthRequest="200"
-                x:Name="SearchBarText"
-                VerticalOptions="Center"
-                BackgroundColor="White"
-                TextColor="Black"
-                PlaceholderColor="Gray"
-                HeightRequest="40"
-                >
-            </SearchBar>
+        <Grid
+            Grid.Row="0"
+            ColumnSpacing="10"
+            RowSpacing="5"
+            Padding="10"
+            HorizontalOptions="StartAndExpand"
+            VerticalOptions="Center">
 
-            <Picker Title="Select Search Type"
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />  <!-- Row 0: Search -->
+                <RowDefinition Height="Auto" />  <!-- Row 1: Folders/Assets labels -->
+                <RowDefinition Height="Auto" />  <!-- Row 2: DownloadDirectory -->
+            </Grid.RowDefinitions>
+            <!-- Row 0 -->
+            <HorizontalStackLayout Grid.Row="0" Spacing="10" VerticalOptions="Center">
+                <SearchBar
+                    Placeholder="Search Assets"
+                    WidthRequest="200"
+                    x:Name="SearchBarText"
+                    VerticalOptions="Center"
+                    BackgroundColor="White"
+                    TextColor="Black"
+                    PlaceholderColor="Gray"
+                    HeightRequest="40" />
+                
+                <Picker
+                    Title="Select Search Type"
                     WidthRequest="150"
                     ItemsSource="{Binding SearchOptions}"
                     SelectedItem="{Binding SelectedSearchOption}"
                     x:Name="SearchTypePicker"
                     SelectedIndex="0"
-                    VerticalOptions="Center">
-            </Picker>
-            <Button Text="Search"
+                    VerticalOptions="Center" />
+                
+                <Button
+                    Text="Search"
                     VerticalOptions="Center"
                     Command="{Binding SearchCommand}" />
-            <Label Text="Folders: "
-                   VerticalOptions="Center"
-                   FontSize="Medium"
-                   FontAttributes="Bold" />
-            <Label Text="{Binding Folders.Count}"
-                   VerticalOptions="Center"
-                   FontSize="Medium"
-                   FontAttributes="Bold" />
-            <Label Text="Assets: "
-                   VerticalOptions="Center"
-                   FontSize="Medium"
-                   FontAttributes="Bold" />
-            <Label Text="{Binding Assets.Count}"
-                   VerticalOptions="Center"
-                   FontSize="Medium"
-                   FontAttributes="Bold" />
-        </HorizontalStackLayout>
+            </HorizontalStackLayout>
+
+            <!-- Row 1 -->
+            <HorizontalStackLayout Grid.Row="1" Spacing="5" VerticalOptions="Center">
+                <Label Text="Selected SFMC Folder:" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
+                <Label Text="{Binding SelectedFolderName}" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
+
+                <Label Text="Folders:" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
+                <Label Text="{Binding Folders.Count}" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
+                
+                <Label Text="Assets:" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
+                <Label Text="{Binding Assets.Count}" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
+            <!-- Row 2 -->
+            <HorizontalStackLayout Grid.Row="2" Spacing="5" VerticalOptions="Center">
+                <Label Text="Download Folder:" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
+                <Editor
+                    Text="{Binding DownloadDirectory}"
+                    IsReadOnly="True"
+                    FontSize="Small"
+                    VerticalOptions="Center"
+                    BackgroundColor="#f0f0f0"
+                    TextColor="Black"
+                    AutoSize="TextChanges"
+                    HeightRequest="40"
+                    />
+                <Button
+                    Text="Open"
+                    Command="{Binding OpenDownloadDirectoryCommand}"
+                    VerticalOptions="Center" />
+                <Label Text="Expand Ampscript:" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
+                <Switch 
+                    IsToggled="{Binding ExpandAmpscript}"  />
+                    <!--Toggled="OnSwitchToggled" />-->
+             </HorizontalStackLayout>
+            
+        </Grid>
 
 
 

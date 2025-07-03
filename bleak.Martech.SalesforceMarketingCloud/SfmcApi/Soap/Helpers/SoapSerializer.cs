@@ -10,8 +10,15 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
             var serializer = new XmlSerializer(typeof(T));
             using (var reader = new StringReader(data))
             {
-                var response = (T)serializer.Deserialize(reader);
-                return response!;
+                var deserialized = serializer.Deserialize(reader);
+                if (deserialized is T response)
+                {
+                    return response;
+                }
+                else
+                {
+                    throw new InvalidOperationException("Deserialization returned null or incorrect type.");
+                }
             }
         }
 

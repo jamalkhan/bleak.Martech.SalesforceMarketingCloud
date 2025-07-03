@@ -5,6 +5,8 @@ using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 using bleak.Martech.SalesforceMarketingCloud.Rest;
 using Microsoft.Extensions.Logging;
+using System.Text.RegularExpressions;
+using bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
 {
@@ -38,6 +40,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
             return await Task.Run(() => GetAssets(folderId));
         }
 
+        string _baseUrl => $"https://{_authRepository.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/assets";
         public List<AssetPoco> GetAssets(int folderId)
         {
             _logger.LogTrace("GetAssets() invoked");
@@ -47,7 +50,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
             do
             {
                 _logger.LogTrace($"Executing GetAssets() page: {page}");
-                var loadedAssets = LoadAssets(folderId, page).ToPocoList();
+                string url = $"{_baseUrl}?$page={page}&$pagesize={_sfmcConnectionConfiguration.PageSize}&$orderBy=name&$filter=category.id eq {folderId}";
+                var loadedAssets = LoadAssets(
+                    url: url,
+                    page: page)
+                    .ToPocoList();
                 assets.AddRange(loadedAssets);
                 currentPageSize = loadedAssets.Count;
                 if (_sfmcConnectionConfiguration.PageSize == currentPageSize)
@@ -64,15 +71,158 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
             while (true);
             return assets;
         }
+        
+        public AssetPoco GetAsset(int? assetId = null, string? customerKey = null, string? name = null, bool expandAmpscript = false)
+        {
+            _logger.LogTrace("GetAssets() invoked");
+            int page = 1;
+            var assets = new List<AssetPoco>();
 
-        private List<SfmcAsset> LoadAssets(int folderId, int page)
+            // input validation
+            if (assetId == null && string.IsNullOrEmpty(customerKey) && string.IsNullOrEmpty(name))
+            {
+                _logger.LogError("GetAsset() requires at least one of assetId, customerKey, or name to be provided.");
+                throw new ArgumentException("At least one of assetId, customerKey, or name must be provided.");
+            }
+
+            // Ensure only one of assetId, customerKey, or name is provided
+            int providedCount = 0;
+            if (assetId != null) providedCount++;
+            if (!string.IsNullOrEmpty(customerKey)) providedCount++;
+            if (!string.IsNullOrEmpty(name)) providedCount++;
+            switch (providedCount)
+            {
+                case 0:
+                    _logger.LogError("GetAsset() requires at least one of assetId, customerKey, or name to be provided.");
+                    throw new ArgumentException("At least one of assetId, customerKey, or name must be provided.");
+                case 1:
+                    _logger.LogTrace($"GetAsset() called with a single parameter. assetId={assetId}, customerKey={customerKey}, name={name}.");
+                    break;
+                case > 1:
+                    _logger.LogError("GetAsset() requires only one of assetId, customerKey, or name to be provided, but multiple were specified.");
+                    throw new ArgumentException("Only one of assetId, customerKey, or name can be specified at a time.");
+                default:
+                    break;
+            }
+
+            string url = string.Empty;
+            if (assetId != null)
+            {
+                url = $"{_baseUrl}?$filter=id eq {assetId}";
+            }
+            else if (!string.IsNullOrEmpty(customerKey))
+            {
+                url = $"{_baseUrl}?$filter=customerKey eq '{customerKey}'";
+            }
+            else if (!string.IsNullOrEmpty(name))
+            {
+                url = $"{_baseUrl}?$filter=name eq '{name}'";
+            }
+
+            if (string.IsNullOrEmpty(url))
+            {
+                _logger.LogError("Failed to construct a valid URL for GetAsset.");
+                throw new ArgumentException("A valid URL could not be constructed for GetAsset.");
+            }
+
+            var loadedAssets = LoadAssets(
+                url: url,
+                page: page)
+                .ToPocoList();
+            assets.AddRange(loadedAssets);
+
+            switch (loadedAssets.Count)
+            {
+                case 0:
+                    _logger.LogError($"No assets found with ID {assetId}");
+                    throw new Exception($"Asset with ID {assetId} not found");
+                case 1:
+                    _logger.LogTrace($"GetAsset by assetId={assetId} returned exactly 1.");
+                    break;
+                default:
+                    _logger.LogInformation($"GetAsset by assetId={assetId} unexpectedly returned {loadedAssets.Count}.");
+                    break;
+            }
+            var asset = loadedAssets.FirstOrDefault();
+            if (expandAmpscript)
+            {
+                return ExpandAmpscript(
+                    asset ?? throw new ArgumentNullException(nameof(asset))
+                    );
+            }
+            return asset
+                ?? throw new Exception($"Asset with ID {assetId} not found");
+            ;
+        }
+        
+
+
+
+        static string LookupContent(string key)
+        {
+            // Example lookup logic
+            if (key == "M2_Code_Snippet_RLE") return "[REPLACED M2 CODE]";
+            if (key == "Another_Key") return "[REPLACED ANOTHER KEY]";
+            return "[UNKNOWN KEY]";
+        }
+
+        public AssetPoco ExpandAmpscript(AssetPoco asset)
+        {
+            /*
+            if (asset == null) throw new ArgumentNullException(nameof(asset));
+            if (string.IsNullOrEmpty(asset.Content)) return; // nothing to expand
+
+
+
+
+
+            string output = Regex.Replace(
+                input,
+                @"%%=\s*ContentBlockByKey\s*\(\s*""([^""]+)""\s*\)\s*=%%",
+                match =>
+                {
+                    string key = match.Groups[1].Value;
+                    // Replace with your actual lookup logic
+                    string replacement = LookupContent(key);
+                    return replacement;
+                },
+                RegexOptions.IgnoreCase | RegexOptions.Singleline
+            );
+            foreach (var contentBlock in asset.ContentBlocks)
+            {
+            }
+            */
+
+            // ContentBlockByKey
+            // ContentBlockByID
+            // ContentBlockByName
+
+
+            // ContentImageByID
+            // ContentImageByKey
+            // ContentImageByName
+
+
+
+            _logger.LogTrace($"Expanding Ampscript for asset: {asset.Name} (ID: {asset.Id})");
+            throw new NotImplementedException();
+        }
+
+        public async Task<AssetPoco> GetAssetAsync(int assetId, bool expandAmpscript)
+        {
+            _logger.LogInformation("GetAssetsAsync() invoked");
+            return await Task.Run(() => GetAsset(assetId: assetId, expandAmpscript: expandAmpscript));
+        }
+
+
+
+        private List<SfmcAsset> LoadAssets(string url, int page)
         {
             var retval = new List<SfmcAsset>();
             try
             {
                 RestResults<SfmcRestWrapper<SfmcAsset>, string> results;
-                // /asset/v1/content/assets
-                string url = $"https://{_authRepository.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/assets?$page={page}&$pagesize={_sfmcConnectionConfiguration.PageSize}&$orderBy=name&$filter=category.id eq {folderId}";
+
                 _logger.LogInformation($"Loading Folder Page #{page} with URL: {url}");
                 results = ExecuteRestMethodWithRetry(
                     apiCall: LoadFolderApiCall,
@@ -137,6 +287,9 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
 
             return results!;
         }
+
+
         #endregion Candidate to move to BaseRestApi?
+
     }
 }

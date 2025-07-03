@@ -17,7 +17,7 @@ namespace SfmcApp.Models.ViewModels
     {
         private readonly ILogger<SfmcAssetListViewModel> _logger;
         private readonly IAssetFolderRestApi _folderApi;
-        private readonly IAssetRestApi _objectApi;
+        private readonly IAssetRestApi _assetApi;
         private readonly SfmcConnection _sfmcConnection;
 
         public ObservableCollection<FolderViewModel> Folders { get; } = new();
@@ -54,6 +54,26 @@ namespace SfmcApp.Models.ViewModels
             set => SetProperty(ref _isAssetsLoaded, value);
         }
 
+        private bool _expandAmpscript;
+        public bool ExpandAmpscript
+        {
+            get => _expandAmpscript;
+            set => SetProperty(ref _expandAmpscript, value);
+        }
+        private string _downloadDirectory;
+        public string DownloadDirectory
+        {
+            get => _downloadDirectory;
+            set => SetProperty(ref _downloadDirectory, value);
+        }
+
+        private string _selectedFolderName = string.Empty;
+        public string SelectedFolderName
+        {
+            get => _selectedFolderName;
+            set => SetProperty(ref _selectedFolderName, value);
+        }
+
         private FolderViewModel? _selectedFolder;
         public FolderViewModel? SelectedFolder
         {
@@ -62,6 +82,7 @@ namespace SfmcApp.Models.ViewModels
             {
                 if (SetProperty(ref _selectedFolder, value))
                 {
+                    SelectedFolderName = value?.Name ?? string.Empty;   
                     LoadAssetForSelectedFolderAsync();
                 }
             }
@@ -69,6 +90,8 @@ namespace SfmcApp.Models.ViewModels
 
         public ICommand FolderTappedCommand { get; }
         public ICommand SearchCommand { get; }
+        public ICommand OpenDownloadDirectoryCommand { get; }
+
 
         public ObservableCollection<StringSearchOptions> SearchOptions { get; } =
             new(Enum.GetValues(typeof(StringSearchOptions)).Cast<StringSearchOptions>());
@@ -84,19 +107,55 @@ namespace SfmcApp.Models.ViewModels
             SfmcConnection sfmcConnection,
             ILogger<SfmcAssetListViewModel> logger,
             IAssetFolderRestApi folderApi,
-            IAssetRestApi objectApi
+            IAssetRestApi assetApi
             
             )
         {
             _sfmcConnection = sfmcConnection;
             _logger = logger;
             _folderApi = folderApi;
-            _objectApi = objectApi;
+            _assetApi = assetApi;
+            _downloadDirectory = Path.Combine(FileSystem.AppDataDirectory, "Downloads", "Assets", sfmcConnection.DirectoryName);
 
             FolderTappedCommand = new Command<FolderViewModel>(folder => SelectedFolder = folder);
             SearchCommand = new Command(() => OnSearchButtonClicked());
+            OpenDownloadDirectoryCommand = new Command(OpenDownloadDirectory);
 
             LoadFoldersAsync();
+        }
+
+        private void OpenDownloadDirectory()
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(DownloadDirectory))
+                {
+                    return;
+                }
+
+#if WINDOWS
+                var process = new System.Diagnostics.Process();
+                process.StartInfo = new System.Diagnostics.ProcessStartInfo("explorer.exe", DownloadDirectory)
+                {
+                    UseShellExecute = true
+                };
+                process.Start();
+#elif MACCATALYST || MACOS
+                var process = new System.Diagnostics.Process();
+                process.StartInfo = new System.Diagnostics.ProcessStartInfo("open", $"\"{DownloadDirectory}\"")
+                {
+                    UseShellExecute = true
+                };
+                process.Start();
+#else
+                // Optionally handle other platforms (Linux, Android, iOS)
+#endif
+            }
+            catch (Exception ex)
+            {
+                // Optionally log or display an error
+                _logger.LogError($"Failed to open download directory: {ex.Message}");
+            }
         }
 
         private async void LoadFoldersAsync()
@@ -129,7 +188,7 @@ namespace SfmcApp.Models.ViewModels
                 IsAssetsLoaded = false;
                 IsAssetsLoading = true;
                 Assets.Clear();
-                var assets = await _objectApi.GetAssetsAsync(_selectedFolder.Id);
+                var assets = await _assetApi.GetAssetsAsync(_selectedFolder.Id);
                 foreach (var asset in assets.ToViewModel())
                 {
                     try
@@ -161,9 +220,13 @@ namespace SfmcApp.Models.ViewModels
         public ICommand DownloadCommand => new Command<AssetViewModel>(async asset =>
         {
             if (asset.IsBinaryDownloadable)
+            {
                 await DownloadBinaryAsync(asset);
+            }
             else
+            {
                 await DownloadTextAsync(asset);
+            }
         });
 
         // TODO: Make this a configuration option
@@ -188,16 +251,28 @@ namespace SfmcApp.Models.ViewModels
         {
             var serializer = new JsonSerializer();
             var fileName = GetTextFileName(asset);
-            var metadataFile = Path.Combine(FileSystem.AppDataDirectory, "Downloads", "Assets", $"{fileName}.metadata.json");
+            var metadataFile = Path.Combine(DownloadDirectory, $"{fileName}.metadata.json");
             Directory.CreateDirectory(Path.GetDirectoryName(metadataFile)!);
             // Write Metadata to Named as Customer Key
             //var metaDataCustomerKey = AppConfiguration.Instance.OutputFolder + "/" + asset.FullPath + "/customerkey-" + asset.CustomerKey + ".metadata";
 
             _logger.LogTrace($"Writing {fileName} metadata file to {metadataFile}");
             await File.WriteAllTextAsync(metadataFile, serializer.Serialize(asset));
-            string outputFileName = Path.Combine(FileSystem.AppDataDirectory, "Downloads", "Assets", fileName);
+            string outputFileName = Path.Combine(DownloadDirectory, fileName);
             _logger.LogTrace($"Writing {fileName} {asset.AssetType.Name} content to {outputFileName}");
-            await File.WriteAllTextAsync(outputFileName, asset.Content);
+
+            if (ExpandAmpscript)
+            {
+                /*
+                var expandedAsset = await _assetApi.GetAssetAsync(assetId: asset.Id, ExpandAmpscript: ExpandAmpscript);
+                await File.WriteAllTextAsync(outputFileName, expandedAsset.Content);
+                */
+            }
+            else
+            {
+                // Write the content of the asset to a file
+                await File.WriteAllTextAsync(outputFileName, asset.Content);
+            }
             _logger.LogInformation($"File Written to File System: {outputFileName}");
         }
         private async Task DownloadBinaryAsync(AssetViewModel asset)
@@ -206,7 +281,7 @@ namespace SfmcApp.Models.ViewModels
             string fileName = GetFileName(asset);
 
             // TODO: Make the file path include the connection name or some identifier
-            var metadataFile = Path.Combine(FileSystem.AppDataDirectory, "Downloads", "Assets", $"{fileName}.metadata.json");
+            var metadataFile = Path.Combine(DownloadDirectory, $"{fileName}.metadata.json");
 
             Directory.CreateDirectory(Path.GetDirectoryName(metadataFile)!);
             _logger.LogTrace($"Trying to save {metadataFile}");
@@ -218,7 +293,7 @@ namespace SfmcApp.Models.ViewModels
             {
                 try
                 {
-                    var imageFilePath = Path.Combine(FileSystem.AppDataDirectory, "Downloads", "Assets", fileName);
+                    var imageFilePath = Path.Combine(DownloadDirectory, fileName);
                     var imageBytes = client.GetByteArrayAsync(imageUrl).Result;
                     Directory.CreateDirectory(Path.GetDirectoryName(imageFilePath)!);
                     await File.WriteAllBytesAsync(imageFilePath, imageBytes);
