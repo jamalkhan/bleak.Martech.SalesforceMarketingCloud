@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
+using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
 using bleak.Martech.SalesforceMarketingCloud.Wsdl;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Tests.Models.Converters;
 
@@ -242,7 +245,7 @@ public class AssetHelpersTest
             result.Where(cb => cb.Id != null).Skip(1).First().Id
         );
     }
-    
+
 
 
 
@@ -272,7 +275,7 @@ public class AssetHelpersTest
 
         // Act
         var result = asset.GetContentBlocks();
-        
+
         // Assert
         Assert.IsNotNull(result);
         Assert.AreEqual(6, result.Count);
@@ -288,5 +291,116 @@ public class AssetHelpersTest
             null,
             result.Where(cb => cb.Id != null).Skip(1)?.FirstOrDefault()?.Id
         );
+    }
+
+
+    [TestMethod]
+    public async Task FillContentBlocksAsyncTest()
+    {
+        var asset_Key_eq_ABC111 = new AssetPoco()
+        {
+            Id = 1,
+            CustomerKey = "ABC-111",
+            Name = "ABC111 Name",
+            Content =
+            @"
+----------- BEGIN CustomerKey = ABC-111 -----------
+This is ABC-111 Content #1
+%%=ContentBlockByKey(""ABC-222"")=%%
+This is ABC-111 Content #2
+
+This is ABC-111 Content #3
+----------- END CustomerKey = ABC-111 -----------
+            "
+        };
+
+        var asset_Key_eq_ABC222 = new AssetPoco()
+        {
+            Id = 2,
+            CustomerKey = "ABC-222",
+            Name = "ABC222 Name",
+            Content =
+            @"
+----------- BEGIN CustomerKey = ABC-222 -----------
+This is ABC-222 Content #1
+%%=ContentBlockByName(""MyContentBlock3"")=%%
+
+This is ABC-222 Content #2
+%%=ContentBlockById(4)=%%
+----------- END CustomerKey = ABC-111 -----------
+            "
+        };
+
+
+
+        var asset_Name_eq_MyContentBlock3 = new AssetPoco()
+        {
+            Id = 3,
+            CustomerKey = "ABC-333",
+            Name = "MyContentBlock3",
+            Content =
+            @"
+----------- BEGIN Name = MyContentBlock3 -----------
+This is MyContentBlock3 Content #1
+
+This is MyContentBlock3 Content #2
+
+This is MyContentBlock3 Content #3
+----------- END Name = MyContentBlock3 -----------
+            "
+        };
+
+        var asset_Id_eq_4 = new AssetPoco()
+        {
+            Id = 4,
+            CustomerKey = "ABC-444",
+            Name = "MyyContentBlock4",
+            Content =
+            @"
+----------- BEGIN Id = 4 -----------
+This is ID=4 Content #1
+
+This is ID=4 Content #2
+
+This is ID=4 Content #3
+----------- END Id = 4 -----------
+            "
+        };
+
+        var mockApi = new Mock<IAssetRestApi>();
+        mockApi
+            .Setup
+            (
+                api => api.GetAsset(null, "ABC-111", null)
+            )
+            .Returns(asset_Key_eq_ABC111);
+
+        mockApi
+            .Setup
+            (
+                api => api.GetAsset(null, "ABC-222", null)
+            )
+            .Returns(asset_Key_eq_ABC222);
+        mockApi
+            .Setup
+            (
+                api => api.GetAsset(4, null, null)
+            )
+            .Returns(asset_Id_eq_4);
+        mockApi
+            .Setup
+            (
+                api => api.GetAsset(null, null, "MyContentBlock3")
+            )
+            .Returns(asset_Key_eq_ABC111);
+
+        var api = mockApi.Object;
+
+        asset_Key_eq_ABC111.FillContentExpandedAsync(api);
+
+        Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("ABC-111"));
+        Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("ABC-222"));
+        Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("MyContentBlock3"));
+        Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("ID=4"));
     }
 }

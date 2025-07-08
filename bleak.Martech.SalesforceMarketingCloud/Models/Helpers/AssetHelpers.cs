@@ -1,6 +1,8 @@
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
+using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
 
@@ -67,9 +69,43 @@ public static class AssetHelpers
         return retval;
     }
 
+    public async static void FillContentExpandedAsync(this AssetPoco asset, IAssetRestApi api)
+    {
+        while (true)
+        {
+            var contentBlocks = GetContentBlocks(asset);
+            if (contentBlocks == null || contentBlocks.Count == 0)
+            {
+                break;
+            }
+            foreach (var contentBlock in contentBlocks)
+            {
+                asset.ContentExpanded =
+                    Regex.Replace(
+                        asset.ContentExpanded ?? asset.Content,
+                        contentBlock.ContentRegex,
+                        match =>
+                            {
+                                var subAsset =
+                                    api.GetAsset
+                                    (
+                                        assetId: contentBlock.Id,
+                                        customerKey: contentBlock.Key,
+                                        name: contentBlock.Key
+                                    );
+                                return subAsset.Content;
+                            },
+                        RegexOptions.IgnoreCase | RegexOptions.Singleline
+                    );
+            }
+        }
+
+    }
+
     public static List<ContentBlock> GetContentBlocks(this AssetPoco assets)
     {
-        return GetContentBlocks(assets.Content);        
+        return GetContentBlocks(assets.Content);
+
     }
     
     static List<ContentBlock> GetContentBlocks(this string input)
@@ -90,7 +126,7 @@ public static class AssetHelpers
         {
             ContentBlockType.Key => @"%%=\s*ContentBlockByKey\s*\(\s*""([^""]+)""\s*\)\s*=%%",
             ContentBlockType.Name => @"%%=\s*ContentBlockByName\s*\(\s*""([^""]+)""\s*\)\s*=%%",
-            ContentBlockType.Id => @"%%=\s*ContentBlockByID\s*\(\s*""([^""]+)""\s*\)\s*=%%",
+            ContentBlockType.Id => @"%%=\s*ContentBlockByID\s*\(\s*(\d+)\s*\)\s*=%%",
             _ => throw new ArgumentException("Invalid type. Use 'Key' or 'Name'.", nameof(type))
         };
 
@@ -115,37 +151,4 @@ public static class AssetHelpers
             .ToList();
     }
 
-}
-
-public enum ContentBlockType
-{
-    Key,
-    Name,
-    Id
-}
-
-public class ContentBlock
-{
-    public int? Id { get; set; }
-    public string? Key { get; set; }
-    public string? Name { get; set; }
-    public string Content { get; set; } = string.Empty;
-    public bool Validate()
-    {
-        var hasId = Id.HasValue;
-        var hasKey = !string.IsNullOrEmpty(Key);
-        var hasName = !string.IsNullOrEmpty(Name);
-
-        int count = (hasId ? 1 : 0) + (hasKey ? 1 : 0) + (hasName ? 1 : 0);
-
-        if (count == 1)
-        {
-            return true;
-        }
-        if (count > 1)
-        {
-            throw new InvalidOperationException("Only one of Id, Key, or Name can have a value.");
-        }
-        return false;
-    }
 }

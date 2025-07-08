@@ -71,10 +71,15 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
             while (true);
             return assets;
         }
-        
-        public AssetPoco GetAsset(int? assetId = null, string? customerKey = null, string? name = null, bool expandAmpscript = false)
+
+        public async Task<AssetPoco> GetAssetAsync(int? assetId = null, string? customerKey = null, string? name = null)
         {
-            _logger.LogTrace("GetAssets() invoked");
+            _logger.LogInformation("GetAssetAsync() invoked");
+            return await Task.Run(() => GetAsset(assetId: assetId, customerKey: customerKey, name: name ));
+        }
+        public AssetPoco GetAsset(int? assetId = null, string? customerKey = null, string? name = null)
+        {
+            _logger.LogTrace("GetAsset() invoked");
             int page = 1;
             var assets = new List<AssetPoco>();
 
@@ -144,12 +149,6 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
                     break;
             }
             var asset = loadedAssets.FirstOrDefault();
-            if (expandAmpscript)
-            {
-                return ExpandAmpscript(
-                    asset ?? throw new ArgumentNullException(nameof(asset))
-                    );
-            }
             return asset
                 ?? throw new Exception($"Asset with ID {assetId} not found");
             ;
@@ -166,53 +165,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
             return "[UNKNOWN KEY]";
         }
 
-        public AssetPoco ExpandAmpscript(AssetPoco asset)
-        {
-            /*
-            if (asset == null) throw new ArgumentNullException(nameof(asset));
-            if (string.IsNullOrEmpty(asset.Content)) return; // nothing to expand
 
-
-
-
-
-            string output = Regex.Replace(
-                input,
-                @"%%=\s*ContentBlockByKey\s*\(\s*""([^""]+)""\s*\)\s*=%%",
-                match =>
-                {
-                    string key = match.Groups[1].Value;
-                    // Replace with your actual lookup logic
-                    string replacement = LookupContent(key);
-                    return replacement;
-                },
-                RegexOptions.IgnoreCase | RegexOptions.Singleline
-            );
-            foreach (var contentBlock in asset.ContentBlocks)
-            {
-            }
-            */
-
-            // ContentBlockByKey
-            // ContentBlockByID
-            // ContentBlockByName
-
-
-            // ContentImageByID
-            // ContentImageByKey
-            // ContentImageByName
-
-
-
-            _logger.LogTrace($"Expanding Ampscript for asset: {asset.Name} (ID: {asset.Id})");
-            throw new NotImplementedException();
-        }
-
-        public async Task<AssetPoco> GetAssetAsync(int assetId, bool expandAmpscript)
-        {
-            _logger.LogInformation("GetAssetsAsync() invoked");
-            return await Task.Run(() => GetAsset(assetId: assetId, expandAmpscript: expandAmpscript));
-        }
 
 
 
