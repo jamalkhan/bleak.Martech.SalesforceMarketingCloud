@@ -236,49 +236,62 @@ public class AssetHelpersTest
         result[7].Id = 4;
     }
 
-[TestMethod]
-public void GetContentBlocks_ShouldReturnContentBlocks_ForKeys()
-{
-    // Arrange
-    string input = @"
+    [TestMethod]
+    public void GetContentBlocks_ShouldReturnContentBlocks_ForKeys()
+    {
+        // Arrange
+        string input = @"
         Doing the Keys
         %%=ContentBlockByKey(""Key1"")=%%
         Key with Spaces
         %%=  ContentBlockByKey  (  ""Key2"" ) =%%
+        Key with Optional Parameter
+        %%=ContentBlockByKey(""Key3"", ""RegionA"")=%%
+        Key with Optional Parameter
+        %%=ContentBlockByKey(""Key4"", ""RegionB"", false, ""Oops!"", -1)=%%
     ";
-    AssetPoco asset = new AssetPoco { Content = input };
+        AssetPoco asset = new AssetPoco { Content = input };
 
-    // Act
-    var result = asset.GetContentBlocks();
+        // Act
+        var result = asset.GetContentBlocks();
 
-    // Assert
-    Assert.IsNotNull(result);
-    Assert.AreEqual(2, result.Count);
-    Assert.AreEqual("Key1", result[0].Key);
-    Assert.AreEqual("Key2", result[1].Key);
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(4, result.Count);
+        Assert.AreEqual("Key1", result[0].Key);
+        Assert.AreEqual("Key2", result[1].Key);
+        Assert.AreEqual("Key3", result[2].Key);
+        Assert.AreEqual("Key4", result[3].Key);
 }
 
     [TestMethod]
-public void GetContentBlocks_ShouldReturnContentBlocks_ForNames()
-{
-    // Arrange
-    string input = @"
+    public void GetContentBlocks_ShouldReturnContentBlocks_ForNames()
+    {
+        // Arrange
+        string input = @"
         Doing the Names
         %%=ContentBlockByName(""Name1"")=%%
         Name with Spaces
         %%=  ContentBlockByName  (  ""Name2"" ) =%%
+        Name with optional parameter 
+        %%=ContentBlockByName(""Name3"", ""RegionA"")=%%
+        Name with optional parameter 
+        %%=ContentBlockByName(""Name4"", ""RegionB"", false, ""Block not found"", -1)=%%
     ";
-    AssetPoco asset = new AssetPoco { Content = input };
+        AssetPoco asset = new AssetPoco { Content = input };
 
-    // Act
-    var result = asset.GetContentBlocks();
+        // Act
+        var result = asset.GetContentBlocks();
 
-    // Assert
-    Assert.IsNotNull(result);
-    Assert.AreEqual(2, result.Count);
-    Assert.AreEqual("Name1", result[0].Name);
-    Assert.AreEqual("Name2", result[1].Name);
-}
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(4, result.Count);
+        Assert.AreEqual("Name1", result[0].Name);
+        Assert.AreEqual("Name2", result[1].Name);
+        Assert.AreEqual("Name3", result[2].Name);
+        Assert.AreEqual("Name4", result[3].Name);
+    }
+
     [TestMethod]
     public void GetContentBlocks_ShouldReturnContentBlocks_ForIDs()
     {
@@ -323,53 +336,10 @@ public void GetContentBlocks_ShouldReturnContentBlocks_ForNames()
         Assert.AreEqual(7, result[6].Id);
     }
 
-/*
-    public void GetContentBlocks_ShouldReturnContentBlocks_WhenInputContainsNonNumericIds()
-    {
-        // Arrange
-        string input = @"
-            Doing the Keys
-            %%=ContentBlockByKey(""Key1"")=%%
-            Key with Spaces
-            %%=  ContentBlockByKey  (  ""Key2"" ) =%%
-            Doing the Names
-            %%=ContentBlockByName(""Name1"")=%%
-            Name with Spaces
-            %%=  ContentBlockByName  (  ""Name2"" ) =%%
-            Doing the IDs
-            %%=ContentBlockByID(""STRING_1"")=%%
-            Id with Spaces
-            %%=  ContentBlockByID  (  ""STRING_2"" ) =%%
-        ";
-        AssetPoco asset = new AssetPoco
-        {
-            Content = input
-        };
-
-        // Act
-        var result = asset.GetContentBlocks();
-
-        // Assert
-        Assert.IsNotNull(result);
-        Assert.AreEqual(4, result.Count);
-
-        // What happens when the ID is not numeric?
-        Assert.AreEqual
-        (
-            null,
-            result.Where(cb => cb.Id != null).Skip(0)?.FirstOrDefault()?.Id
-        );
-        Assert.AreEqual
-        (
-            null,
-            result.Where(cb => cb.Id != null).Skip(1)?.FirstOrDefault()?.Id
-        );
-    }
-
-
     [TestMethod]
     public async Task FillContentBlocksAsyncTest()
     {
+        Console.WriteLine("preparing mock data...");
         var asset_Key_eq_ABC111 = new AssetPoco()
         {
             Id = 1,
@@ -403,8 +373,6 @@ This is ABC-222 Content #2
 ----------- END CustomerKey = ABC-111 -----------
             "
         };
-
-
 
         var asset_Name_eq_MyContentBlock3 = new AssetPoco()
         {
@@ -440,41 +408,45 @@ This is ID=4 Content #3
             "
         };
 
+        Console.WriteLine("preparing mock api...");
         var mockApi = new Mock<IAssetRestApi>();
         mockApi
-            .Setup
-            (
-                api => api.GetAsset(null, "ABC-111", null)
-            )
+            .Setup(api => api.GetAsset(null, "ABC-111", null))
             .Returns(asset_Key_eq_ABC111);
+        mockApi
+            .Setup(api => api.GetAssetAsync(null, "ABC-111", null))
+            .ReturnsAsync(asset_Key_eq_ABC111);
 
         mockApi
-            .Setup
-            (
-                api => api.GetAsset(null, "ABC-222", null)
-            )
+            .Setup(api => api.GetAsset(null, "ABC-222", null))
             .Returns(asset_Key_eq_ABC222);
         mockApi
-            .Setup
-            (
-                api => api.GetAsset(4, null, null)
-            )
+            .Setup(api => api.GetAssetAsync(null, "ABC-222", null))
+            .ReturnsAsync(asset_Key_eq_ABC222);
+
+        mockApi
+            .Setup(api => api.GetAsset(4, null, null))
             .Returns(asset_Id_eq_4);
         mockApi
-            .Setup
-            (
-                api => api.GetAsset(null, null, "MyContentBlock3")
-            )
-            .Returns(asset_Key_eq_ABC111);
+            .Setup(api => api.GetAssetAsync(4, null, null))
+            .ReturnsAsync(asset_Id_eq_4);
+
+        mockApi
+            .Setup(api => api.GetAsset(null, null, "MyContentBlock3"))
+            .Returns(asset_Name_eq_MyContentBlock3);
+        mockApi
+            .Setup(api => api.GetAssetAsync(null, null, "MyContentBlock3"))
+            .ReturnsAsync(asset_Name_eq_MyContentBlock3);
 
         var api = mockApi.Object;
 
+        Console.WriteLine("Before FillContentExpandedAsync:");
         asset_Key_eq_ABC111.FillContentExpandedAsync(api);
+        Console.WriteLine("After FillContentExpandedAsync:");
 
         Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("ABC-111"));
         Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("ABC-222"));
         Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("MyContentBlock3"));
         Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("ID=4"));
     }
-    */
 }

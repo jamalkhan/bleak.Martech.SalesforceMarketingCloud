@@ -71,8 +71,15 @@ public static class AssetHelpers
 
     public async static void FillContentExpandedAsync(this AssetPoco asset, IAssetRestApi api)
     {
+        int i = 0;
         while (true)
         {
+            i++;
+            if (i > 20 || string.IsNullOrEmpty(asset.ContentExpanded))
+            {
+                break; // Prevent infinite loop
+            }
+
             var contentBlocks = GetContentBlocks(asset);
             if (contentBlocks == null || contentBlocks.Count == 0)
             {
@@ -124,8 +131,10 @@ public static class AssetHelpers
 
         string pattern = type switch
         {
-            ContentBlockType.Key => @"%%=\s*ContentBlockByKey\s*\(\s*""([^""]+)""\s*\)\s*=%%",
-            ContentBlockType.Name => @"%%=\s*ContentBlockByName\s*\(\s*""([^""]+)""\s*\)\s*=%%",
+            //ContentBlockType.Key => @"%%=\s*ContentBlockByKey\s*\(\s*""([^""]+)""\s*\)\s*=%%",
+            ContentBlockType.Key => @"%%=\s*ContentBlockByKey\s*\(\s*""([^""]+)""(.*?)\)\s*=%%",
+            //ContentBlockType.Name => @"%%=\s*ContentBlockByName\s*\(\s*""([^""]+)""\s*\)\s*=%%",
+            ContentBlockType.Name => @"%%=\s*ContentBlockByName\s*\(\s*""([^""]+)""(.*?)\)\s*=%%",
             ContentBlockType.Id => @"%%=\s*ContentBlockByID\s*\(\s*[""']?(\d+)[""']?(?:\s*,[^)]*)?\s*\)\s*=%%",
             _ => throw new ArgumentException("Invalid type. Use 'Key' or 'Name'.", nameof(type))
         };
