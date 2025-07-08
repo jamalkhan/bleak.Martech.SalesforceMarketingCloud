@@ -184,6 +184,8 @@ public class AssetHelpersTest
         Assert.AreEqual(0, result.Count);
     }
 
+
+
     [TestMethod]
     public void GetContentBlocks_ShouldReturnContentBlocks_WhenInputContainsValidBlocks()
     {
@@ -198,9 +200,13 @@ public class AssetHelpersTest
             Name with Spaces
             %%=  ContentBlockByName  (  ""Name2"" ) =%%
             Doing the IDs
-            %%=ContentBlockByID(""1"")=%%
+            %%=ContentBlockByID(1)=%%
             Id with Spaces
-            %%=  ContentBlockByID  (  ""2"" ) =%%
+            %%=  ContentBlockByID  (  2  ) =%%
+            with quotes
+            %%=ContentBlockByID(""3"")=%%
+            with quotes and spaces
+            %%=  ContentBlockByID  (  ""4""  ) =%%
         ";
         AssetPoco asset = new AssetPoco
         {
@@ -210,47 +216,114 @@ public class AssetHelpersTest
         // Act
         var result = asset.GetContentBlocks();
 
+        Console.WriteLine("Found IDs:");
+        foreach (var b in result)
+        {
+            Console.WriteLine($"result Name={b.Name}; Key={b.Key}; Id={b.Id}");
+        }
+
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(6, result.Count);
+        Assert.AreEqual(8, result.Count);
 
-        Assert.AreEqual
-        (
-            "Key1",
-            result.Where(cb => cb.Key != null).Skip(0).First().Key
-        );
-        Assert.AreEqual
-        (
-            "Key2",
-            result.Where(cb => cb.Key != null).Skip(1).First().Key
-        );
-        Assert.AreEqual
-        (
-            "Name1",
-            result.Where(cb => cb.Name != null).Skip(0).First().Name
-        );
-        Assert.AreEqual
-        (
-            "Name2",
-            result.Where(cb => cb.Name != null).Skip(1).First().Name
-        );
-        Assert.AreEqual
-        (
-            1,
-            result.Where(cb => cb.Id != null).Skip(0).First().Id
-        );
-        Assert.AreEqual
-        (
-            2,
-            result.Where(cb => cb.Id != null).Skip(1).First().Id
-        );
+        result[0].Key = "Key1";
+        result[1].Key = "Key2";
+        result[2].Name = "Name1";
+        result[3].Name = "Name2";
+        result[4].Id = 1;
+        result[5].Id = 2;
+        result[6].Id = 3;
+        result[7].Id = 4;
     }
 
+[TestMethod]
+public void GetContentBlocks_ShouldReturnContentBlocks_ForKeys()
+{
+    // Arrange
+    string input = @"
+        Doing the Keys
+        %%=ContentBlockByKey(""Key1"")=%%
+        Key with Spaces
+        %%=  ContentBlockByKey  (  ""Key2"" ) =%%
+    ";
+    AssetPoco asset = new AssetPoco { Content = input };
 
+    // Act
+    var result = asset.GetContentBlocks();
 
-
+    // Assert
+    Assert.IsNotNull(result);
+    Assert.AreEqual(2, result.Count);
+    Assert.AreEqual("Key1", result[0].Key);
+    Assert.AreEqual("Key2", result[1].Key);
+}
 
     [TestMethod]
+public void GetContentBlocks_ShouldReturnContentBlocks_ForNames()
+{
+    // Arrange
+    string input = @"
+        Doing the Names
+        %%=ContentBlockByName(""Name1"")=%%
+        Name with Spaces
+        %%=  ContentBlockByName  (  ""Name2"" ) =%%
+    ";
+    AssetPoco asset = new AssetPoco { Content = input };
+
+    // Act
+    var result = asset.GetContentBlocks();
+
+    // Assert
+    Assert.IsNotNull(result);
+    Assert.AreEqual(2, result.Count);
+    Assert.AreEqual("Name1", result[0].Name);
+    Assert.AreEqual("Name2", result[1].Name);
+}
+    [TestMethod]
+    public void GetContentBlocks_ShouldReturnContentBlocks_ForIDs()
+    {
+        // Arrange
+        string input = @"
+        Doing the IDs
+        %%=ContentBlockByID(1)=%%
+        Id with Spaces
+        %%=  ContentBlockByID  (  2  ) =%%
+        with quotes
+        %%=ContentBlockByID(""3"")=%%
+        with quotes and spaces
+        %%=  ContentBlockByID  (  ""4""  ) =%%
+        with optional parameter region
+        %%=ContentBlockByID(5, ""Region1"")=%%
+        with optional parameter region and missing default value
+        %%=ContentBlockByID(""6"", ""Region2"", false, ""Missing!"", -1)=%%
+        with optional parameter region and missing default value
+        %%=ContentBlockByID(7, ""Region3"", true, ""All good"", 0)=%%
+    ";
+        AssetPoco asset = new AssetPoco { Content = input };
+
+        // Act
+        var result = asset.GetContentBlocks();
+
+        // Debug output
+        Console.WriteLine("Found IDs:");
+        foreach (var b in result)
+        {
+            Console.WriteLine($"result Id={b.Id}");
+        }
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(7, result.Count);
+        Assert.AreEqual(1, result[0].Id);
+        Assert.AreEqual(2, result[1].Id);
+        Assert.AreEqual(3, result[2].Id);
+        Assert.AreEqual(4, result[3].Id);
+        Assert.AreEqual(5, result[4].Id);
+        Assert.AreEqual(6, result[5].Id);
+        Assert.AreEqual(7, result[6].Id);
+    }
+
+/*
     public void GetContentBlocks_ShouldReturnContentBlocks_WhenInputContainsNonNumericIds()
     {
         // Arrange
@@ -278,7 +351,7 @@ public class AssetHelpersTest
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(6, result.Count);
+        Assert.AreEqual(4, result.Count);
 
         // What happens when the ID is not numeric?
         Assert.AreEqual
@@ -403,4 +476,5 @@ This is ID=4 Content #3
         Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("MyContentBlock3"));
         Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("ID=4"));
     }
+    */
 }

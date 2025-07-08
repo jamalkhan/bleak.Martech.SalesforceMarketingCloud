@@ -18,6 +18,10 @@ bld/
 *.userosscache
 *.sln.docstates
 
+# Ignore all .pkg files in all publish folders
+**/publish/*.pkg
+
+
 # Mono Auto Generated Files
 mono_crash.*
 

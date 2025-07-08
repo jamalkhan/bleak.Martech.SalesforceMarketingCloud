@@ -126,7 +126,7 @@ public static class AssetHelpers
         {
             ContentBlockType.Key => @"%%=\s*ContentBlockByKey\s*\(\s*""([^""]+)""\s*\)\s*=%%",
             ContentBlockType.Name => @"%%=\s*ContentBlockByName\s*\(\s*""([^""]+)""\s*\)\s*=%%",
-            ContentBlockType.Id => @"%%=\s*ContentBlockByID\s*\(\s*(\d+)\s*\)\s*=%%",
+            ContentBlockType.Id => @"%%=\s*ContentBlockByID\s*\(\s*[""']?(\d+)[""']?(?:\s*,[^)]*)?\s*\)\s*=%%",
             _ => throw new ArgumentException("Invalid type. Use 'Key' or 'Name'.", nameof(type))
         };
 
