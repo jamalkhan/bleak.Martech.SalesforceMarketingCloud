@@ -262,7 +262,7 @@ public class AssetHelpersTest
         Assert.AreEqual("Key2", result[1].Key);
         Assert.AreEqual("Key3", result[2].Key);
         Assert.AreEqual("Key4", result[3].Key);
-}
+    }
 
     [TestMethod]
     public void GetContentBlocks_ShouldReturnContentBlocks_ForNames()
@@ -337,9 +337,8 @@ public class AssetHelpersTest
     }
 
     [TestMethod]
-    public async Task FillContentBlocksAsyncTest()
+    public void FillContentBlocksAsyncTest()
     {
-        Console.WriteLine("preparing mock data...");
         var asset_Key_eq_ABC111 = new AssetPoco()
         {
             Id = 1,
@@ -370,7 +369,7 @@ This is ABC-222 Content #1
 
 This is ABC-222 Content #2
 %%=ContentBlockById(4)=%%
------------ END CustomerKey = ABC-111 -----------
+----------- END CustomerKey = ABC-222 -----------
             "
         };
 
@@ -395,7 +394,7 @@ This is MyContentBlock3 Content #3
         {
             Id = 4,
             CustomerKey = "ABC-444",
-            Name = "MyyContentBlock4",
+            Name = "MyContentBlock4",
             Content =
             @"
 ----------- BEGIN Id = 4 -----------
@@ -408,45 +407,117 @@ This is ID=4 Content #3
             "
         };
 
-        Console.WriteLine("preparing mock api...");
         var mockApi = new Mock<IAssetRestApi>();
         mockApi
-            .Setup(api => api.GetAsset(null, "ABC-111", null))
+            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-111"), It.IsAny<string>()))
             .Returns(asset_Key_eq_ABC111);
         mockApi
-            .Setup(api => api.GetAssetAsync(null, "ABC-111", null))
+            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-111"), It.IsAny<string>()))
             .ReturnsAsync(asset_Key_eq_ABC111);
 
         mockApi
-            .Setup(api => api.GetAsset(null, "ABC-222", null))
+            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-222"), It.IsAny<string>()))
             .Returns(asset_Key_eq_ABC222);
         mockApi
-            .Setup(api => api.GetAssetAsync(null, "ABC-222", null))
+            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-222"), It.IsAny<string>()))
             .ReturnsAsync(asset_Key_eq_ABC222);
 
         mockApi
-            .Setup(api => api.GetAsset(4, null, null))
+            .Setup(api => api.GetAsset(It.Is<int?>(id => id == 4), It.IsAny<string>(), It.IsAny<string>()))
             .Returns(asset_Id_eq_4);
         mockApi
-            .Setup(api => api.GetAssetAsync(4, null, null))
+            .Setup(api => api.GetAssetAsync(It.Is<int?>(id => id == 4), It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(asset_Id_eq_4);
 
         mockApi
-            .Setup(api => api.GetAsset(null, null, "MyContentBlock3"))
+            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.IsAny<string>(), "MyContentBlock3"))
             .Returns(asset_Name_eq_MyContentBlock3);
         mockApi
-            .Setup(api => api.GetAssetAsync(null, null, "MyContentBlock3"))
+            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.IsAny<string>(), "MyContentBlock3"))
             .ReturnsAsync(asset_Name_eq_MyContentBlock3);
 
         var api = mockApi.Object;
 
-        Console.WriteLine("Before FillContentExpandedAsync:");
+        var asset222 = api.GetAsset(null, "ABC-222", null);
+        Assert.AreEqual("ABC-222", asset222.CustomerKey);
+
         asset_Key_eq_ABC111.FillContentExpandedAsync(api);
-        Console.WriteLine("After FillContentExpandedAsync:");
+        Console.WriteLine("------------------");
+        Console.WriteLine(asset_Key_eq_ABC111.ContentExpanded);
+        Console.WriteLine("------------------");
 
         Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("ABC-111"));
         Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("ABC-222"));
         Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("MyContentBlock3"));
         Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("ID=4"));
+    }
+
+    [TestMethod]
+    public void PerformRegexReplacementAsyncTest()
+    {
+        Console.WriteLine("preparing mock data...");
+        var asset_Key_eq_ABC111 = new AssetPoco()
+        {
+            Id = 1,
+            CustomerKey = "ABC-111",
+            Name = "ABC111 Name",
+            Content =
+            @"
+----------- BEGIN CustomerKey = ABC-111 -----------
+This is ABC-111 Content #1
+%%=ContentBlockByKey(""ABC-222"")=%%
+This is ABC-111 Content #2
+
+This is ABC-111 Content #3
+----------- END CustomerKey = ABC-111 -----------
+            "
+        };
+
+        var asset_Key_eq_ABC222 = new AssetPoco()
+        {
+            Id = 2,
+            CustomerKey = "ABC-222",
+            Name = "ABC222 Name",
+            Content =
+            @"
+----------- BEGIN CustomerKey = ABC-222 -----------
+This is ABC-222 Content #1
+This is ABC-222 Content #2
+            "
+        };
+
+        Console.WriteLine("preparing mock api...");
+        var mockApi = new Mock<IAssetRestApi>();
+        mockApi
+            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-111"), It.IsAny<string>()))
+            .Returns(asset_Key_eq_ABC111);
+        mockApi
+            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-111"), It.IsAny<string>()))
+            .ReturnsAsync(asset_Key_eq_ABC222   );
+
+        mockApi
+            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-222"), It.IsAny<string>()))
+            .Returns(asset_Key_eq_ABC222);
+        mockApi
+            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-222"), It.IsAny<string>()))
+            .ReturnsAsync(asset_Key_eq_ABC222);
+
+        var api = mockApi.Object;
+
+        Console.WriteLine("Before PerformRegexReplacement:");
+        var result = AssetHelpers.PerformRegexReplacement(
+            api,
+            new ContentBlock
+            {
+                Key = "ABC-222",
+            },
+            asset_Key_eq_ABC111.Content);
+        Console.WriteLine("------------------");
+        Console.WriteLine(result);
+        Console.WriteLine("------------------");
+        Console.WriteLine("After FillContentExpandedAsync:");
+
+        Assert.IsTrue(result.Contains("ABC-111"));
+        Assert.IsTrue(result.Contains("ABC-222"));
     }
 }

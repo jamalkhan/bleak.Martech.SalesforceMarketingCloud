@@ -1,8 +1,10 @@
+using System.Data;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
+using bleak.Martech.SalesforceMarketingCloud.Wsdl;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
 
@@ -69,59 +71,121 @@ public static class AssetHelpers
         return retval;
     }
 
-    public async static void FillContentExpandedAsync(this AssetPoco asset, IAssetRestApi api)
+    /// <summary>
+    /// Expands the <c>ContentExpanded</c> property of the given <see cref="AssetPoco"/> instance by recursively replacing content blocks
+    /// found within the asset's content using the provided <see cref="IAssetRestApi"/>.
+    /// The method will perform up to 20 iterations to prevent infinite recursion.
+    /// </summary>
+    /// <param name="asset">The <see cref="AssetPoco"/> instance whose content is to be expanded.</param>
+    /// <param name="api">The <see cref="IAssetRestApi"/> used to retrieve and replace content blocks.</param>
+    /// <remarks>
+    /// This method initializes <c>ContentExpanded</c> with the value of <c>Content</c> and iteratively replaces content blocks
+    /// found within it. The process stops if no more content blocks are found or after 20 iterations.
+    /// </remarks>
+    public static void FillContentExpandedAsync(this AssetPoco asset, IAssetRestApi api)
     {
         int i = 0;
+        asset.ContentExpanded = asset.Content; // Initialize ContentExpanded with Content
         while (true)
         {
             i++;
             if (i > 20 || string.IsNullOrEmpty(asset.ContentExpanded))
             {
+                // TODO: logger
+                Console.WriteLine("Breaking out of FillContentExpandedAsync loop after 20 iterations.");
+                // Will not do more than 20 levels of recursion.
                 break; // Prevent infinite loop
             }
 
-            var contentBlocks = GetContentBlocks(asset);
-            if (contentBlocks == null || contentBlocks.Count == 0)
+            var subContentBlocks = GetContentBlocksByString(asset.ContentExpanded);
+            Console.WriteLine($"Found {subContentBlocks.Count} content blocks in asset.ContentExpanded on iteration {i}.");
+            if (subContentBlocks == null || subContentBlocks.Count == 0)
             {
+                // TODO: logger
+                Console.WriteLine("No sub content blocks found in asset.ContentExpanded. Breaking out of loop.");
                 break;
             }
-            foreach (var contentBlock in contentBlocks)
+
+            foreach (var subContentBlock in subContentBlocks)
             {
-                asset.ContentExpanded =
-                    Regex.Replace(
-                        asset.ContentExpanded ?? asset.Content,
-                        contentBlock.ContentRegex,
-                        match =>
-                            {
-                                var subAsset =
-                                    api.GetAsset
-                                    (
-                                        assetId: contentBlock.Id,
-                                        customerKey: contentBlock.Key,
-                                        name: contentBlock.Key
-                                    );
-                                return subAsset.Content;
-                            },
-                        RegexOptions.IgnoreCase | RegexOptions.Singleline
-                    );
+                string input = asset.ContentExpanded;
+                string pattern = subContentBlock.ContentRegex;
+
+                asset.ContentExpanded = PerformRegexReplacement
+                (
+                    api: api,
+                    subContentBlock: subContentBlock,
+                    input: input
+                );
             }
         }
 
     }
 
+    /// <summary>
+    /// Performs a regex replacement on the input string using the content of the specified sub-content block.
+    /// The sub-content block is retrieved using the provided <see cref="IAssetRestApi"/> based on its ID, customer key, or name.
+    /// The method uses the content regex defined in the sub-content block to find matches in the input string and replace them with the content of the sub-content block.
+    /// If the sub-content block is not found, the input string is returned unchanged.
+    /// </summary>
+    /// <param name="api">The <see cref="IAssetRestApi"/> used to retrieve and replace content blocks.</param>
+    /// <param name="subContentBlock">The sub-content block to use for the replacement.</param>
+    /// <param name="input">The input string to perform the replacement on.</param>
+    /// <returns>The modified input string with the replacement applied, or the original input if no replacement was made.</returns>
+    public static string PerformRegexReplacement(
+        IAssetRestApi api,
+        ContentBlock subContentBlock,
+        string input
+        )
+    {
+        Console.WriteLine("Performing regex replacement...");
+        var subAsset =
+            api.GetAsset
+            (
+                assetId: subContentBlock.Id,
+                customerKey: subContentBlock.Key,
+                name: subContentBlock.Key
+            );
+        if (subAsset == null)
+        {
+            return input; // No replacement if sub asset is not found
+        }
+
+        string replacement = subAsset.Content ?? string.Empty;
+        return
+            Regex.Replace
+                (
+                    input: input,
+                    pattern: subContentBlock.ContentRegex,
+                    replacement: replacement,
+                    options: RegexOptions.IgnoreCase | RegexOptions.Singleline
+                );
+    }
+
     public static List<ContentBlock> GetContentBlocks(this AssetPoco assets)
     {
-        return GetContentBlocks(assets.Content);
-
+        return GetContentBlocksByString(assets.Content);
     }
-    
-    static List<ContentBlock> GetContentBlocks(this string input)
+
+
+    static List<ContentBlock> GetContentBlocksByString(this string input)
     {
         return GetContentBlocksFromInput(input, ContentBlockType.Key)
             .Concat(GetContentBlocksFromInput(input, ContentBlockType.Name))
             .Concat(GetContentBlocksFromInput(input, ContentBlockType.Id))
             .ToList();
     }
+    
+
+    public const string RegexKeyStart = @"%%=\s*ContentBlockByKey\s*\(\s*""";
+    public const string RegexKeyEnd = @"""\s*(?:,.*?)?\)\s*=%%";
+    public const string RegexKeyCapture = "([^\\\"]+)";
+    public const string RegexNameStart = @"%%=\s*ContentBlockByName\s*\(\s*""";
+    public const string RegexNameEnd = @"""\s*(?:,.*?)?\)\s*=%%";
+    public const string RegexNameCapture = @"([^\""]+)";
+    public const string RegexIdStart = @"%%=\s*ContentBlockByID\s*\(\s*[""']?";
+    public const string RegexIdEnd = @"[""']?\s*(?:,.*?)?\)\s*=%%";
+    public const string RegexIdCapture = @"(\d+)";
     static List<ContentBlock> GetContentBlocksFromInput(string input, ContentBlockType type)
     {
         if (string.IsNullOrEmpty(input))
@@ -131,11 +195,9 @@ public static class AssetHelpers
 
         string pattern = type switch
         {
-            //ContentBlockType.Key => @"%%=\s*ContentBlockByKey\s*\(\s*""([^""]+)""\s*\)\s*=%%",
-            ContentBlockType.Key => @"%%=\s*ContentBlockByKey\s*\(\s*""([^""]+)""(.*?)\)\s*=%%",
-            //ContentBlockType.Name => @"%%=\s*ContentBlockByName\s*\(\s*""([^""]+)""\s*\)\s*=%%",
-            ContentBlockType.Name => @"%%=\s*ContentBlockByName\s*\(\s*""([^""]+)""(.*?)\)\s*=%%",
-            ContentBlockType.Id => @"%%=\s*ContentBlockByID\s*\(\s*[""']?(\d+)[""']?(?:\s*,[^)]*)?\s*\)\s*=%%",
+            ContentBlockType.Key => $"{RegexKeyStart}{RegexKeyCapture}{RegexKeyEnd}",
+            ContentBlockType.Name => $"{RegexNameStart}{RegexNameCapture}{RegexNameEnd}",
+            ContentBlockType.Id => $"{RegexIdStart}{RegexIdCapture}{RegexIdEnd}",
             _ => throw new ArgumentException("Invalid type. Use 'Key' or 'Name'.", nameof(type))
         };
 

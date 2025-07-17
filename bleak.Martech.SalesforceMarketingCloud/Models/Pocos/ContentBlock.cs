@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 
@@ -7,7 +8,6 @@ public class ContentBlock
     public int? Id { get; set; }
     public string? Key { get; set; }
     public string? Name { get; set; }
-    public string Content { get; set; } = string.Empty;
     public bool Validate()
     {
         var hasId = Id.HasValue;
@@ -51,7 +51,7 @@ public class ContentBlock
             }
 
             string escapedName = Regex.Escape(Name);
-            return $@"%%=\s*ContentBlockByName\s*\(\s*""{escapedName}""\s*\)\s*=%%";
+            return $"{AssetHelpers.RegexKeyStart}{escapedName}{AssetHelpers.RegexKeyEnd}";
         }
     }
     private string? RegexContentBlockByKey
@@ -64,7 +64,7 @@ public class ContentBlock
             }
 
             string escapedKey = Regex.Escape(Key);
-            return $@"%%=\s*ContentBlockByKey\s*\(\s*""{escapedKey}""\s*\)\s*=%%";
+            return $"{AssetHelpers.RegexKeyStart}{escapedKey}{AssetHelpers.RegexKeyEnd}";
         }
     }
     private string? RegexContentBlockById
@@ -76,7 +76,7 @@ public class ContentBlock
                 return null;
             }
 
-            return $@"%%=\s*ContentBlockByID\s*\(\s*{Id}\s*\)\s*=%%";
+            return $"{AssetHelpers.RegexIdStart}{Id}{AssetHelpers.RegexIdEnd}";
         }
     }
 }
