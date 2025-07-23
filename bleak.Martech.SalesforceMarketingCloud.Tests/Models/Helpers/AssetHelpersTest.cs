@@ -452,6 +452,150 @@ This is ID=4 Content #3
         Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("ID=4"));
     }
 
+
+
+    [TestMethod]
+    public void FillContentBlocksAsync_with_Html_Views_Content_Test()
+    {
+        var asset_Key_eq_ABC111 = new AssetPoco()
+        {
+            Id = 1,
+            CustomerKey = "ABC-111",
+            Name = "ABC111 Name",
+            Views = new()
+            {
+                Html = new()
+                {
+                    Content =
+@"
+----------- BEGIN CustomerKey = ABC-111 -----------
+This is ABC-111 Content #1
+%%=ContentBlockByKey(""ABC-222"")=%%
+This is ABC-111 Content #2
+
+This is ABC-111 Content #3
+----------- END CustomerKey = ABC-111 -----------
+"
+                }
+            }
+        };
+
+        var asset_Key_eq_ABC222 = new AssetPoco()
+        {
+            Id = 2,
+            CustomerKey = "ABC-222",
+            Name = "ABC222 Name",
+            Views = new()
+            {
+                Html = new()
+                {
+                    Content =
+@"
+----------- BEGIN CustomerKey = ABC-222 -----------
+This is ABC-222 Content #1
+%%=ContentBlockByName(""MyContentBlock3"")=%%
+
+This is ABC-222 Content #2
+%%=ContentBlockById(4)=%%
+----------- END CustomerKey = ABC-222 -----------
+"
+                }
+            }
+        };
+
+        var asset_Name_eq_MyContentBlock3 = new AssetPoco()
+        {
+            Id = 3,
+            CustomerKey = "ABC-333",
+            Name = "MyContentBlock3",
+            Views = new()
+            {
+                Html = new()
+                {
+                    Content =
+            @"
+----------- BEGIN Name = MyContentBlock3 -----------
+This is MyContentBlock3 Content #1
+
+This is MyContentBlock3 Content #2
+
+This is MyContentBlock3 Content #3
+----------- END Name = MyContentBlock3 -----------
+            "
+                }
+            }
+        };
+
+        var asset_Id_eq_4 = new AssetPoco()
+        {
+            Id = 4,
+            CustomerKey = "ABC-444",
+            Name = "MyContentBlock4",
+            Views = new()
+            {
+                Html = new()
+                {
+                    Content =
+            @"
+----------- BEGIN Id = 4 -----------
+This is ID=4 Content #1
+
+This is ID=4 Content #2
+
+This is ID=4 Content #3
+----------- END Id = 4 -----------
+            "
+                }
+            }
+        };
+
+        var mockApi = new Mock<IAssetRestApi>();
+        mockApi
+            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-111"), It.IsAny<string>()))
+            .Returns(asset_Key_eq_ABC111);
+        mockApi
+            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-111"), It.IsAny<string>()))
+            .ReturnsAsync(asset_Key_eq_ABC111);
+
+        mockApi
+            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-222"), It.IsAny<string>()))
+            .Returns(asset_Key_eq_ABC222);
+        mockApi
+            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-222"), It.IsAny<string>()))
+            .ReturnsAsync(asset_Key_eq_ABC222);
+
+        mockApi
+            .Setup(api => api.GetAsset(It.Is<int?>(id => id == 4), It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(asset_Id_eq_4);
+        mockApi
+            .Setup(api => api.GetAssetAsync(It.Is<int?>(id => id == 4), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(asset_Id_eq_4);
+
+        mockApi
+            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.IsAny<string>(), "MyContentBlock3"))
+            .Returns(asset_Name_eq_MyContentBlock3);
+        mockApi
+            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.IsAny<string>(), "MyContentBlock3"))
+            .ReturnsAsync(asset_Name_eq_MyContentBlock3);
+
+        var api = mockApi.Object;
+
+        var asset222 = api.GetAsset(null, "ABC-222", null);
+        Assert.AreEqual("ABC-222", asset222.CustomerKey);
+
+        asset_Key_eq_ABC111.FillContentExpandedAsync(api);
+        Console.WriteLine("------------------");
+        Console.WriteLine("FillContentBlocksAsync_with_Html_Views_Content_Test()");
+        Console.WriteLine("------------------");
+        Console.WriteLine(asset_Key_eq_ABC111.ContentExpanded);
+        Console.WriteLine("------------------");
+
+        Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("ABC-111"));
+        Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("ABC-222"));
+        Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("MyContentBlock3"));
+        Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("ID=4"));
+    }
+
     [TestMethod]
     public void PerformRegexReplacementAsyncTest()
     {
@@ -486,7 +630,7 @@ This is ABC-222 Content #2
             "
         };
 
-        Console.WriteLine("preparing mock api...");
+
         var mockApi = new Mock<IAssetRestApi>();
         mockApi
             .Setup(api => api.GetAsset(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-111"), It.IsAny<string>()))

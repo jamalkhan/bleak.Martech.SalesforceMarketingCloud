@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.Models;
+using bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
 using Microsoft.Extensions.Logging;
 using SfmcApp.Models;
@@ -263,17 +264,20 @@ namespace SfmcApp.Models.ViewModels
 
             if (ExpandAmpscript)
             {
-                /*
-                var expandedAsset = await _assetApi.GetAssetAsync(assetId: asset.Id, ExpandAmpscript: ExpandAmpscript);
-                await File.WriteAllTextAsync(outputFileName, expandedAsset.Content);
-                */
+                asset.FillContentExpandedAsync(_assetApi);
+                _logger.LogInformation($"Expanding Ampscript for asset: {asset.Name}");
+
+                // Write the expanded content to a file
+                await File.WriteAllTextAsync(outputFileName, asset.ContentExpanded);
+                _logger.LogInformation($"Asset with Expanded content written to File System: {outputFileName}");
             }
             else
             {
                 // Write the content of the asset to a file
                 await File.WriteAllTextAsync(outputFileName, asset.Content);
+                _logger.LogInformation($"Asset written to File System: {outputFileName}");
             }
-            _logger.LogInformation($"File Written to File System: {outputFileName}");
+            
         }
         private async Task DownloadBinaryAsync(AssetViewModel asset)
         {

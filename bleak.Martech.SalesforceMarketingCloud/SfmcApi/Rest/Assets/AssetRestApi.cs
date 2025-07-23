@@ -145,7 +145,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
                     _logger.LogTrace($"GetAsset by assetId={assetId} returned exactly 1.");
                     break;
                 default:
-                    _logger.LogInformation($"GetAsset by assetId={assetId} unexpectedly returned {loadedAssets.Count}.");
+                    _logger.LogInformation($"GetAsset by assetId={assetId} unexpectedly returned {loadedAssets.Count}. Only the first one will be returned.");
                     break;
             }
             var asset = loadedAssets.FirstOrDefault();
@@ -153,21 +153,6 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
                 ?? throw new Exception($"Asset with ID {assetId} not found");
             ;
         }
-        
-
-
-
-        static string LookupContent(string key)
-        {
-            // Example lookup logic
-            if (key == "M2_Code_Snippet_RLE") return "[REPLACED M2 CODE]";
-            if (key == "Another_Key") return "[REPLACED ANOTHER KEY]";
-            return "[UNKNOWN KEY]";
-        }
-
-
-
-
 
         private List<SfmcAsset> LoadAssets(string url, int page)
         {

@@ -84,12 +84,16 @@ public static class AssetHelpers
     /// </remarks>
     public static void FillContentExpandedAsync(this AssetPoco asset, IAssetRestApi api)
     {
+
+        string contentExpanded = asset.Content
+                                ?? asset.Views?.Html?.Content 
+                                ?? string.Empty;
+        
         int i = 0;
-        asset.ContentExpanded = asset.Content; // Initialize ContentExpanded with Content
         while (true)
         {
             i++;
-            if (i > 20 || string.IsNullOrEmpty(asset.ContentExpanded))
+            if (i > 20 || string.IsNullOrEmpty(contentExpanded))
             {
                 // TODO: logger
                 Console.WriteLine("Breaking out of FillContentExpandedAsync loop after 20 iterations.");
@@ -97,25 +101,24 @@ public static class AssetHelpers
                 break; // Prevent infinite loop
             }
 
-            var subContentBlocks = GetContentBlocksByString(asset.ContentExpanded);
-            Console.WriteLine($"Found {subContentBlocks.Count} content blocks in asset.ContentExpanded on iteration {i}.");
+            var subContentBlocks = GetContentBlocksByString(contentExpanded);
+            Console.WriteLine($"Found {subContentBlocks.Count} content blocks in contentExpanded on iteration {i}.");
             if (subContentBlocks == null || subContentBlocks.Count == 0)
             {
                 // TODO: logger
-                Console.WriteLine("No sub content blocks found in asset.ContentExpanded. Breaking out of loop.");
+                Console.WriteLine("No sub content blocks found in contentExpanded. Breaking out of loop.");
                 break;
             }
 
             foreach (var subContentBlock in subContentBlocks)
             {
-                string input = asset.ContentExpanded;
                 string pattern = subContentBlock.ContentRegex;
 
                 asset.ContentExpanded = PerformRegexReplacement
                 (
                     api: api,
                     subContentBlock: subContentBlock,
-                    input: input
+                    input: contentExpanded
                 );
             }
         }
@@ -151,7 +154,9 @@ public static class AssetHelpers
             return input; // No replacement if sub asset is not found
         }
 
-        string replacement = subAsset.Content ?? string.Empty;
+        string replacement = subAsset.Content
+                                ?? subAsset.Views?.Html?.Content 
+                                ?? string.Empty;
         return
             Regex.Replace
                 (
