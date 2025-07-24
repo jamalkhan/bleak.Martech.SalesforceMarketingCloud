@@ -55,7 +55,7 @@ namespace SfmcApp.Models.ViewModels
             set => SetProperty(ref _isAssetsLoaded, value);
         }
 
-        private bool _expandAmpscript;
+        private bool _expandAmpscript = true;
         public bool ExpandAmpscript
         {
             get => _expandAmpscript;
@@ -264,17 +264,31 @@ namespace SfmcApp.Models.ViewModels
 
             if (ExpandAmpscript)
             {
-                asset.FillContentExpandedAsync(_assetApi);
+                var expandedContent = asset.GetExpandedContent(_assetApi);
                 _logger.LogInformation($"Expanding Ampscript for asset: {asset.Name}");
 
                 // Write the expanded content to a file
-                await File.WriteAllTextAsync(outputFileName, asset.ContentExpanded);
+                await File.WriteAllTextAsync(outputFileName, expandedContent);
                 _logger.LogInformation($"Asset with Expanded content written to File System: {outputFileName}");
             }
             else
             {
+                string content = string.Empty;
                 // Write the content of the asset to a file
-                await File.WriteAllTextAsync(outputFileName, asset.Content);
+                if (!string.IsNullOrEmpty(asset.Content))
+                {
+                    content = asset.Content;
+                }
+                else if (asset.Views?.Html?.Content != null)
+                {
+                    content = asset.Views.Html.Content;
+                }
+                
+                _logger.LogInformation($"Content: {content}");
+                _logger.LogInformation($"Views: {asset.Views}");
+                _logger.LogInformation($"Html: {asset.Views?.Html}");
+                _logger.LogInformation($"Html.Content: {asset.Views?.Html?.Content}");
+                await File.WriteAllTextAsync(outputFileName, content);
                 _logger.LogInformation($"Asset written to File System: {outputFileName}");
             }
             
@@ -309,6 +323,10 @@ namespace SfmcApp.Models.ViewModels
                 }
             }
         }
+        
+
+
+
 
         // Common SetProperty helper
         public event PropertyChangedEventHandler? PropertyChanged;

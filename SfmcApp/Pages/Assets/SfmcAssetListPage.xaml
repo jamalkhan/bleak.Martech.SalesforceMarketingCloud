@@ -90,9 +90,27 @@
             </HorizontalStackLayout>
 
             <!-- Row 2 -->
-            <HorizontalStackLayout Grid.Row="2" Spacing="5" VerticalOptions="Center">
-                <Label Text="Download Folder:" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
+            <Grid Grid.Row="2" ColumnSpacing="10" VerticalOptions="Center">
+                <!-- Define 5 columns: Label | Editor | Button | Label | Switch -->
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Download Folder Label -->
+                <Label 
+                    Grid.Column="0"
+                    Text="Download Folder:" 
+                    FontSize="Medium" 
+                    FontAttributes="Bold" 
+                    VerticalOptions="Center" />
+
+                <!-- Read-only Editor (for displaying folder path) -->
                 <Editor
+                    Grid.Column="1"
                     Text="{Binding DownloadDirectory}"
                     IsReadOnly="True"
                     FontSize="Small"
@@ -101,16 +119,30 @@
                     TextColor="Black"
                     AutoSize="TextChanges"
                     HeightRequest="40"
+                    HorizontalOptions="FillAndExpand"
                     />
+
+                <!-- Open Button -->
                 <Button
+                    Grid.Column="2"
                     Text="Open"
                     Command="{Binding OpenDownloadDirectoryCommand}"
                     VerticalOptions="Center" />
-                <Label Text="Expand Ampscript:" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
+
+                <!-- Expand Ampscript Label -->
+                <Label 
+                    Grid.Column="3"
+                    Text="Expand Ampscript:" 
+                    FontSize="Medium" 
+                    FontAttributes="Bold" 
+                    VerticalOptions="Center" />
+
+                <!-- Switch -->
                 <Switch 
-                    IsToggled="{Binding ExpandAmpscript}"  />
-                    <!--Toggled="OnSwitchToggled" />-->
-             </HorizontalStackLayout>
+                    Grid.Column="4"
+                    IsToggled="{Binding ExpandAmpscript, Mode=TwoWay}" 
+                    VerticalOptions="Center" />
+            </Grid>
             
         </Grid>
 

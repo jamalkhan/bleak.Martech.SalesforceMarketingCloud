@@ -441,18 +441,17 @@ This is ID=4 Content #3
         var asset222 = api.GetAsset(null, "ABC-222", null);
         Assert.AreEqual("ABC-222", asset222.CustomerKey);
 
-        asset_Key_eq_ABC111.FillContentExpandedAsync(api);
+        var expandedContent = asset_Key_eq_ABC111.GetExpandedContent(api);
+
         Console.WriteLine("------------------");
-        Console.WriteLine(asset_Key_eq_ABC111.ContentExpanded);
+        Console.WriteLine(expandedContent);
         Console.WriteLine("------------------");
 
-        Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("ABC-111"));
-        Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("ABC-222"));
-        Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("MyContentBlock3"));
-        Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("ID=4"));
+        Assert.IsTrue(expandedContent.Contains("ABC-111"));
+        Assert.IsTrue(expandedContent.Contains("ABC-222"));
+        Assert.IsTrue(expandedContent.Contains("MyContentBlock3"));
+        Assert.IsTrue(expandedContent.Contains("ID=4"));
     }
-
-
 
     [TestMethod]
     public void FillContentBlocksAsync_with_Html_Views_Content_Test()
@@ -583,17 +582,17 @@ This is ID=4 Content #3
         var asset222 = api.GetAsset(null, "ABC-222", null);
         Assert.AreEqual("ABC-222", asset222.CustomerKey);
 
-        asset_Key_eq_ABC111.FillContentExpandedAsync(api);
+        var expandedContent = asset_Key_eq_ABC111.GetExpandedContent(api);
         Console.WriteLine("------------------");
         Console.WriteLine("FillContentBlocksAsync_with_Html_Views_Content_Test()");
         Console.WriteLine("------------------");
-        Console.WriteLine(asset_Key_eq_ABC111.ContentExpanded);
+        Console.WriteLine(expandedContent);
         Console.WriteLine("------------------");
 
-        Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("ABC-111"));
-        Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("ABC-222"));
-        Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("MyContentBlock3"));
-        Assert.IsTrue(asset_Key_eq_ABC111.ContentExpanded.Contains("ID=4"));
+        Assert.IsTrue(expandedContent.Contains("ABC-111"));
+        Assert.IsTrue(expandedContent.Contains("ABC-222"));
+        Assert.IsTrue(expandedContent.Contains("MyContentBlock3"));
+        Assert.IsTrue(expandedContent.Contains("ID=4"));
     }
 
     [TestMethod]
@@ -637,7 +636,7 @@ This is ABC-222 Content #2
             .Returns(asset_Key_eq_ABC111);
         mockApi
             .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-111"), It.IsAny<string>()))
-            .ReturnsAsync(asset_Key_eq_ABC222   );
+            .ReturnsAsync(asset_Key_eq_ABC222);
 
         mockApi
             .Setup(api => api.GetAsset(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-222"), It.IsAny<string>()))
@@ -664,4 +663,5 @@ This is ABC-222 Content #2
         Assert.IsTrue(result.Contains("ABC-111"));
         Assert.IsTrue(result.Contains("ABC-222"));
     }
+
 }

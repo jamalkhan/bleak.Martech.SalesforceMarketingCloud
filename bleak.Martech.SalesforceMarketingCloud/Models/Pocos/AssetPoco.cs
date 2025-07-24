@@ -22,10 +22,6 @@ namespace bleak.Martech.SalesforceMarketingCloud.Models.Pocos
         public ThumbnailObject Thumbnail { get; set; } = new();
         public CategoryObject Category { get; set; } = new();
         public string Content { get; set; } = string.Empty;
-        /// <summary>
-        /// Filled with FillContentExpandedAsync()
-        /// </summary>
-        public string ContentExpanded { get; set; } = string.Empty;
         public DataObject Data { get; set; } = new();
         public FilePropertiesObject FileProperties { get;set; } = new();
         public ViewsObject Views { get;set; } = new();

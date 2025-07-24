@@ -104,8 +104,8 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
                     _logger.LogTrace($"GetAsset() called with a single parameter. assetId={assetId}, customerKey={customerKey}, name={name}.");
                     break;
                 case > 1:
-                    _logger.LogError("GetAsset() requires only one of assetId, customerKey, or name to be provided, but multiple were specified.");
-                    throw new ArgumentException("Only one of assetId, customerKey, or name can be specified at a time.");
+                    _logger.LogInformation($"GetAsset() requires only one of assetId {assetId}, customerKey {customerKey}, or name {name} to be provided, but multiple were specified. Preferred Id, Key, Name, in that order.");
+                    break;
                 default:
                     break;
             }
@@ -156,12 +156,13 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
 
         private List<SfmcAsset> LoadAssets(string url, int page)
         {
+            _logger.LogInformation($"LoadAsset({url}, {page}) invoked");
             var retval = new List<SfmcAsset>();
             try
             {
                 RestResults<SfmcRestWrapper<SfmcAsset>, string> results;
 
-                _logger.LogInformation($"Loading Folder Page #{page} with URL: {url}");
+                _logger.LogInformation($"Loading Asset Page #{page} with URL: {url}");
                 results = ExecuteRestMethodWithRetry(
                     apiCall: LoadFolderApiCall,
                     url: url,
@@ -169,8 +170,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
                     resolveAuthentication: _authRepository.ResolveAuthentication
                 );
 
-                _logger.LogTrace($"results.Value = {results?.Results}");
-                if (results?.Error != null) _logger.LogError($"results.Error = {results?.Error}");
+                _logger.LogInformation($"results.Value = {results?.Results}");
+                if (results?.Error != null)
+                {
+                    _logger.LogError($"results.Error = {results?.Error}");
+                }
 
                 if (results?.Results?.items != null)
                 {

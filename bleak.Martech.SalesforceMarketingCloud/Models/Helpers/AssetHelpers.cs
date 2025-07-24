@@ -1,6 +1,7 @@
 using System.Data;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
@@ -82,18 +83,23 @@ public static class AssetHelpers
     /// This method initializes <c>ContentExpanded</c> with the value of <c>Content</c> and iteratively replaces content blocks
     /// found within it. The process stops if no more content blocks are found or after 20 iterations.
     /// </remarks>
-    public static void FillContentExpandedAsync(this AssetPoco asset, IAssetRestApi api)
+    public static string GetExpandedContent(this AssetPoco asset, IAssetRestApi api)
     {
-
-        string contentExpanded = asset.Content
-                                ?? asset.Views?.Html?.Content 
-                                ?? string.Empty;
+        string content = string.Empty;
+        if (!string.IsNullOrEmpty(asset.Content))
+        {
+            content = asset.Content;
+        }
+        else if (asset.Views?.Html?.Content != null)
+        {
+            content = asset.Views.Html.Content;
+        }
         
         int i = 0;
         while (true)
         {
             i++;
-            if (i > 20 || string.IsNullOrEmpty(contentExpanded))
+            if (i > 20 || string.IsNullOrEmpty(content))
             {
                 // TODO: logger
                 Console.WriteLine("Breaking out of FillContentExpandedAsync loop after 20 iterations.");
@@ -101,7 +107,7 @@ public static class AssetHelpers
                 break; // Prevent infinite loop
             }
 
-            var subContentBlocks = GetContentBlocksByString(contentExpanded);
+            var subContentBlocks = GetContentBlocksByString(content);
             Console.WriteLine($"Found {subContentBlocks.Count} content blocks in contentExpanded on iteration {i}.");
             if (subContentBlocks == null || subContentBlocks.Count == 0)
             {
@@ -110,20 +116,24 @@ public static class AssetHelpers
                 break;
             }
 
+
             foreach (var subContentBlock in subContentBlocks)
             {
                 string pattern = subContentBlock.ContentRegex;
 
-                asset.ContentExpanded = PerformRegexReplacement
+                content = PerformRegexReplacement
                 (
                     api: api,
                     subContentBlock: subContentBlock,
-                    input: contentExpanded
+                    input: content
                 );
             }
         }
 
+        return content;
     }
+
+
 
     /// <summary>
     /// Performs a regex replacement on the input string using the content of the specified sub-content block.
@@ -147,22 +157,29 @@ public static class AssetHelpers
             (
                 assetId: subContentBlock.Id,
                 customerKey: subContentBlock.Key,
-                name: subContentBlock.Key
+                name: subContentBlock.Name
             );
         if (subAsset == null)
         {
             return input; // No replacement if sub asset is not found
         }
 
-        string replacement = subAsset.Content
-                                ?? subAsset.Views?.Html?.Content 
-                                ?? string.Empty;
+        string subContent = string.Empty;
+        if (!string.IsNullOrEmpty(subAsset.Content))
+        {
+            subContent = subAsset.Content;
+        }
+        else if (subAsset.Views?.Html?.Content != null)
+        {
+            subContent = subAsset.Views.Html.Content;
+        }
+        
         return
             Regex.Replace
                 (
                     input: input,
                     pattern: subContentBlock.ContentRegex,
-                    replacement: replacement,
+                    replacement: subContent,
                     options: RegexOptions.IgnoreCase | RegexOptions.Singleline
                 );
     }
