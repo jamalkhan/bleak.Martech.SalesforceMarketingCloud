@@ -14,6 +14,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Models.Pocos
         public string ContentType { get; set; } = string.Empty;
         public DateTime CreatedDate { get; set; }
         public UserObject CreatedBy { get; set; } = new();
+        public UserObject Owner { get; set; } = new();
         public DateTime ModifiedDate { get; set; }
         public UserObject ModifiedBy { get; set; } = new();
         public int EnterpriseId { get; set; }

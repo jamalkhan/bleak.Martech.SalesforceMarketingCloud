@@ -409,17 +409,17 @@ This is ID=4 Content #3
 
         var mockApi = new Mock<IAssetRestApi>();
         mockApi
-            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-111"), It.IsAny<string>()))
+            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.Is<string?>(k => k == "ABC-111"), It.IsAny<string>()))
             .Returns(asset_Key_eq_ABC111);
         mockApi
-            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-111"), It.IsAny<string>()))
+            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.Is<string?>(k => k == "ABC-111"), It.IsAny<string>()))
             .ReturnsAsync(asset_Key_eq_ABC111);
 
         mockApi
-            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-222"), It.IsAny<string>()))
+            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.Is<string?>(k => k == "ABC-222"), It.IsAny<string>()))
             .Returns(asset_Key_eq_ABC222);
         mockApi
-            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-222"), It.IsAny<string>()))
+            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.Is<string?>(k => k == "ABC-222"), It.IsAny<string>()))
             .ReturnsAsync(asset_Key_eq_ABC222);
 
         mockApi
@@ -550,17 +550,17 @@ This is ID=4 Content #3
 
         var mockApi = new Mock<IAssetRestApi>();
         mockApi
-            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-111"), It.IsAny<string>()))
+            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.Is<string?>(k => k == "ABC-111"), It.IsAny<string>()))
             .Returns(asset_Key_eq_ABC111);
         mockApi
-            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-111"), It.IsAny<string>()))
+            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.Is<string?>(k => k == "ABC-111"), It.IsAny<string>()))
             .ReturnsAsync(asset_Key_eq_ABC111);
 
         mockApi
-            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-222"), It.IsAny<string>()))
+            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.Is<string?>(k => k == "ABC-222"), It.IsAny<string>()))
             .Returns(asset_Key_eq_ABC222);
         mockApi
-            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-222"), It.IsAny<string>()))
+            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.Is<string?>(k => k == "ABC-222"), It.IsAny<string>()))
             .ReturnsAsync(asset_Key_eq_ABC222);
 
         mockApi
@@ -632,17 +632,17 @@ This is ABC-222 Content #2
 
         var mockApi = new Mock<IAssetRestApi>();
         mockApi
-            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-111"), It.IsAny<string>()))
+            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.Is<string?>(k => k == "ABC-111"), It.IsAny<string>()))
             .Returns(asset_Key_eq_ABC111);
         mockApi
-            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-111"), It.IsAny<string>()))
+            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.Is<string?>(k => k == "ABC-111"), It.IsAny<string>()))
             .ReturnsAsync(asset_Key_eq_ABC222);
 
         mockApi
-            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-222"), It.IsAny<string>()))
+            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.Is<string?>(k => k == "ABC-222"), It.IsAny<string>()))
             .Returns(asset_Key_eq_ABC222);
         mockApi
-            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.Is<string>(k => k == "ABC-222"), It.IsAny<string>()))
+            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.Is<string?>(k => k == "ABC-222"), It.IsAny<string>()))
             .ReturnsAsync(asset_Key_eq_ABC222);
 
         var api = mockApi.Object;
@@ -664,4 +664,170 @@ This is ABC-222 Content #2
         Assert.IsTrue(result.Contains("ABC-222"));
     }
 
+    [TestMethod]
+    public void IntegrationTest()
+    {
+        // Arrange
+        var asset1 = new AssetPoco
+        {
+            Id = 111,
+            CustomerKey = "IntegrationTest-Key-111",
+            ObjectID = "1111111-1111-1111-1111-111111111111",
+            Name = "IntegrationTest-Name-111",
+            AssetType = new()
+            {
+                Id = 208,
+                Name = "htmlemail",
+                DisplayName = "HTML Email"
+            },
+            Views = new()
+            {
+                Html = new()
+                {
+                    Content = @"
+----------- BEGIN CustomerKey = IntegrationTest-111 -----------
+This is IntegrationTest-111 Referencing Content #333
+
+%%=ContentBlockByName(""IntegrationTest-Name-333"")=%%
+
+This is IntegrationTest-111 Referencing Content #444
+%%=ContentBlockByKey(""IntegrationTest-Key-444"")=%%
+
+----------- END CustomerKey = IntegrationTest-111 -----------"
+                }
+            }
+        };
+
+        var asset3 = new AssetPoco
+        {
+            Id = 333,
+            CustomerKey = "IntegrationTest-Key-333",
+            ObjectID = "33333333-3333-3333-3333-333333333333",
+            Name = "IntegrationTest-Name-333",
+            AssetType = new()
+            {
+                Id = 220,
+                Name = "codesnippetblock",
+                DisplayName = "Code Snippet Block"
+            },
+            Content = @"
+/***********/
+IntegrationTest-Text-333
+/***********/"
+        };
+
+
+        var asset4 = new AssetPoco
+        {
+            Id = 444,
+            CustomerKey = "IntegrationTest-Key-444",
+            ObjectID = "44444444-4444-4444-4444-444444444444",
+            Name = "IntegrationTest-Name-444",
+            AssetType = new()
+            {
+                Id = 220,
+                Name = "codesnippetblock",
+                DisplayName = "Code Snippet Block"
+            },
+            Content = @"
+/***********/
+IntegrationTest-Text-444
+/***********/"
+        };
+
+
+        var mockApi = new Mock<IAssetRestApi>();
+        // asset1
+        mockApi
+            .Setup(api => api.GetAsset(It.Is<int?>(id => id == 111), It.IsAny<string?>(), It.IsAny<string>()))
+            .Returns(asset1);
+        mockApi
+            .Setup(api => api.GetAssetAsync(It.Is<int?>(id => id == 111), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(asset1);
+        mockApi
+            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.Is<string?>(k => k == "IntegrationTest-Key-111"), It.IsAny<string>()))
+            .Returns(asset1);
+        mockApi
+            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.Is<string?>(k => k == "IntegrationTest-Key-111"), It.IsAny<string>()))
+            .ReturnsAsync(asset1);
+        mockApi
+            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.IsAny<string?>(), It.Is<string?>(k => k == "IntegrationTest-Name-111")))
+            .Returns(asset1);
+        mockApi
+            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.IsAny<string?>(), It.Is<string?>(k => k == "IntegrationTest-Name-111")))
+            .ReturnsAsync(asset1);
+
+        // asset3
+        mockApi
+            .Setup(api => api.GetAsset(It.Is<int?>(id => id == 333), It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(asset3);
+        mockApi
+            .Setup(api => api.GetAssetAsync(It.Is<int?>(id => id == 333), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(asset3);
+        mockApi
+            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.Is<string?>(k => k == "IntegrationTest-Key-333"), It.IsAny<string>()))
+            .Returns(asset3);
+        mockApi
+            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.Is<string?>(k => k == "IntegrationTest-Key-333"), It.IsAny<string>()))
+            .ReturnsAsync(asset3);
+        mockApi
+            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.IsAny<string>(), It.Is<string?>(k => k == "IntegrationTest-Name-333")))
+            .Returns(asset3);
+        mockApi
+            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.IsAny<string>(), It.Is<string?>(k => k == "IntegrationTest-Name-333")))
+            .ReturnsAsync(asset3);
+
+        // asset4
+        mockApi
+            .Setup(api => api.GetAsset(It.Is<int?>(id => id == 444), It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(asset4);
+        mockApi
+            .Setup(api => api.GetAssetAsync(It.Is<int?>(id => id == 444), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(asset4);
+        mockApi
+            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.Is<string?>(k => k == "IntegrationTest-Key-444"), It.IsAny<string>()))
+            .Returns(asset4);
+        mockApi
+            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.Is<string?>(k => k == "IntegrationTest-Key-444"), It.IsAny<string>()))
+            .ReturnsAsync(asset4);
+        mockApi
+            .Setup(api => api.GetAsset(It.IsAny<int?>(), It.IsAny<string>(), It.Is<string?>(k => k == "IntegrationTest-Name-444")))
+            .Returns(asset4);
+        mockApi
+            .Setup(api => api.GetAssetAsync(It.IsAny<int?>(), It.IsAny<string>(), It.Is<string?>(k => k == "IntegrationTest-Name-444")))
+            .ReturnsAsync(asset4);
+
+        var api = mockApi.Object;
+
+        var retrievedAsset1 = api.GetAsset(111, null, null);
+        Assert.IsNotNull(retrievedAsset1);
+        Assert.AreEqual("IntegrationTest-Key-111", retrievedAsset1.CustomerKey);
+
+        var expandedContent = asset1.GetExpandedContent(api);
+        var contentBlocks = asset1.GetContentBlocks();
+
+        /*
+        Assert.AreEqual(1, contentBlocks.Count);
+        Assert.AreEqual("IntegrationTest-Name-333", contentBlocks[0].Name);
+        Assert.AreEqual("IntegrationTest-Key-333", contentBlocks[0].Key);
+*/
+        foreach (var contentBlock in contentBlocks)
+        {
+            Console.WriteLine($"Content Block: Name={contentBlock.Name}, Key={contentBlock.Key}, Id={contentBlock.Id}");
+        }
+
+        Console.WriteLine("------------------");
+        Console.WriteLine("IntergrationTest() - Content Expanded");
+        Console.WriteLine("------------------");
+        Console.WriteLine(expandedContent);
+        Console.WriteLine("------------------");
+
+        Assert.IsTrue(expandedContent.Contains("IntegrationTest-Text-333"));
+        Assert.IsTrue(expandedContent.Contains("IntegrationTest-Text-444"));
+
+    }
+    
+
+
+    
 }

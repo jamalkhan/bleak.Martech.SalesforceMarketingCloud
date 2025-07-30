@@ -51,7 +51,7 @@ public class ContentBlock
             }
 
             string escapedName = Regex.Escape(Name);
-            return $"{AssetHelpers.RegexKeyStart}{escapedName}{AssetHelpers.RegexKeyEnd}";
+            return $"{AssetHelpers.RegexNameStart}{escapedName}{AssetHelpers.RegexNameEnd}";
         }
     }
     private string? RegexContentBlockByKey

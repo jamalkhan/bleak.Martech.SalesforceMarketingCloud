@@ -21,7 +21,12 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
             SfmcConnectionConfiguration config,
             ILogger<AssetFolderRestApi> logger
             )
-            : base(authRepository: authRepository, config: config)
+            : base(
+                restManager: new RestManager(new JsonSerializer(), new JsonSerializer()),
+                restManagerAsync: new RestManager(new JsonSerializer(), new JsonSerializer()),
+                authRepository: authRepository,
+                config: config
+            )
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             if (config == null) config = new SfmcConnectionConfiguration();

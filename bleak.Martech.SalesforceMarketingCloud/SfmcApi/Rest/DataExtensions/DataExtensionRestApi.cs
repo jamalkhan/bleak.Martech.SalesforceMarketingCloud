@@ -21,7 +21,12 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions
         public DataExtensionRestApi(
             IAuthRepository authRepository,
             SfmcConnectionConfiguration config)
-            : base(authRepository, config)
+            : base(
+                restManager: new RestManager(new JsonSerializer(), new JsonSerializer()),
+                restManagerAsync: new RestManager(new JsonSerializer(), new JsonSerializer()),
+                authRepository: authRepository,
+                config: config
+            )
         {
         }
 

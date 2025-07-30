@@ -151,16 +151,26 @@ public static class AssetHelpers
         string input
         )
     {
-        Console.WriteLine("Performing regex replacement...");
-        var subAsset =
-            api.GetAsset
-            (
-                assetId: subContentBlock.Id,
-                customerKey: subContentBlock.Key,
-                name: subContentBlock.Name
-            );
+
+        AssetPoco? subAsset = null;
+        if (subContentBlock.Id != null)
+        {
+            Console.WriteLine($"Performing regex replacement for Id: {subContentBlock.Id.Value}");
+            subAsset = api.GetAsset(assetId: subContentBlock.Id.Value);
+        }
+        else if (!string.IsNullOrEmpty(subContentBlock.Key))
+        {
+            Console.WriteLine($"Performing regex replacement for Key: {subContentBlock.Key}");
+            subAsset = api.GetAsset(customerKey: subContentBlock.Key);
+        }
+        else if (!string.IsNullOrEmpty(subContentBlock.Name))
+        {
+            Console.WriteLine($"Performing regex replacement for Name: {subContentBlock.Name}");
+            subAsset = api.GetAsset(name: subContentBlock.Name);
+        }
         if (subAsset == null)
         {
+            Console.WriteLine($"Sub asset not found for ContentBlock: {subContentBlock}");
             return input; // No replacement if sub asset is not found
         }
 
@@ -168,20 +178,30 @@ public static class AssetHelpers
         if (!string.IsNullOrEmpty(subAsset.Content))
         {
             subContent = subAsset.Content;
+            Console.WriteLine($"Using Content from sub asset: {subAsset.Name}. Content: {subAsset.Content}");
         }
         else if (subAsset.Views?.Html?.Content != null)
         {
             subContent = subAsset.Views.Html.Content;
+            Console.WriteLine($"Using Views.Html.Content from sub asset: {subAsset.Name}. Views.Html.Content: {subAsset.Views.Html.Content}");
         }
         
-        return
-            Regex.Replace
+        Console.WriteLine("----------********************----------");
+        Console.WriteLine($"input: {input}");
+        Console.WriteLine($"pattern: {subContentBlock.ContentRegex}");
+        Console.WriteLine($"replacement: {subContent}");
+        Console.WriteLine("----------********************----------");
+        
+        var results = Regex.Replace
                 (
                     input: input,
                     pattern: subContentBlock.ContentRegex,
                     replacement: subContent,
                     options: RegexOptions.IgnoreCase | RegexOptions.Singleline
                 );
+        Console.WriteLine($"Replaced content for ContentBlock: {subContentBlock}. Result: {results}");
+        return results;
+
     }
 
     public static List<ContentBlock> GetContentBlocks(this AssetPoco assets)
@@ -202,9 +222,19 @@ public static class AssetHelpers
     public const string RegexKeyStart = @"%%=\s*ContentBlockByKey\s*\(\s*""";
     public const string RegexKeyEnd = @"""\s*(?:,.*?)?\)\s*=%%";
     public const string RegexKeyCapture = "([^\\\"]+)";
+    //public const string RegexKeyCapture = @"([^""]+)";
+
+    /*
+        //public const string RegexNameStart = @"%%=\s*ContentBlockByName\s*\(\s*""";
+        public const string RegexNameStart = @"%%=\s*ContentBlockByName\s*\(\s*""";
+        public const string RegexNameEnd = @"""\s*(?:,.*?)?\)\s*=%%";
+        public const string RegexNameCapture = @"([^""]+)";
+        */
+    
     public const string RegexNameStart = @"%%=\s*ContentBlockByName\s*\(\s*""";
     public const string RegexNameEnd = @"""\s*(?:,.*?)?\)\s*=%%";
-    public const string RegexNameCapture = @"([^\""]+)";
+    public const string RegexNameCapture = @"([^""]+)";
+
     public const string RegexIdStart = @"%%=\s*ContentBlockByID\s*\(\s*[""']?";
     public const string RegexIdEnd = @"[""']?\s*(?:,.*?)?\)\s*=%%";
     public const string RegexIdCapture = @"(\d+)";

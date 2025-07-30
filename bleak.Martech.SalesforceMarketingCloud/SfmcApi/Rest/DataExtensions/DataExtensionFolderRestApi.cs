@@ -22,7 +22,12 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions
             RestManager restManager,
             IAuthRepository authRepository,
             SfmcConnectionConfiguration sfmcConnectionConfiguration)
-            : base(restManager, authRepository, sfmcConnectionConfiguration)
+            : base(
+                restManager: new RestManager(new JsonSerializer(), new JsonSerializer()),
+                restManagerAsync: new RestManager(new JsonSerializer(), new JsonSerializer()),
+                authRepository: authRepository,
+                config: sfmcConnectionConfiguration
+            )
         {
         }
 

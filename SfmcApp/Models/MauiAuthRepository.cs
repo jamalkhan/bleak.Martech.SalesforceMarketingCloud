@@ -52,10 +52,23 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
 
         protected SfmcAuthToken Authenticate()
         {
+            try
+            {
+                return AuthenticateAsync().GetAwaiter().GetResult();
+            }
+            catch (AggregateException ae)
+            {
+                throw ae.InnerException ?? ae;
+            }
+        }
+
+
+        protected async Task<SfmcAuthToken> AuthenticateAsync()
+        {
             Console.WriteLine("Authenticating...");
             string tokenUri = $"https://{Subdomain}.auth.marketingcloudapis.com/v2/token";
 
-            var authResults = _restManager.ExecuteRestMethod<SfmcAuthToken, string>(
+            var authResults = await _restManager.ExecuteRestMethodAsync<SfmcAuthToken, string>(
                 uri: new Uri(tokenUri),
                 verb: HttpVerbs.POST,
                 payload: new
@@ -65,7 +78,10 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
                     client_secret = ClientSecret,
                     account_id = MemberId,
                 },
-                headers: new List<Header> { new Header { Name = "Content-Type", Value = "application/json" } }
+                headers: new List<Header>
+                {
+                    new Header { Name = "Content-Type", Value = "application/json" }
+                }
             );
 
             if (authResults.Error != null)
@@ -76,7 +92,13 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
             return authResults.Results;
         }
 
+
         public void ResolveAuthentication()
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task ResolveAuthenticationAsync()
         {
             throw new NotImplementedException();
         }

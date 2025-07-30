@@ -5,7 +5,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="bleak.Api.Rest" Version="2.2.16" />
+    <PackageReference Include="bleak.Api.Rest" Version="2.2.19" />
   </ItemGroup>
 
   <PropertyGroup>
