@@ -2,7 +2,6 @@ using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Models;
 using SfmcApp.Models;
-using SfmcApp.Pages;
 using Microsoft.Extensions.Logging;
 using SfmcApp.Pages.Assets;
 using SfmcApp.Pages.DataExtensions;

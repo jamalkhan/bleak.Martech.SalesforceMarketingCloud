@@ -1,11 +1,8 @@
 using System.Data;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
-using bleak.Martech.SalesforceMarketingCloud.Wsdl;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
 

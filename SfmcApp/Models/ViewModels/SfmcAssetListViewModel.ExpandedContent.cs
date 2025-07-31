@@ -1,19 +1,6 @@
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Globalization;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Windows.Input;
-using bleak.Api.Rest;
-using bleak.Martech.SalesforceMarketingCloud.Models;
-using bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
-using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
 using Microsoft.Extensions.Logging;
-using SfmcApp.Models;
-using SfmcApp.Models.ViewModels;
-using SfmcApp.Models.ViewModels.Converters;
 
 namespace SfmcApp.Models.ViewModels;
 

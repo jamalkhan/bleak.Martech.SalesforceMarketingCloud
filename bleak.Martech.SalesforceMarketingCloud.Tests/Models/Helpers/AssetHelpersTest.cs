@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
-using bleak.Martech.SalesforceMarketingCloud.Wsdl;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Tests.Models.Converters;

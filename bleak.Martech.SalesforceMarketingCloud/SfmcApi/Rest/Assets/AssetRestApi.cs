@@ -5,7 +5,6 @@ using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 using bleak.Martech.SalesforceMarketingCloud.Rest;
 using Microsoft.Extensions.Logging;
-using System.Text.RegularExpressions;
 using bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
