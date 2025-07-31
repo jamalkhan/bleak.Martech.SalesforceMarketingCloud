@@ -5,8 +5,10 @@ using System.Windows.Input;
 using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
 using Microsoft.Extensions.Logging;
+using SfmcApp.Models;
+using SfmcApp.Models.ViewModels;
 
-namespace SfmcApp.Models.ViewModels
+namespace SfmcApp.ViewModels
 {
     public partial class SfmcAssetListViewModel : INotifyPropertyChanged
     {

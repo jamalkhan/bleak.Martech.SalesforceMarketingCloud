@@ -1,8 +1,9 @@
 using System.Text.RegularExpressions;
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 using Microsoft.Extensions.Logging;
+using SfmcApp.Models.ViewModels;
 
-namespace SfmcApp.Models.ViewModels;
+namespace SfmcApp.ViewModels;
 
 public partial class SfmcAssetListViewModel
 {
