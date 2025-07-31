@@ -36,6 +36,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication
             }
             throw new InvalidOperationException("No valid authentication file found.");
         }
+        protected override async Task SaveTokenAsync(SfmcAuthToken token)
+        {
+            string json = _jsonSerializer.Serialize(token);
+            await File.WriteAllTextAsync(AuthFilePath, json);
+        }
 
         protected override void SaveToken(SfmcAuthToken token)
         {
