@@ -83,7 +83,7 @@ public static class AssetHelpers
     /// This method initializes <c>ContentExpanded</c> with the value of <c>Content</c> and iteratively replaces content blocks
     /// found within it. The process stops if no more content blocks are found or after 20 iterations.
     /// </remarks>
-    public static string GetExpandedContent(this AssetPoco asset, IAssetRestApi api)
+    public static async Task<string> GetExpandedContentAsync(this AssetPoco asset, IAssetRestApi api)
     {
         string content = string.Empty;
         if (!string.IsNullOrEmpty(asset.Content))
@@ -121,7 +121,7 @@ public static class AssetHelpers
             {
                 string pattern = subContentBlock.ContentRegex;
 
-                content = PerformRegexReplacement
+                content = await PerformRegexReplacementAsync
                 (
                     api: api,
                     subContentBlock: subContentBlock,
@@ -145,7 +145,7 @@ public static class AssetHelpers
     /// <param name="subContentBlock">The sub-content block to use for the replacement.</param>
     /// <param name="input">The input string to perform the replacement on.</param>
     /// <returns>The modified input string with the replacement applied, or the original input if no replacement was made.</returns>
-    public static string PerformRegexReplacement(
+    public static async Task<string> PerformRegexReplacementAsync(
         IAssetRestApi api,
         ContentBlock subContentBlock,
         string input
@@ -156,17 +156,17 @@ public static class AssetHelpers
         if (subContentBlock.Id != null)
         {
             Console.WriteLine($"Performing regex replacement for Id: {subContentBlock.Id.Value}");
-            subAsset = api.GetAsset(assetId: subContentBlock.Id.Value);
+            subAsset = await api.GetAssetAsync(assetId: subContentBlock.Id.Value);
         }
         else if (!string.IsNullOrEmpty(subContentBlock.Key))
         {
             Console.WriteLine($"Performing regex replacement for Key: {subContentBlock.Key}");
-            subAsset = api.GetAsset(customerKey: subContentBlock.Key);
+            subAsset = await api.GetAssetAsync(customerKey: subContentBlock.Key);
         }
         else if (!string.IsNullOrEmpty(subContentBlock.Name))
         {
             Console.WriteLine($"Performing regex replacement for Name: {subContentBlock.Name}");
-            subAsset = api.GetAsset(name: subContentBlock.Name);
+            subAsset = await api.GetAssetAsync(name: subContentBlock.Name);
         }
         if (subAsset == null)
         {
@@ -222,15 +222,6 @@ public static class AssetHelpers
     public const string RegexKeyStart = @"%%=\s*ContentBlockByKey\s*\(\s*""";
     public const string RegexKeyEnd = @"""\s*(?:,.*?)?\)\s*=%%";
     public const string RegexKeyCapture = "([^\\\"]+)";
-    //public const string RegexKeyCapture = @"([^""]+)";
-
-    /*
-        //public const string RegexNameStart = @"%%=\s*ContentBlockByName\s*\(\s*""";
-        public const string RegexNameStart = @"%%=\s*ContentBlockByName\s*\(\s*""";
-        public const string RegexNameEnd = @"""\s*(?:,.*?)?\)\s*=%%";
-        public const string RegexNameCapture = @"([^""]+)";
-        */
-    
     public const string RegexNameStart = @"%%=\s*ContentBlockByName\s*\(\s*""";
     public const string RegexNameEnd = @"""\s*(?:,.*?)?\)\s*=%%";
     public const string RegexNameCapture = @"([^""]+)";

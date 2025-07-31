@@ -14,7 +14,22 @@ public partial class SfmcInstanceMenuPage : ContentPage
 	public ILogger<SfmcInstanceMenuPage> _logger { get; private set; }
 	public IAuthRepository _authRepository { get; private set; }
 	public static JsonSerializer _serializer = new JsonSerializer();
-	public static RestManager _restManager = new RestManager(_serializer, _serializer);
+	public static IRestManager _restManager = new RestManager(_serializer, _serializer);
+	public static IRestManagerAsync _restManagerAsync
+	{
+		get
+		{
+			if (_restManager is IRestManagerAsync restManagerAsync)
+			{
+				return restManagerAsync;
+			}
+			else
+			{
+				throw new InvalidOperationException("RestManager does not implement IRestManagerAsync");
+			}
+		}
+	}
+	
 	public SfmcInstanceMenuPage(
 		SfmcConnection connection,
 		ILogger<SfmcInstanceMenuPage> logger
@@ -26,7 +41,9 @@ public partial class SfmcInstanceMenuPage : ContentPage
 			subdomain: connection.Subdomain,
 			clientId: connection.ClientId,
 			clientSecret: connection.ClientSecret,
-			memberId: connection.MemberId
+			memberId: connection.MemberId,
+			jsonSerializer: _serializer,
+			restManager: _restManagerAsync
 		);
 		BindingContext = connection;
 	}
@@ -52,5 +69,4 @@ public partial class SfmcInstanceMenuPage : ContentPage
 			}
 		}
 	}
-
 }

@@ -11,9 +11,10 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
         private DateTime _lastWriteTime = DateTime.Now;
 
         protected readonly JsonSerializer _jsonSerializer;
-        protected readonly RestManager _restManager;
+        protected readonly IRestManagerAsync _restManager;
+        protected readonly ILogger<MauiAuthRepository> _logger;
         
-        public string Subdomain {get; private set; }
+        public string Subdomain { get; private set; }
         public string ClientId {get; private set; }
         public string ClientSecret {get; private set; }
         public string MemberId {get; private set; }
@@ -104,23 +105,33 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
         }
 
         public MauiAuthRepository(SfmcConnection connection, ILogger<MauiAuthRepository> logger)
+        : this(
+            connection: connection,
+            logger: logger,
+            restManager: new RestManager(new JsonSerializer(), new JsonSerializer()))
         {
-            if (connection == null) throw new ArgumentNullException(nameof(connection));
-            Subdomain = connection.Subdomain;
-            ClientId = connection.ClientId;
-            ClientSecret = connection.ClientSecret;
-            MemberId = connection.MemberId;
-            _jsonSerializer = new JsonSerializer();
-            _restManager = new RestManager(_jsonSerializer, _jsonSerializer);
         }
-        public MauiAuthRepository(string subdomain, string clientId, string clientSecret, string memberId)
+
+        public MauiAuthRepository(SfmcConnection connection, ILogger<MauiAuthRepository> logger, IRestManagerAsync restManager)
+        : this(
+            subdomain: connection.Subdomain,
+            clientId: connection.ClientId,
+            clientSecret: connection.ClientSecret,
+            memberId: connection.MemberId,
+            jsonSerializer: new JsonSerializer(),
+            restManager: restManager)
+        {
+            if (logger == null) throw new ArgumentNullException(nameof(logger));
+            _logger = logger;
+        }
+        public MauiAuthRepository(string subdomain, string clientId, string clientSecret, string memberId, JsonSerializer jsonSerializer, IRestManagerAsync restManager)
         {
             Subdomain = subdomain;
             ClientId = clientId;
             ClientSecret = clientSecret;
             MemberId = memberId;
-            _jsonSerializer = new JsonSerializer();
-            _restManager = new RestManager(_jsonSerializer, _jsonSerializer);
+            _jsonSerializer = jsonSerializer ?? throw new ArgumentNullException(nameof(JsonSerializer));
+            _restManager = restManager ?? throw new ArgumentNullException(nameof(restManager));
         }
     }
 }

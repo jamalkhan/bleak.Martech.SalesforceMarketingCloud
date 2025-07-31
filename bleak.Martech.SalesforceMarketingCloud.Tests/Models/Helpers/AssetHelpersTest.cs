@@ -337,7 +337,7 @@ public class AssetHelpersTest
     }
 
     [TestMethod]
-    public void FillContentBlocksAsyncTest()
+    public async Task FillContentBlocksAsyncTest()
     {
         var asset_Key_eq_ABC111 = new AssetPoco()
         {
@@ -441,7 +441,7 @@ This is ID=4 Content #3
         var asset222 = api.GetAsset(null, "ABC-222", null);
         Assert.AreEqual("ABC-222", asset222.CustomerKey);
 
-        var expandedContent = asset_Key_eq_ABC111.GetExpandedContent(api);
+        var expandedContent = await asset_Key_eq_ABC111.GetExpandedContentAsync(api);
 
         Console.WriteLine("------------------");
         Console.WriteLine(expandedContent);
@@ -454,7 +454,7 @@ This is ID=4 Content #3
     }
 
     [TestMethod]
-    public void FillContentBlocksAsync_with_Html_Views_Content_Test()
+    public async Task FillContentBlocksAsync_with_Html_Views_Content_Test()
     {
         var asset_Key_eq_ABC111 = new AssetPoco()
         {
@@ -582,7 +582,7 @@ This is ID=4 Content #3
         var asset222 = api.GetAsset(null, "ABC-222", null);
         Assert.AreEqual("ABC-222", asset222.CustomerKey);
 
-        var expandedContent = asset_Key_eq_ABC111.GetExpandedContent(api);
+        var expandedContent = await asset_Key_eq_ABC111.GetExpandedContentAsync(api);
         Console.WriteLine("------------------");
         Console.WriteLine("FillContentBlocksAsync_with_Html_Views_Content_Test()");
         Console.WriteLine("------------------");
@@ -596,7 +596,7 @@ This is ID=4 Content #3
     }
 
     [TestMethod]
-    public void PerformRegexReplacementAsyncTest()
+    public async Task PerformRegexReplacementAsyncTest()
     {
         Console.WriteLine("preparing mock data...");
         var asset_Key_eq_ABC111 = new AssetPoco()
@@ -648,7 +648,7 @@ This is ABC-222 Content #2
         var api = mockApi.Object;
 
         Console.WriteLine("Before PerformRegexReplacement:");
-        var result = AssetHelpers.PerformRegexReplacement(
+        var result = await AssetHelpers.PerformRegexReplacementAsync(
             api,
             new ContentBlock
             {
@@ -665,7 +665,7 @@ This is ABC-222 Content #2
     }
 
     [TestMethod]
-    public void IntegrationTest()
+    public async Task IntegrationTest()
     {
         // Arrange
         var asset1 = new AssetPoco
@@ -803,7 +803,7 @@ IntegrationTest-Text-444
         Assert.IsNotNull(retrievedAsset1);
         Assert.AreEqual("IntegrationTest-Key-111", retrievedAsset1.CustomerKey);
 
-        var expandedContent = asset1.GetExpandedContent(api);
+        var expandedContent = await asset1.GetExpandedContentAsync(api);
         var contentBlocks = asset1.GetContentBlocks();
 
         /*

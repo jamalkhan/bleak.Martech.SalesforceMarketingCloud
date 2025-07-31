@@ -2,10 +2,12 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Windows.Input;
 using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.Models;
 using bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
+using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
 using Microsoft.Extensions.Logging;
 using SfmcApp.Models;
@@ -14,7 +16,7 @@ using SfmcApp.Models.ViewModels.Converters;
 
 namespace SfmcApp.Models.ViewModels
 {
-    public class SfmcAssetListViewModel : INotifyPropertyChanged
+    public partial class SfmcAssetListViewModel : INotifyPropertyChanged
     {
         private readonly ILogger<SfmcAssetListViewModel> _logger;
         private readonly IAssetFolderRestApi _folderApi;
@@ -264,7 +266,8 @@ namespace SfmcApp.Models.ViewModels
 
             if (ExpandAmpscript)
             {
-                var expandedContent = asset.GetExpandedContent(_assetApi);
+                var expandedContent = await GetExpandedContentAsync(asset);
+                //var expandedContent = await asset.GetExpandedContentAsync();
                 _logger.LogInformation($"Expanding Ampscript for asset: {asset.Name}");
 
                 // Write the expanded content to a file
@@ -293,6 +296,11 @@ namespace SfmcApp.Models.ViewModels
             }
             
         }
+
+        
+
+
+
         private async Task DownloadBinaryAsync(AssetViewModel asset)
         {
             JsonSerializer serializer = new JsonSerializer();
@@ -323,9 +331,6 @@ namespace SfmcApp.Models.ViewModels
                 }
             }
         }
-        
-
-
 
 
         // Common SetProperty helper
