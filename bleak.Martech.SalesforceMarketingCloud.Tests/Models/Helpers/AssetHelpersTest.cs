@@ -688,6 +688,11 @@ This is IntegrationTest-111 Referencing Content #333
 This is IntegrationTest-111 Referencing Content #444
 %%=ContentBlockByKey(""IntegrationTest-Key-444"")=%%
 
+This is IntegrationTest-111 Referencing Content #555
+
+555 DOES NOT EXIST. THIS SHOULD RETAIN IT'S ORIGINAL VALUE, NOT BEING REPLACED
+%%=ContentBlockByKey(""IntegrationTest-Key-555"")=%%
+
 ----------- END CustomerKey = IntegrationTest-111 -----------"
                 }
             }
@@ -819,10 +824,6 @@ IntegrationTest-Text-444
 
         Assert.IsTrue(expandedContent.Contains("IntegrationTest-Text-333"));
         Assert.IsTrue(expandedContent.Contains("IntegrationTest-Text-444"));
-
+        Assert.IsTrue(expandedContent.Contains(@"%%=ContentBlockByKey(""IntegrationTest-Key-555"")=%%"));
     }
-    
-
-
-    
 }
