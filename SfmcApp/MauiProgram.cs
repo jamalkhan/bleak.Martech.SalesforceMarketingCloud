@@ -8,6 +8,8 @@ using SfmcApp.Pages.Assets;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using SfmcApp.Models;
 using SfmcApp.ViewModels;
+using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions;
+using SfmcApp.Pages.DataExtensions;
 
 namespace SfmcApp;
 
@@ -44,14 +46,25 @@ public static class MauiProgram
 		// Asset View Model
 		builder.Services.AddTransient<SfmcAssetListViewModel>();
 
+		builder.Services.AddSingleton<SfmcConnectionConfiguration>();
+
+		// APIs
 
 		// Asset Folder API
 		builder.Services.AddTransient<AssetFolderRestApi>();
 		builder.Services.AddTransient<IAssetFolderRestApi, AssetFolderRestApi>();
 
-		// Asset  API
+		// Asset API
 		builder.Services.AddTransient<AssetRestApi>();
 		builder.Services.AddTransient<IAssetRestApi, AssetRestApi>();
+
+		// Data Extension Folder API
+		builder.Services.AddTransient<DataExtensionFolderRestApi>();
+		builder.Services.AddTransient<IDataExtensionFolderRestApi, DataExtensionFolderRestApi>();
+
+		// Data Extension API
+		builder.Services.AddTransient<DataExtensionRestApi>();
+		builder.Services.AddTransient<IDataExtensionRestApi, DataExtensionRestApi>();
 
 		// Pages
 		builder.Services.AddTransient<MainPage>();
@@ -67,6 +80,8 @@ public static class MauiProgram
 			return new SfmcInstanceMenuPage(connection, logger);
 		});
 
+
+		// SfmcAssetListPage
 		builder.Services.AddTransient<Func<SfmcConnection, SfmcAssetListPage>>
 		(
 			sp => connection =>
@@ -80,12 +95,12 @@ public static class MauiProgram
 				var sfmcConnectionConfiguration = new SfmcConnectionConfiguration();
 				var folderApi = new AssetFolderRestApi(
 					authRepository: authRepository,
-					config: sfmcConnectionConfiguration,
+					sfmcConnectionConfiguration: sfmcConnectionConfiguration,
 					logger: folderApiLogger
 				);
 				var objectApi = new AssetRestApi(
 					authRepository: authRepository,
-					config: sfmcConnectionConfiguration,
+					sfmcConnectionConfiguration: sfmcConnectionConfiguration,
 					logger: objectApiLogger
 				);
 				return new SfmcAssetListPage(
@@ -97,8 +112,39 @@ public static class MauiProgram
 			}
 		);
 		
-		builder.Services.AddSingleton<SfmcConnectionConfiguration>();
-		builder.Services.AddTransient<AssetFolderRestApi>();
+		/*
+		// SfmcDataExtensionListPage
+		builder.Services.AddTransient<Func<SfmcConnection, SfmcDataExtensionListPage>>
+		(
+			sp => connection =>
+			{
+				var viewModelLogger = sp.GetRequiredService<ILogger<SfmcDataExtensionListViewModel>>();
+				var pageLogger = sp.GetRequiredService<ILogger<SfmcDataExtensionListPage>>();
+				var folderApiLogger = sp.GetRequiredService<ILogger<DataExtensionFolderRestApi>>();
+				var objectApiLogger = sp.GetRequiredService<ILogger<DataExtensionRestApi>>();
+				var authRepoFactory = sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>();
+				var authRepository = authRepoFactory(connection);
+				var sfmcConnectionConfiguration = new SfmcConnectionConfiguration();
+				var folderApi = new DataExtensionFolderRestApi(
+					authRepository: authRepository,
+					sfmcConnectionConfiguration: sfmcConnectionConfiguration,
+					logger: folderApiLogger
+				);
+				var objectApi = new DataExtensionRestApi(
+					authRepository: authRepository,
+					sfmcConnectionConfiguration: sfmcConnectionConfiguration,
+					logger: objectApiLogger
+				);
+				return new SfmcDataExtensionListPage(
+					sfmcConnection: connection,
+					logger: viewModelLogger,
+					folderApi: folderApi,
+					objectApi: objectApi
+					);
+			}
+		);
+		*/
+		
 
 
 #if DEBUG

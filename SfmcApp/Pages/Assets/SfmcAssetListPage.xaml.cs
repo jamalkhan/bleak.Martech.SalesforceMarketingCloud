@@ -12,7 +12,7 @@ using UniformTypeIdentifiers;*/
 
 namespace SfmcApp.Pages.Assets
 {
-   public partial class SfmcAssetListPage : ContentPage
+    public partial class SfmcAssetListPage : ContentPage
     {
         private readonly SfmcAssetListViewModel _viewModel;
 
@@ -22,12 +22,26 @@ namespace SfmcApp.Pages.Assets
             IAssetFolderRestApi folderApi,
             IAssetRestApi objectApi)
         {
+            if (sfmcConnection == null) throw new ArgumentNullException(nameof(sfmcConnection));
+
             InitializeComponent();
-
+            logger.LogInformation("SfmcAssetListPage initialized with connection: {ConnectionName}", sfmcConnection.Name ?? "Unknown");
             _viewModel = new SfmcAssetListViewModel(sfmcConnection, logger, folderApi, objectApi);
+            logger.LogInformation("SfmcAssetListPage initialized with connection: {ConnectionName}", sfmcConnection.Name ?? "Unknown");
             BindingContext = _viewModel;
-
+            logger.LogInformation("SfmcAssetListPage BindingContext set to SfmcAssetListViewModel");
             SearchBarText.SearchButtonPressed += (s, e) => _viewModel.SearchCommand.Execute(null);
         }
+        
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+
+            if (BindingContext is SfmcAssetListViewModel vm)
+            {
+                await vm.InitializeAsync();
+            }
+        }
+
     }
 }

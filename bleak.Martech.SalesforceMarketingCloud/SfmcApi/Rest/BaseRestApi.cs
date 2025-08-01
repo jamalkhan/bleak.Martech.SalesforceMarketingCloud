@@ -7,7 +7,6 @@ namespace bleak.Martech.SalesforceMarketingCloud.Rest
     public class BaseRestApi
     {
         protected readonly IRestManagerAsync _restManagerAsync;
-        protected readonly IRestManager _restManager;
         protected readonly IAuthRepository _authRepository;
         protected readonly SfmcConnectionConfiguration _sfmcConnectionConfiguration;
 
@@ -20,15 +19,13 @@ namespace bleak.Martech.SalesforceMarketingCloud.Rest
 
 
         public BaseRestApi(
-            IRestManager restManager,
             IRestManagerAsync restManagerAsync,
             IAuthRepository authRepository,
-            SfmcConnectionConfiguration config)
+            SfmcConnectionConfiguration sfmcConnectionConfiguration)
         {
-            _restManager = restManager;
             _restManagerAsync = restManagerAsync;
             _authRepository = authRepository;
-            _sfmcConnectionConfiguration = config;
+            _sfmcConnectionConfiguration = sfmcConnectionConfiguration;
         }
 
         protected void SetAuthHeader()

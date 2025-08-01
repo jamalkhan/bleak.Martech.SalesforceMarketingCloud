@@ -125,17 +125,17 @@ public partial class SfmcAssetListViewModel
         if (subContentBlock.Id != null)
         {
             _logger.LogInformation($"Performing regex replacement for Id: {subContentBlock.Id.Value}");
-            subAsset = await _assetApi.GetAssetAsync(assetId: subContentBlock.Id.Value);
+            subAsset = await _objectApi.GetAssetAsync(assetId: subContentBlock.Id.Value);
         }
         else if (!string.IsNullOrEmpty(subContentBlock.Key))
         {
             _logger.LogInformation($"Performing regex replacement for Key: {subContentBlock.Key}");
-            subAsset = await _assetApi.GetAssetAsync(customerKey: subContentBlock.Key);
+            subAsset = await _objectApi.GetAssetAsync(customerKey: subContentBlock.Key);
         }
         else if (!string.IsNullOrEmpty(subContentBlock.Name))
         {
             _logger.LogInformation($"Performing regex replacement for Name: {subContentBlock.Name}");
-            subAsset = await _assetApi.GetAssetAsync(name: subContentBlock.Name);
+            subAsset = await _objectApi.GetAssetAsync(name: subContentBlock.Name);
         }
         if (subAsset == null)
         {

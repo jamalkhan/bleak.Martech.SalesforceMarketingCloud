@@ -5,6 +5,7 @@ using bleak.Martech.SalesforceMarketingCloud.Models;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Rest;
 using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
 {
@@ -18,21 +19,21 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
 
         public AssetFolderRestApi(
             IAuthRepository authRepository,
-            SfmcConnectionConfiguration config,
+            SfmcConnectionConfiguration sfmcConnectionConfiguration,
             ILogger<AssetFolderRestApi> logger
             )
             : base(
                 restManager: new RestManager(new JsonSerializer(), new JsonSerializer()),
                 restManagerAsync: new RestManager(new JsonSerializer(), new JsonSerializer()),
                 authRepository: authRepository,
-                config: config
+                sfmcConnectionConfiguration: sfmcConnectionConfiguration
             )
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            if (config == null) config = new SfmcConnectionConfiguration();
-            if (config.PageSize > 500)
+            if (sfmcConnectionConfiguration == null) sfmcConnectionConfiguration = new SfmcConnectionConfiguration();
+            if (sfmcConnectionConfiguration.PageSize > 500)
             {
-                _logger.LogWarning($"PageSize is set to {config.PageSize}, which exceeds the maximum allowed value of 500. Setting PageSize to 500.");
+                _logger.LogWarning($"PageSize is set to {sfmcConnectionConfiguration.PageSize}, which exceeds the maximum allowed value of 500. Setting PageSize to 500.");
                 base._sfmcConnectionConfiguration.PageSize = 500; // Set a reasonable default max page size
             }
         }
@@ -41,30 +42,26 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
         public async Task<List<FolderObject>> GetFolderTreeAsync()
         {
             _logger.LogTrace("GetFolderTreeAsync called");
-            return await Task.Run(() => GetFolderTree());
-        }
 
-        public List<FolderObject> GetFolderTree()
-        {
-            _logger.LogTrace("GetFolderTree() invoked");
             int page = 1;
             int currentPageSize = 0;
 
             var sfmcFolders = new List<SfmcFolder>();
             do
             {
-                _logger.LogTrace($"Executing GetFolderTree() page: {page}");
-                currentPageSize = LoadFolder(page, sfmcFolders);
+                _logger.LogTrace($"Executing GetFolderTreeAsync page: {page}");
+                currentPageSize = await LoadFolderAsync(page, sfmcFolders);
                 page++;
-                _logger.LogTrace($"LoadFolder() returned currentPageSize: {currentPageSize} and moving onto page {page}.");
+                _logger.LogTrace($"LoadFolderAsync returned currentPageSize: {currentPageSize} and moving onto page {page}.");
             }
             while (_sfmcConnectionConfiguration.PageSize == currentPageSize);
 
-            _logger.LogInformation($"LoadFolder() loaded {sfmcFolders.Count()} Folders");
+            _logger.LogInformation($"LoadFolderAsync loaded {sfmcFolders.Count} Folders");
             if (sfmcFolders.Any())
             {
                 return BuildFolderTree(sfmcFolders);
             }
+
             _logger.LogError("Error Loading Folders");
             throw new Exception("Error Loading Folders");
         }
@@ -117,7 +114,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
             }
         }
 
-        private int LoadFolder(int page, List<SfmcFolder> sfmcFolders)
+        private async Task<int> LoadFolderAsync(int page, List<SfmcFolder> sfmcFolders)
         {
             int currentPageSize;
             try
@@ -126,11 +123,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
                 //asset/v1/content/categories
                 string url = $"https://{_authRepository.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/categories/?$page={page}&$pagesize={_sfmcConnectionConfiguration.PageSize}";
                 _logger.LogTrace($"Loading Folder Page #{page} with URL: {url}");
-                results = ExecuteRestMethodWithRetry(
-                    loadFolderApiCall: LoadFolderApiCall,
+                results = await ExecuteRestMethodWithRetryAsync(
+                    loadFolderApiCallAsync: LoadFolderApiCallAsync,
                     url: url,
                     authenticationError: "401",
-                    resolveAuthentication: _authRepository.ResolveAuthentication
+                    resolveAuthenticationAsync: _authRepository.ResolveAuthenticationAsync
                 );
 
                 _logger.LogTrace($"results.Value = {results?.Results}");
@@ -154,30 +151,28 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
             return currentPageSize;
         }
 
-        private RestResults<SfmcRestWrapper<SfmcFolder>, string> LoadFolderApiCall(
-            string url
-        )
+        private async Task<RestResults<SfmcRestWrapper<SfmcFolder>, string>> LoadFolderApiCallAsync(string url)
         {
             _logger.LogTrace($"Attempting to {verb} to {url} with accessToken: {_authRepository.Token.access_token}");
 
             SetAuthHeader();
-            var results = _restManager.ExecuteRestMethod<SfmcRestWrapper<SfmcFolder>, string>(
+            var results = await _restManagerAsync.ExecuteRestMethodAsync<SfmcRestWrapper<SfmcFolder>, string>(
                 uri: new Uri(url),
                 verb: verb,
                 headers: _headers
-                );
+            );
 
             return results!;
         }
 
-        private RestResults<SfmcRestWrapper<SfmcFolder>, string> ExecuteRestMethodWithRetry(
-            Func<string, RestResults<SfmcRestWrapper<SfmcFolder>, string>> loadFolderApiCall,
+        private async Task<RestResults<SfmcRestWrapper<SfmcFolder>, string>> ExecuteRestMethodWithRetryAsync(
+            Func<string, Task<RestResults<SfmcRestWrapper<SfmcFolder>, string>>> loadFolderApiCallAsync,
             string url,
             string authenticationError,
-            Action resolveAuthentication
+            Func<Task> resolveAuthenticationAsync
             )
         {
-            var results = loadFolderApiCall(url);
+            var results = await loadFolderApiCallAsync(url);
 
             // Check if an error occurred and it matches the specified errorText
             if (results != null && results.UnhandledError != null && results.UnhandledError.Contains(authenticationError))
@@ -185,11 +180,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
                 _logger.LogTrace($"Unauthenticated: {results.UnhandledError}");
 
                 // Resolve authentication
-                resolveAuthentication();
+                await resolveAuthenticationAsync();
                 _logger.LogTrace("Authentication Header has been reset");
 
                 // Retry the REST method
-                results = loadFolderApiCall(url);
+                results = await loadFolderApiCallAsync(url);
             }
 
             return results!;

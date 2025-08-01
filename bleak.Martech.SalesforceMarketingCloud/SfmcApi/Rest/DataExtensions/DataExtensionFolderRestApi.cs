@@ -4,6 +4,7 @@ using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.Models;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Rest;
+using Microsoft.Extensions.Logging;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions
 {
@@ -11,24 +12,27 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions
     public class DataExtensionFolderRestApi : BaseRestApi, IDataExtensionFolderRestApi
     {
         private HttpVerbs verb = HttpVerbs.GET;
+        private readonly ILogger<DataExtensionFolderRestApi> _logger;
 
         public DataExtensionFolderRestApi(
-            RestManager restManager,
-            IAuthRepository authRepository)
-            : this(restManager, authRepository, new SfmcConnectionConfiguration())
-        {
-        }
-        public DataExtensionFolderRestApi(
-            RestManager restManager,
             IAuthRepository authRepository,
-            SfmcConnectionConfiguration sfmcConnectionConfiguration)
-            : base(
-                restManager: new RestManager(new JsonSerializer(), new JsonSerializer()),
+            SfmcConnectionConfiguration sfmcConnectionConfiguration,
+            ILogger<DataExtensionFolderRestApi> logger
+            )
+            : base
+            (
                 restManagerAsync: new RestManager(new JsonSerializer(), new JsonSerializer()),
                 authRepository: authRepository,
-                config: sfmcConnectionConfiguration
+                sfmcConnectionConfiguration: sfmcConnectionConfiguration
             )
         {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            if (sfmcConnectionConfiguration == null) sfmcConnectionConfiguration = new SfmcConnectionConfiguration();
+            if (sfmcConnectionConfiguration.PageSize > 500)
+            {
+                _logger.LogWarning($"PageSize is set to {sfmcConnectionConfiguration.PageSize}, which exceeds the maximum allowed value of 500. Setting PageSize to 500.");
+                base._sfmcConnectionConfiguration.PageSize = 500; // Set a reasonable default max page size
+            }
         }
 
         public async Task<List<FolderObject>> GetFolderTreeAsync()

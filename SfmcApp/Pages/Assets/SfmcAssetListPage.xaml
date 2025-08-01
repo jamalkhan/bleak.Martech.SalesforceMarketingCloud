@@ -189,7 +189,7 @@
             >
             <CollectionView
                 ItemsSource="{Binding Assets}"
-                IsVisible="{Binding IsAssetsLoaded}"
+                IsVisible="{Binding IsObjectsLoaded}"
                 >
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout Orientation="Vertical" ItemSpacing="20" />
