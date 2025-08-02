@@ -10,9 +10,9 @@ using SfmcApp.Models.ViewModels;
 namespace SfmcApp.ViewModels
 {
     public partial class SfmcAssetListViewModel
-        : BaseListViewModel, INotifyPropertyChanged
+        : BaseListViewModel<SfmcAssetListViewModel>, INotifyPropertyChanged
     {
-        private readonly ILogger<SfmcAssetListViewModel> _logger;
+        
         private readonly IAssetFolderRestApi _folderApi;
         private readonly IAssetRestApi _assetApi;
         private readonly SfmcConnection _sfmcConnection;
@@ -105,11 +105,10 @@ namespace SfmcApp.ViewModels
             ILogger<SfmcAssetListViewModel> logger,
             IAssetFolderRestApi folderApi,
             IAssetRestApi assetApi
-            
             )
+            : base(logger)
         {
             _sfmcConnection = sfmcConnection;
-            _logger = logger;
             _folderApi = folderApi;
             _assetApi = assetApi;
             _downloadDirectory = Path.Combine(FileSystem.AppDataDirectory, "Downloads", "Assets", sfmcConnection.DirectoryName);
