@@ -1,70 +1,9 @@
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
 using Microsoft.Extensions.Logging;
 using SfmcApp.Models;
 using SfmcApp.Models.ViewModels;
-using SfmcApp.ViewModels;
 
 namespace SfmcApp.ViewModels;
-
-public abstract class BaseViewModel<T>
-{
-    #region INotifyPropertyChanged implementation
-    public event PropertyChangedEventHandler? PropertyChanged;
-    public bool SetProperty<T>(ref T backingStore, T value, [CallerMemberName] string propertyName = "")
-    {
-        if (EqualityComparer<T>.Default.Equals(backingStore, value))
-            return false;
-
-        backingStore = value;
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        return true;
-    }
-    #endregion INotifyPropertyChanged
-
-
-
-    #region Logger
-    protected readonly ILogger<T> _logger;
-    #endregion Logger
-
-    public BaseViewModel(ILogger<T> logger)
-    {
-        _logger = logger;
-    }
-}
-
-public abstract class BaseSfmcViewModel<T> : BaseViewModel<T>
-{
-    public string ConnectionName => _sfmcConnection.Name;
-    public string Title => $"Asset Navigator: Connected to {_sfmcConnection.Name}";
-
-    private string _downloadDirectory;
-    public string DownloadDirectory
-    {
-        get => _downloadDirectory;
-        set => SetProperty(ref _downloadDirectory, value);
-    }
-
-    public BaseSfmcViewModel
-    (
-        ILogger<T> logger,
-        SfmcConnection sfmcConnection,
-        string resourceType
-    )
-        : base
-        (
-            logger: logger
-        )
-    {
-        _downloadDirectory = Path.Combine(FileSystem.AppDataDirectory, "Downloads", sfmcConnection.DirectoryName, resourceType);
-        _sfmcConnection = sfmcConnection;
-    }
-
-    protected readonly SfmcConnection _sfmcConnection;
-}
 
 public abstract class BaseSfmcFolderAndListViewModel
     <T, TFolderViewModel, TFolderApi, TAssetViewModel, TAssetApi>
