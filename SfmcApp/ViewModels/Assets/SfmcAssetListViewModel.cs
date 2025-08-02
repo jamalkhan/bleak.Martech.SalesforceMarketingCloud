@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
@@ -10,7 +9,8 @@ using SfmcApp.Models.ViewModels;
 
 namespace SfmcApp.ViewModels
 {
-    public partial class SfmcAssetListViewModel : INotifyPropertyChanged
+    public partial class SfmcAssetListViewModel
+        : BaseListViewModel, INotifyPropertyChanged
     {
         private readonly ILogger<SfmcAssetListViewModel> _logger;
         private readonly IAssetFolderRestApi _folderApi;
@@ -328,15 +328,6 @@ namespace SfmcApp.ViewModels
 
 
         // Common SetProperty helper
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected bool SetProperty<T>(ref T backingStore, T value, [CallerMemberName] string propertyName = "")
-        {
-            if (EqualityComparer<T>.Default.Equals(backingStore, value))
-                return false;
-
-            backingStore = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            return true;
-        }
+        
     }
 }
