@@ -2,11 +2,12 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using SfmcApp.Models;
+using SfmcApp.Models.ViewModels;
 using SfmcApp.ViewModels;
 
 namespace SfmcApp.ViewModels;
 
-public class BaseViewModel<T>
+public abstract class BaseViewModel<T>
 {
     #region INotifyPropertyChanged implementation
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -33,14 +34,21 @@ public class BaseViewModel<T>
     }
 }
 
-public class BaseSfmcViewModel<T> : BaseViewModel<T>
+public abstract class BaseSfmcViewModel<T> : BaseViewModel<T>
 {
     public string ConnectionName => _sfmcConnection.Name;
     public string Title => $"Asset Navigator: Connected to {_sfmcConnection.Name}";
 
 
-    public BaseSfmcViewModel(ILogger<T> logger, SfmcConnection sfmcConnection)
-        : base(logger)
+    public BaseSfmcViewModel
+    (
+        ILogger<T> logger,
+        SfmcConnection sfmcConnection
+    )
+        : base
+        (
+            logger: logger
+        )
     {
         _sfmcConnection = sfmcConnection;
     }
@@ -48,10 +56,41 @@ public class BaseSfmcViewModel<T> : BaseViewModel<T>
     protected readonly SfmcConnection _sfmcConnection;
 }
 
-public class BaseSfmcFolderAndListViewModel<T> : BaseSfmcViewModel<T>
+public abstract class BaseSfmcFolderAndListViewModel<T> : BaseSfmcViewModel<T>
 {
-    public BaseSfmcFolderAndListViewModel(ILogger<T> logger, SfmcConnection sfmcConnection)
-        : base(logger: logger, sfmcConnection: sfmcConnection)
+    public BaseSfmcFolderAndListViewModel
+    (
+        ILogger<T> logger,
+        SfmcConnection sfmcConnection
+    )
+        : base
+        (
+            logger: logger,
+            sfmcConnection: sfmcConnection
+        )
     {
     }
+
+    private string _selectedFolderName = string.Empty;
+    public string SelectedFolderName
+    {
+        get => _selectedFolderName;
+        set => SetProperty(ref _selectedFolderName, value);
+    }
+
+    private FolderViewModel? _selectedFolder;
+    public FolderViewModel? SelectedFolder
+    {
+        get => _selectedFolder;
+        set
+        {
+            if (SetProperty(ref _selectedFolder, value))
+            {
+                SelectedFolderName = value?.Name ?? string.Empty;
+                LoadAssetForSelectedFolderAsync();
+            }
+        }
+    }
+
+    public abstract Task LoadAssetForSelectedFolderAsync();
 }

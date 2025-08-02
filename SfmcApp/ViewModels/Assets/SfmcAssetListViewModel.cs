@@ -32,9 +32,6 @@ namespace SfmcApp.ViewModels
             set => SetProperty(ref _isFoldersLoaded, value);
         }
 
-        public string ConnectionName => _sfmcConnection.Name;
-        public string Title => $"Asset Navigator: Connected to {_sfmcConnection.Name}";
-
         private bool _isAssetsLoading;
         public bool IsAssetsLoading
         {
@@ -62,26 +59,8 @@ namespace SfmcApp.ViewModels
             set => SetProperty(ref _downloadDirectory, value);
         }
 
-        private string _selectedFolderName = string.Empty;
-        public string SelectedFolderName
-        {
-            get => _selectedFolderName;
-            set => SetProperty(ref _selectedFolderName, value);
-        }
+        
 
-        private FolderViewModel? _selectedFolder;
-        public FolderViewModel? SelectedFolder
-        {
-            get => _selectedFolder;
-            set
-            {
-                if (SetProperty(ref _selectedFolder, value))
-                {
-                    SelectedFolderName = value?.Name ?? string.Empty;   
-                    LoadAssetForSelectedFolderAsync();
-                }
-            }
-        }
 
         public ICommand FolderTappedCommand { get; }
         public ICommand SearchCommand { get; }
@@ -172,16 +151,23 @@ namespace SfmcApp.ViewModels
             }
         }
 
-        private async void LoadAssetForSelectedFolderAsync()
+
+        public override async Task LoadAssetForSelectedFolderAsync()
         {
-            if (_selectedFolder == null) return;
+            /*
+            throw new NotImplementedException();
+        }
+        public override async void LoadAssetForSelectedFolderAsync2()
+        {
+            */
+            if (SelectedFolder == null) return;
 
             try
             {
                 IsAssetsLoaded = false;
                 IsAssetsLoading = true;
                 Assets.Clear();
-                var assets = await _assetApi.GetAssetsAsync(_selectedFolder.Id);
+                var assets = await _assetApi.GetAssetsAsync(SelectedFolder.Id);
                 foreach (var asset in assets.ToViewModel())
                 {
                     try
