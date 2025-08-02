@@ -56,7 +56,11 @@ public abstract class BaseSfmcViewModel<T> : BaseViewModel<T>
     protected readonly SfmcConnection _sfmcConnection;
 }
 
-public abstract class BaseSfmcFolderAndListViewModel<T> : BaseSfmcViewModel<T>
+public abstract class BaseSfmcFolderAndListViewModel
+    <T, TFolderViewModel>
+    :
+    BaseSfmcViewModel<T>
+    where TFolderViewModel : IFolder
 {
     public BaseSfmcFolderAndListViewModel
     (
@@ -78,8 +82,8 @@ public abstract class BaseSfmcFolderAndListViewModel<T> : BaseSfmcViewModel<T>
         set => SetProperty(ref _selectedFolderName, value);
     }
 
-    private FolderViewModel? _selectedFolder;
-    public FolderViewModel? SelectedFolder
+    private TFolderViewModel? _selectedFolder;
+    public TFolderViewModel? SelectedFolder
     {
         get => _selectedFolder;
         set

@@ -10,7 +10,7 @@ using SfmcApp.Models.ViewModels;
 namespace SfmcApp.ViewModels
 {
     public partial class SfmcAssetListViewModel
-        : BaseSfmcFolderAndListViewModel<SfmcAssetListViewModel>, INotifyPropertyChanged
+        : BaseSfmcFolderAndListViewModel<SfmcAssetListViewModel, FolderViewModel>, INotifyPropertyChanged
     {
         private readonly IAssetFolderRestApi _folderApi;
         private readonly IAssetRestApi _assetApi;
@@ -77,13 +77,18 @@ namespace SfmcApp.ViewModels
             set => SetProperty(ref _selectedSearchOption, value);
         }
 
-        public SfmcAssetListViewModel(
+        public SfmcAssetListViewModel
+        (
             SfmcConnection sfmcConnection,
             ILogger<SfmcAssetListViewModel> logger,
             IAssetFolderRestApi folderApi,
             IAssetRestApi assetApi
+        )
+            : base
+            (
+                logger: logger,
+                sfmcConnection: sfmcConnection
             )
-            : base(logger: logger, sfmcConnection: sfmcConnection)
         {
             _folderApi = folderApi;
             _assetApi = assetApi;
@@ -154,12 +159,6 @@ namespace SfmcApp.ViewModels
 
         public override async Task LoadAssetForSelectedFolderAsync()
         {
-            /*
-            throw new NotImplementedException();
-        }
-        public override async void LoadAssetForSelectedFolderAsync2()
-        {
-            */
             if (SelectedFolder == null) return;
 
             try

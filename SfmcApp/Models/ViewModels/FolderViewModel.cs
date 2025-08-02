@@ -2,7 +2,13 @@
 
 namespace SfmcApp.Models.ViewModels
 {
-    public class FolderViewModel
+    public interface IFolder
+    {
+        int Id { get; set; }
+        string Name { get; set; }
+    }
+
+    public class FolderViewModel : IFolder
     {
         public int Id { get; set; }
         public string Description { get; set; } = string.Empty;
