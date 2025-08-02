@@ -2,6 +2,7 @@ using bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
+using bleak.Martech.SalesforceMarketingCloud.Api;
 using Moq;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Tests.Models.Converters;

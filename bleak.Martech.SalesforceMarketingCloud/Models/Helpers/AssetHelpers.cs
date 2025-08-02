@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
+using bleak.Martech.SalesforceMarketingCloud.Api;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
 

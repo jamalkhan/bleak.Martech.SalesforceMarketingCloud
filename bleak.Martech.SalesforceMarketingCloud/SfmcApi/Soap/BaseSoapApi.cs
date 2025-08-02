@@ -24,11 +24,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
         
         protected List<Header> BuildHeaders()
         {
-            var headers = new List<Api.Rest.Header>();
-            headers.Add(new Api.Rest.Header() { Name = "Content-Type", Value = "text/xml" });
-            headers.Add(new Api.Rest.Header() { Name = "Accept", Value = "/" });
-            headers.Add(new Api.Rest.Header() { Name = "Cache-Control", Value = "no-cache" });
-            headers.Add(new Api.Rest.Header() { Name = "Host", Value = $"{_authRepository.Subdomain}.soap.marketingcloudapis.com" });
+            var headers = new List<Header>();
+            headers.Add(new Header() { Name = "Content-Type", Value = "text/xml" });
+            headers.Add(new Header() { Name = "Accept", Value = "/" });
+            headers.Add(new Header() { Name = "Cache-Control", Value = "no-cache" });
+            headers.Add(new Header() { Name = "Host", Value = $"{_authRepository.Subdomain}.soap.marketingcloudapis.com" });
             return headers;
         }
     }

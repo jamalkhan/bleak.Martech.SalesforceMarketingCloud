@@ -8,6 +8,7 @@ using SfmcApp.Pages.Assets;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using SfmcApp.Models;
 using SfmcApp.ViewModels;
+using bleak.Martech.SalesforceMarketingCloud.Api;
 
 namespace SfmcApp;
 

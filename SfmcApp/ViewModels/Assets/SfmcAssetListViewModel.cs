@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
 using bleak.Api.Rest;
+using bleak.Martech.SalesforceMarketingCloud.Api;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
 using Microsoft.Extensions.Logging;
 using SfmcApp.Models;
