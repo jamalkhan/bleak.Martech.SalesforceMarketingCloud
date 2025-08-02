@@ -40,7 +40,7 @@ public abstract class BaseSfmcViewModel<T> : BaseViewModel<T>
 {
     public string ConnectionName => _sfmcConnection.Name;
     public string Title => $"Asset Navigator: Connected to {_sfmcConnection.Name}";
-
+    
     private string _downloadDirectory;
     public string DownloadDirectory
     {

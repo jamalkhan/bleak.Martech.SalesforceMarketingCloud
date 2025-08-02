@@ -63,7 +63,6 @@ namespace SfmcApp.ViewModels
         public ICommand SearchCommand { get; }
         public ICommand OpenDownloadDirectoryCommand { get; }
 
-
         public ObservableCollection<StringSearchOptions> SearchOptions { get; } =
             new(Enum.GetValues(typeof(StringSearchOptions)).Cast<StringSearchOptions>());
 
