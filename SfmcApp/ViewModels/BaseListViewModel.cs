@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
+using SfmcApp.Models;
 using SfmcApp.ViewModels;
 
 namespace SfmcApp.ViewModels;
@@ -32,12 +33,21 @@ public class BaseViewModel<T>
     }
 }
 
-public class BaseFolderAndListViewModel<T> : BaseViewModel<T>
+public class BaseSfmcViewModel<T> : BaseViewModel<T>
 {
-    public BaseFolderAndListViewModel(ILogger<T> logger)
+    public BaseSfmcViewModel(ILogger<T> logger, SfmcConnection sfmcConnection)
         : base(logger)
     {
+        _sfmcConnection = sfmcConnection;
     }
 
-    
+    protected readonly SfmcConnection _sfmcConnection;
+}
+
+public class BaseSfmcFolderAndListViewModel<T> : BaseSfmcViewModel<T>
+{
+    public BaseSfmcFolderAndListViewModel(ILogger<T> logger, SfmcConnection sfmcConnection)
+        : base(logger: logger, sfmcConnection: sfmcConnection)
+    {
+    }
 }
