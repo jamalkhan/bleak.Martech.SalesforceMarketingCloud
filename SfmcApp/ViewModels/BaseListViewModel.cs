@@ -35,6 +35,10 @@ public class BaseViewModel<T>
 
 public class BaseSfmcViewModel<T> : BaseViewModel<T>
 {
+    public string ConnectionName => _sfmcConnection.Name;
+    public string Title => $"Asset Navigator: Connected to {_sfmcConnection.Name}";
+
+
     public BaseSfmcViewModel(ILogger<T> logger, SfmcConnection sfmcConnection)
         : base(logger)
     {
