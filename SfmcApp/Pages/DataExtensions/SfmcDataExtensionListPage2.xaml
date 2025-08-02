@@ -46,14 +46,14 @@
             VerticalOptions="Center">
 
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />  <!-- Row 0: Search -->
-                <RowDefinition Height="Auto" />  <!-- Row 1: Folders/DataExtensions labels -->
-                <RowDefinition Height="Auto" />  <!-- Row 2: DownloadDirectory -->
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <!-- Row 0 -->
             <HorizontalStackLayout Grid.Row="0" Spacing="10" VerticalOptions="Center">
                 <SearchBar
-                    Placeholder="Search DataExtensions"
+                    Placeholder="Search Data Extensions"
                     WidthRequest="200"
                     x:Name="SearchBarText"
                     VerticalOptions="Center"
@@ -85,8 +85,8 @@
                 <Label Text="Folders:" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
                 <Label Text="{Binding Folders.Count}" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
                 
-                <Label Text="DataExtensions:" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
-                <Label Text="{Binding DataExtensions.Count}" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
+                <Label Text="Data Extensions:" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
+                <Label Text="{Binding ContentResources.Count}" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
             </HorizontalStackLayout>
 
             <!-- Row 2 -->

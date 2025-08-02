@@ -13,7 +13,7 @@ using UniformTypeIdentifiers;*/
 
 namespace SfmcApp.Pages.DataExtensions
 {
-   public partial class SfmcDataExtensionListPage2 : ContentPage
+    public partial class SfmcDataExtensionListPage2 : ContentPage
     {
         private readonly SfmcDataExtensionListViewModel _viewModel;
 

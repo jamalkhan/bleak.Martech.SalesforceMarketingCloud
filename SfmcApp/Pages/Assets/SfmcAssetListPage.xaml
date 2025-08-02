@@ -46,9 +46,9 @@
             VerticalOptions="Center">
 
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />  <!-- Row 0: Search -->
-                <RowDefinition Height="Auto" />  <!-- Row 1: Folders/Assets labels -->
-                <RowDefinition Height="Auto" />  <!-- Row 2: DownloadDirectory -->
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <!-- Row 0 -->
             <HorizontalStackLayout Grid.Row="0" Spacing="10" VerticalOptions="Center">
@@ -86,7 +86,7 @@
                 <Label Text="{Binding Folders.Count}" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
                 
                 <Label Text="Assets:" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
-                <Label Text="{Binding Assets.Count}" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
+                <Label Text="{Binding ContentResources.Count}" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
             </HorizontalStackLayout>
 
             <!-- Row 2 -->
@@ -188,8 +188,8 @@
             StrokeShape="RoundRectangle 8"
             >
             <CollectionView
-                ItemsSource="{Binding Assets}"
-                IsVisible="{Binding IsAssetsLoaded}"
+                ItemsSource="{Binding ContentResources}"
+                IsVisible="{Binding IsContentResourcesLoaded}"
                 >
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout Orientation="Vertical" ItemSpacing="20" />

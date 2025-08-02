@@ -71,7 +71,7 @@ public partial class SfmcAssetListViewModel
             logger: logger,
             sfmcConnection: sfmcConnection,
             folderApi: folderApi,
-            assetApi: assetApi,
+            contentResourceApi: assetApi,
             resourceType: "Assets"
 
         )
@@ -87,31 +87,31 @@ public partial class SfmcAssetListViewModel
 
 
 
-    public override async Task LoadAssetForSelectedFolderAsync()
+    public override async Task LoadContentResourcesForSelectedFolderAsync()
     {
         if (SelectedFolder == null) return;
 
         try
         {
-            IsAssetsLoaded = false;
-            IsAssetsLoading = true;
-            Assets.Clear();
-            var assets = await AssetApi.GetAssetsAsync(SelectedFolder.Id);
+            IsContentResourcesLoaded = false;
+            IsContentResourcesLoading = true;
+            ContentResources.Clear();
+            var assets = await ContentResourceApi.GetAssetsAsync(SelectedFolder.Id);
             foreach (var asset in assets.ToViewModel())
             {
                 try
                 {
-                    Assets.Add(asset);
+                    ContentResources.Add(asset);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, $"Error processing asset {asset.Name}.");
                     continue;
                 }
-                _logger.LogInformation($"Added asset: {asset.Name} ({asset.AssetType.Name}) Count {Assets.Count}");
+                _logger.LogInformation($"Added asset: {asset.Name} ({asset.AssetType.Name}) Count {ContentResources.Count}");
             }
-            IsAssetsLoading = false;
-            IsAssetsLoaded = true;
+            IsContentResourcesLoading = false;
+            IsContentResourcesLoaded = true;
 
         }
         catch (Exception ex)

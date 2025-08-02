@@ -26,22 +26,22 @@ public partial class SfmcDataExtensionListViewModel
     public ICommand SearchCommand { get; }
     public ICommand OpenDownloadDirectoryCommand { get; }
 
-     public SfmcDataExtensionListViewModel
-    (
-        SfmcConnection sfmcConnection,
-        ILogger<SfmcDataExtensionListViewModel> logger,
-        DataExtensionFolderSoapApi folderApi,
-        DataExtensionSoapApi assetApi
-    )
-        : base
-        (
-            logger: logger,
-            sfmcConnection: sfmcConnection,
-            folderApi: folderApi,
-            assetApi: assetApi,
-            resourceType: "Assets"
+    public SfmcDataExtensionListViewModel
+   (
+       SfmcConnection sfmcConnection,
+       ILogger<SfmcDataExtensionListViewModel> logger,
+       DataExtensionFolderSoapApi folderApi,
+       DataExtensionSoapApi contentResourceApi
+   )
+       : base
+       (
+           logger: logger,
+           sfmcConnection: sfmcConnection,
+           folderApi: folderApi,
+           contentResourceApi: contentResourceApi,
+           resourceType: "DataExtensions"
 
-        )
+       )
     {
         FolderTappedCommand = new Command<FolderViewModel>(folder => SelectedFolder = folder);
         SearchCommand = new Command(() => OnSearchButtonClicked());
@@ -57,7 +57,7 @@ public partial class SfmcDataExtensionListViewModel
 
     public ICommand DownloadCommand => new Command<AssetViewModel>(async asset =>
     {
-        
+
     });
 
     public override async Task LoadFoldersAsync()
@@ -84,7 +84,7 @@ public partial class SfmcDataExtensionListViewModel
         throw new NotImplementedException();
     }
 
-    public override Task LoadAssetForSelectedFolderAsync()
+    public override Task LoadContentResourcesForSelectedFolderAsync()
     {
         throw new NotImplementedException();
     }

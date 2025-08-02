@@ -6,7 +6,7 @@ using SfmcApp.Models.ViewModels;
 namespace SfmcApp.ViewModels;
 
 public abstract class BaseSfmcFolderAndListViewModel
-    <T, TFolderViewModel, TFolderApi, TAssetViewModel, TAssetApi>
+    <T, TFolderViewModel, TFolderApi, TContentResourceViewModel, TContentResourceApi>
     : BaseSfmcViewModel<T>
     where TFolderViewModel : IFolder
 {
@@ -15,7 +15,7 @@ public abstract class BaseSfmcFolderAndListViewModel
         ILogger<T> logger,
         SfmcConnection sfmcConnection,
         TFolderApi folderApi,
-        TAssetApi assetApi,
+        TContentResourceApi contentResourceApi,
         string resourceType
     )
         : base
@@ -26,7 +26,7 @@ public abstract class BaseSfmcFolderAndListViewModel
         )
     {
         _folderApi = folderApi;
-        _assetApi = assetApi;
+        _contentResourceApi = contentResourceApi;
     }
 
     #region Folders
@@ -60,7 +60,7 @@ public abstract class BaseSfmcFolderAndListViewModel
             if (SetProperty(ref _selectedFolder, value))
             {
                 SelectedFolderName = value?.Name ?? string.Empty;
-                LoadAssetForSelectedFolderAsync();
+                LoadContentResourcesForSelectedFolderAsync();
             }
         }
     }
@@ -71,29 +71,29 @@ public abstract class BaseSfmcFolderAndListViewModel
     public ObservableCollection<TFolderViewModel> Folders { get; } = [];
     #endregion Folders
 
-    #region Assets
+    #region ContentResources
 
-    public ObservableCollection<TAssetViewModel> Assets { get; } = [];
+    public ObservableCollection<TContentResourceViewModel> ContentResources { get; } = [];
 
-    private readonly TAssetApi _assetApi;
-    public TAssetApi AssetApi => _assetApi; 
-    private bool _isAssetsLoading;
-    public bool IsAssetsLoading
+    private readonly TContentResourceApi _contentResourceApi;
+    public TContentResourceApi ContentResourceApi => _contentResourceApi;
+    private bool _isContentResourcesLoading;
+    public bool IsContentResourcesLoading
     {
-        get => _isAssetsLoading;
-        set => SetProperty(ref _isAssetsLoading, value);
+        get => _isContentResourcesLoading;
+        set => SetProperty(ref _isContentResourcesLoading, value);
     }
 
-    private bool _isAssetsLoaded;
-    public bool IsAssetsLoaded
+    private bool _isContentResourcesLoaded;
+    public bool IsContentResourcesLoaded
     {
-        get => _isAssetsLoaded;
-        set => SetProperty(ref _isAssetsLoaded, value);
+        get => _isContentResourcesLoaded;
+        set => SetProperty(ref _isContentResourcesLoaded, value);
     }
 
-    #endregion Assets
+    #endregion ContentResources
 
-    public abstract Task LoadAssetForSelectedFolderAsync();
+    public abstract Task LoadContentResourcesForSelectedFolderAsync();
 
     public abstract Task LoadFoldersAsync();
 }
