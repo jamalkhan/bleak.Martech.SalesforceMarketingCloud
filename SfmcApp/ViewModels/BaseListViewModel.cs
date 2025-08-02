@@ -1,10 +1,11 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
+using SfmcApp.ViewModels;
 
 namespace SfmcApp.ViewModels;
 
-public class BaseListViewModel<T> : INotifyPropertyChanged
+public class BaseViewModel<T>
 {
     #region INotifyPropertyChanged implementation
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -25,8 +26,18 @@ public class BaseListViewModel<T> : INotifyPropertyChanged
     protected readonly ILogger<T> _logger;
     #endregion Logger
 
-    public BaseListViewModel(ILogger<T> logger)
+    public BaseViewModel(ILogger<T> logger)
     {
         _logger = logger;
     }
+}
+
+public class BaseFolderAndListViewModel<T> : BaseViewModel<T>
+{
+    public BaseFolderAndListViewModel(ILogger<T> logger)
+        : base(logger)
+    {
+    }
+
+    
 }

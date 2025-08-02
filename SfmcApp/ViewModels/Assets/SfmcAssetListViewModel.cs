@@ -10,7 +10,7 @@ using SfmcApp.Models.ViewModels;
 namespace SfmcApp.ViewModels
 {
     public partial class SfmcAssetListViewModel
-        : BaseListViewModel<SfmcAssetListViewModel>, INotifyPropertyChanged
+        : BaseFolderAndListViewModel<SfmcAssetListViewModel>, INotifyPropertyChanged
     {
         
         private readonly IAssetFolderRestApi _folderApi;
@@ -323,10 +323,6 @@ namespace SfmcApp.ViewModels
                     _logger.LogError($"Failed to download image from {imageUrl}: {ex.Message}");
                 }
             }
-        }
-
-
-        // Common SetProperty helper
-        
+        }        
     }
 }
