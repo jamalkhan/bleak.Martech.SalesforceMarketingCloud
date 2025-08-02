@@ -10,27 +10,11 @@ using SfmcApp.Models.ViewModels;
 namespace SfmcApp.ViewModels
 {
     public partial class SfmcAssetListViewModel
-        : BaseSfmcFolderAndListViewModel<SfmcAssetListViewModel, FolderViewModel>, INotifyPropertyChanged
+        : BaseSfmcFolderAndListViewModel<SfmcAssetListViewModel, FolderViewModel, IAssetFolderRestApi>, INotifyPropertyChanged
     {
-        private readonly IAssetFolderRestApi _folderApi;
         private readonly IAssetRestApi _assetApi;
         
-        public ObservableCollection<FolderViewModel> Folders { get; } = new();
         public ObservableCollection<AssetViewModel> Assets { get; } = new();
-
-        private bool _isFoldersLoading;
-        public bool IsFoldersLoading
-        {
-            get => _isFoldersLoading;
-            set => SetProperty(ref _isFoldersLoading, value);
-        }
-
-        private bool _isFoldersLoaded;
-        public bool IsFoldersLoaded
-        {
-            get => _isFoldersLoaded;
-            set => SetProperty(ref _isFoldersLoaded, value);
-        }
 
         private bool _isAssetsLoading;
         public bool IsAssetsLoading
@@ -52,14 +36,27 @@ namespace SfmcApp.ViewModels
             get => _expandAmpscript;
             set => SetProperty(ref _expandAmpscript, value);
         }
-        private string _downloadDirectory;
-        public string DownloadDirectory
-        {
-            get => _downloadDirectory;
-            set => SetProperty(ref _downloadDirectory, value);
-        }
 
-        
+        public override async Task LoadFoldersAsync()
+        {
+            try
+            {
+                IsFoldersLoaded = false;
+                IsFoldersLoading = true;
+                var folderTree = await FolderApi.GetFolderTreeAsync();
+                Folders.Clear();
+                foreach (var folder in folderTree.ToViewModel())
+                {
+                    Folders.Add(folder);
+                }
+                IsFoldersLoaded = true;
+                IsFoldersLoading = false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error loading folders. {ex.Message}");
+            }
+        }
 
 
         public ICommand FolderTappedCommand { get; }
@@ -87,12 +84,14 @@ namespace SfmcApp.ViewModels
             : base
             (
                 logger: logger,
-                sfmcConnection: sfmcConnection
+                sfmcConnection: sfmcConnection,
+                folderApi: folderApi,
+                resourceType: "Assets"
+
             )
         {
-            _folderApi = folderApi;
+            
             _assetApi = assetApi;
-            _downloadDirectory = Path.Combine(FileSystem.AppDataDirectory, "Downloads", "Assets", sfmcConnection.DirectoryName);
 
             FolderTappedCommand = new Command<FolderViewModel>(folder => SelectedFolder = folder);
             SearchCommand = new Command(() => OnSearchButtonClicked());
@@ -135,26 +134,6 @@ namespace SfmcApp.ViewModels
             }
         }
 
-        private async void LoadFoldersAsync()
-        {
-            try
-            {
-                IsFoldersLoaded = false;
-                IsFoldersLoading = true;
-                var folderTree = await _folderApi.GetFolderTreeAsync();
-                Folders.Clear();
-                foreach (var folder in folderTree.ToViewModel())
-                {
-                    Folders.Add(folder);
-                }
-                IsFoldersLoaded = true;
-                IsFoldersLoading = false;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error loading folders. {ex.Message}");
-            }
-        }
 
 
         public override async Task LoadAssetForSelectedFolderAsync()
