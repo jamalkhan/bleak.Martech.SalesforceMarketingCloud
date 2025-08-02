@@ -10,32 +10,20 @@ using SfmcApp.Models.ViewModels;
 namespace SfmcApp.ViewModels
 {
     public partial class SfmcAssetListViewModel
-        : BaseSfmcFolderAndListViewModel<SfmcAssetListViewModel, FolderViewModel, IAssetFolderRestApi>, INotifyPropertyChanged
+        : BaseSfmcFolderAndListViewModel<SfmcAssetListViewModel, FolderViewModel, IAssetFolderRestApi, AssetViewModel, IAssetRestApi>, INotifyPropertyChanged
     {
-        private readonly IAssetRestApi _assetApi;
-        
-        public ObservableCollection<AssetViewModel> Assets { get; } = new();
-
-        private bool _isAssetsLoading;
-        public bool IsAssetsLoading
-        {
-            get => _isAssetsLoading;
-            set => SetProperty(ref _isAssetsLoading, value);
-        }
-
-        private bool _isAssetsLoaded;
-        public bool IsAssetsLoaded
-        {
-            get => _isAssetsLoaded;
-            set => SetProperty(ref _isAssetsLoaded, value);
-        }
-
         private bool _expandAmpscript = true;
         public bool ExpandAmpscript
         {
             get => _expandAmpscript;
             set => SetProperty(ref _expandAmpscript, value);
         }
+
+
+
+        public ICommand FolderTappedCommand { get; }
+        public ICommand SearchCommand { get; }
+        public ICommand OpenDownloadDirectoryCommand { get; }
 
         public override async Task LoadFoldersAsync()
         {
@@ -58,11 +46,7 @@ namespace SfmcApp.ViewModels
             }
         }
 
-
-        public ICommand FolderTappedCommand { get; }
-        public ICommand SearchCommand { get; }
-        public ICommand OpenDownloadDirectoryCommand { get; }
-
+        #region Search
         public ObservableCollection<StringSearchOptions> SearchOptions { get; } =
             new(Enum.GetValues(typeof(StringSearchOptions)).Cast<StringSearchOptions>());
 
@@ -72,6 +56,7 @@ namespace SfmcApp.ViewModels
             get => _selectedSearchOption;
             set => SetProperty(ref _selectedSearchOption, value);
         }
+        #endregion Search
 
         public SfmcAssetListViewModel
         (
@@ -85,13 +70,11 @@ namespace SfmcApp.ViewModels
                 logger: logger,
                 sfmcConnection: sfmcConnection,
                 folderApi: folderApi,
+                assetApi: assetApi,
                 resourceType: "Assets"
 
             )
         {
-            
-            _assetApi = assetApi;
-
             FolderTappedCommand = new Command<FolderViewModel>(folder => SelectedFolder = folder);
             SearchCommand = new Command(() => OnSearchButtonClicked());
             OpenDownloadDirectoryCommand = new Command(OpenDownloadDirectory);
@@ -144,7 +127,7 @@ namespace SfmcApp.ViewModels
                 IsAssetsLoaded = false;
                 IsAssetsLoading = true;
                 Assets.Clear();
-                var assets = await _assetApi.GetAssetsAsync(SelectedFolder.Id);
+                var assets = await AssetApi.GetAssetsAsync(SelectedFolder.Id);
                 foreach (var asset in assets.ToViewModel())
                 {
                     try
@@ -247,12 +230,7 @@ namespace SfmcApp.ViewModels
                 await File.WriteAllTextAsync(outputFileName, content);
                 _logger.LogInformation($"Asset written to File System: {outputFileName}");
             }
-            
         }
-
-        
-
-
 
         private async Task DownloadBinaryAsync(AssetViewModel asset)
         {

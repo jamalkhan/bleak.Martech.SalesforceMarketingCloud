@@ -40,7 +40,7 @@ public abstract class BaseSfmcViewModel<T> : BaseViewModel<T>
 {
     public string ConnectionName => _sfmcConnection.Name;
     public string Title => $"Asset Navigator: Connected to {_sfmcConnection.Name}";
-    
+
     private string _downloadDirectory;
     public string DownloadDirectory
     {
@@ -67,7 +67,7 @@ public abstract class BaseSfmcViewModel<T> : BaseViewModel<T>
 }
 
 public abstract class BaseSfmcFolderAndListViewModel
-    <T, TFolderViewModel, TFolderApi>
+    <T, TFolderViewModel, TFolderApi, TAssetViewModel, TAssetApi>
     : BaseSfmcViewModel<T>
     where TFolderViewModel : IFolder
 {
@@ -76,6 +76,7 @@ public abstract class BaseSfmcFolderAndListViewModel
         ILogger<T> logger,
         SfmcConnection sfmcConnection,
         TFolderApi folderApi,
+        TAssetApi assetApi,
         string resourceType
     )
         : base
@@ -86,8 +87,10 @@ public abstract class BaseSfmcFolderAndListViewModel
         )
     {
         _folderApi = folderApi;
+        _assetApi = assetApi;
     }
 
+    #region Folders
     private bool _isFoldersLoading;
     public bool IsFoldersLoading
     {
@@ -127,6 +130,29 @@ public abstract class BaseSfmcFolderAndListViewModel
     public TFolderApi FolderApi => _folderApi;
 
     public ObservableCollection<TFolderViewModel> Folders { get; } = [];
+    #endregion Folders
+
+    #region Assets
+
+    public ObservableCollection<TAssetViewModel> Assets { get; } = [];
+
+    private readonly TAssetApi _assetApi;
+    public TAssetApi AssetApi => _assetApi; 
+    private bool _isAssetsLoading;
+    public bool IsAssetsLoading
+    {
+        get => _isAssetsLoading;
+        set => SetProperty(ref _isAssetsLoading, value);
+    }
+
+    private bool _isAssetsLoaded;
+    public bool IsAssetsLoaded
+    {
+        get => _isAssetsLoaded;
+        set => SetProperty(ref _isAssetsLoaded, value);
+    }
+
+    #endregion Assets
 
     public abstract Task LoadAssetForSelectedFolderAsync();
 
