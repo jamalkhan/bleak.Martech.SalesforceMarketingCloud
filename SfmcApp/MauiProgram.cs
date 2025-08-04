@@ -11,6 +11,7 @@ using SfmcApp.ViewModels;
 using bleak.Martech.SalesforceMarketingCloud.Api;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using bleak.Martech.SalesforceMarketingCloud.Api.Soap;
+using SfmcApp.Pages.DataExtensions;
 
 namespace SfmcApp;
 
@@ -79,6 +80,7 @@ public static class MauiProgram
 			return new SfmcInstanceMenuPage(connection, logger);
 		});
 
+		// Asset List Page
 		builder.Services.AddTransient<Func<SfmcConnection, SfmcAssetListPage>>
 		(
 			sp => connection =>
@@ -108,9 +110,44 @@ public static class MauiProgram
 					);
 			}
 		);
+
+
+		// Data Extension List Page
+		builder.Services.AddTransient<Func<SfmcConnection, SfmcDataExtensionListPage2>>
+		(
+			sp => connection =>
+			{
+				var viewModelLogger = sp.GetRequiredService<ILogger<SfmcDataExtensionListViewModel>>();
+				var logger = sp.GetRequiredService<ILogger<SfmcDataExtensionListPage2>>();
+				var folderApiLogger = sp.GetRequiredService<ILogger<DataExtensionFolderSoapApi>>();
+				var objectApiLogger = sp.GetRequiredService<ILogger<DataExtensionSoapApi>>();
+				var authRepoFactory = sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>();
+				var authRepository = authRepoFactory(connection);
+				var sfmcConnectionConfiguration = new SfmcConnectionConfiguration();
+				var folderApi = new DataExtensionFolderSoapApi
+				(
+					authRepository: authRepository,
+					config: sfmcConnectionConfiguration,
+					logger: folderApiLogger
+				);
+				var objectApi = new DataExtensionSoapApi
+				(
+					authRepository: authRepository,
+					config: sfmcConnectionConfiguration,
+					logger: objectApiLogger
+				);
+				return new SfmcDataExtensionListPage2
+				(
+					sfmcConnection: connection,
+					logger: viewModelLogger,
+					folderApi: folderApi,
+					objectApi: objectApi
+				);
+			}
+		);
 		
 		builder.Services.AddSingleton<SfmcConnectionConfiguration>();
-		builder.Services.AddTransient<AssetFolderRestApi>();
+		
 
 
 #if DEBUG

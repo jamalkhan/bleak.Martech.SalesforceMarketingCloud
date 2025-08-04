@@ -4,17 +4,25 @@ using bleak.Martech.SalesforceMarketingCloud.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Api;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
+using Microsoft.Extensions.Logging;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Api.Soap;
-public partial class SharedDataExtensionFolderSoapApi : BaseSoapApi
+public partial class SharedDataExtensionFolderSoapApi
+    : BaseSoapApi<SharedDataExtensionFolderSoapApi>
 {
 
-    public SharedDataExtensionFolderSoapApi(
-            IAuthRepository authRepository
-        , SfmcConnectionConfiguration config
+    public SharedDataExtensionFolderSoapApi
+    (
+        IAuthRepository authRepository,
+        SfmcConnectionConfiguration config,
+        ILogger<SharedDataExtensionFolderSoapApi> logger
+    )
+        : base
+        (
+            authRepository: authRepository,
+            sfmcConnectionConfiguration: config,
+            logger: logger
         )
-        : base(authRepository: authRepository
-        , sfmcConnectionConfiguration: config)
     {
     }
 
@@ -73,7 +81,7 @@ public partial class SharedDataExtensionFolderSoapApi : BaseSoapApi
                 Console.WriteLine($"More Data Available. Request ID: {results.Results.Body.RetrieveResponse.RequestID}");
                 var retval = LoadFolder(wsdlFolders, results.Results.Body.RetrieveResponse.RequestID);
                 return retval;
-                
+
             }
             return string.Empty;
         }
@@ -196,7 +204,7 @@ public partial class SharedDataExtensionFolderSoapApi : BaseSoapApi
         sb.AppendLine($"    </s:Body>");
         sb.AppendLine($"</s:Envelope>");
         return sb;
-        
+
     }
 
     List<DataExtensionFolder> BuildFolderTree(List<Wsdl.DataFolder> wsdlFolders)

@@ -2,13 +2,13 @@ using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.Wsdl;
 using bleak.Martech.SalesforceMarketingCloud.Fileops;
-using System.Net;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
+using Microsoft.Extensions.Logging;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Api.Soap;
 
-public abstract class BaseDataSetSoapApi<TAPIObject, TPoco> : BaseSoapApi
+public abstract class BaseDataSetSoapApi<TAPIObject, TPoco> : BaseSoapApi<TAPIObject>
     where TAPIObject : APIObject
     where TPoco : IPoco
 {
@@ -16,8 +16,19 @@ public abstract class BaseDataSetSoapApi<TAPIObject, TPoco> : BaseSoapApi
     protected long RunningTally { get; set; } = 0;
     protected IFileWriter FileWriter { get; set; }
 
-    public BaseDataSetSoapApi(IAuthRepository authRepository, IFileWriter fileWriter, SfmcConnectionConfiguration config)
-        : base(authRepository, config)
+    public BaseDataSetSoapApi
+    (
+        IAuthRepository authRepository,
+        IFileWriter fileWriter,
+        SfmcConnectionConfiguration config,
+        ILogger<TAPIObject> logger
+    )
+        : base
+        (
+            authRepository: authRepository,
+            sfmcConnectionConfiguration: config,
+            logger: logger
+        )
     {
         FileWriter = fileWriter;
     }

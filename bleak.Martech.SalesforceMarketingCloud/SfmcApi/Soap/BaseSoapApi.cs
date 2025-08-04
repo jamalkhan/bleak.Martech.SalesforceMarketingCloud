@@ -2,20 +2,24 @@ using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
+using Microsoft.Extensions.Logging;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Api.Soap;
 
-public abstract partial class BaseSoapApi
+public abstract partial class BaseSoapApi<T>
 {
-    protected string url { get; private set;}
+    private readonly ILogger<T> _logger;
+    protected string url { get; private set; }
     protected IAuthRepository _authRepository { get; private set;}
     protected RestManager _restManager { get; private set;}
     protected SfmcConnectionConfiguration _sfmcConnectionConfiguration { get; private set;}
 
     public BaseSoapApi(
         IAuthRepository authRepository, 
-        SfmcConnectionConfiguration sfmcConnectionConfiguration)
+        SfmcConnectionConfiguration sfmcConnectionConfiguration,
+        ILogger<T> logger)
     {
+        _logger = logger;
         _sfmcConnectionConfiguration = sfmcConnectionConfiguration;
         _authRepository = authRepository;
         var soapSerializer = new SoapSerializer();

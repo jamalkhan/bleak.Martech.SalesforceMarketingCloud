@@ -4,20 +4,23 @@ using bleak.Martech.SalesforceMarketingCloud.Authentication;
 using System.Text;
 using bleak.Martech.SalesforceMarketingCloud.Api;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
+using Microsoft.Extensions.Logging;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Api.Soap;
 
-public partial class DataExtensionSoapApi : BaseSoapApi, IDataExtensionApi
+public partial class DataExtensionSoapApi : BaseSoapApi<DataExtensionSoapApi>, IDataExtensionApi
 {
     public DataExtensionSoapApi
     (
         IAuthRepository authRepository,
-        SfmcConnectionConfiguration config
+        SfmcConnectionConfiguration config,
+        ILogger<DataExtensionSoapApi> logger
     )
     : base
     (
         authRepository: authRepository,
-        sfmcConnectionConfiguration: config
+        sfmcConnectionConfiguration: config,
+        logger: logger
     )
     {
     }

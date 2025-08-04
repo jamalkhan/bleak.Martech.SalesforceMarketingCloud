@@ -92,8 +92,9 @@ namespace SfmcApp.Pages.DataExtensions
         private readonly IAuthRepository _authRepository;
 
         public SfmcDataExtensionListPage(
-            //ILogger<SfmcDataExtensionListPage> logger, IContentFolderRestApi api
-            IAuthRepository authRepository
+            //, IContentFolderRestApi api
+            IAuthRepository authRepository, 
+            ILogger<SfmcDataExtensionListPage> logger
             )
         {
             InitializeComponent();
@@ -115,10 +116,12 @@ namespace SfmcApp.Pages.DataExtensions
             {
                 IsFoldersLoaded = false;
                 IsFoldersLoading = true;
-                var folderApi = new DataExtensionFolderSoapApi(
+                var folderApi = new DataExtensionFolderSoapApi
+                (
                     authRepository: _authRepository,
-                    config: new SfmcConnectionConfiguration()
-                    );
+                    config: new SfmcConnectionConfiguration(),
+                    logger: null
+                );
                 //_logger.LogInformation($"Loaded {folderTree.Count} Data Extension Folders from API");
                 var folderTree = await folderApi.GetFolderTreeAsync(); // Must be async method
                 foreach (var folder in folderTree)
@@ -149,7 +152,8 @@ namespace SfmcApp.Pages.DataExtensions
             {
                 var api = new DataExtensionSoapApi(
                     authRepository: _authRepository,
-                    config: new SfmcConnectionConfiguration()
+                    config: new SfmcConnectionConfiguration(),
+                    logger: null
                     );
 
                 DataExtensions.Clear();
@@ -227,7 +231,8 @@ namespace SfmcApp.Pages.DataExtensions
         {
             var api = new DataExtensionSoapApi(
                 authRepository: _authRepository,
-                config: new SfmcConnectionConfiguration()
+                config: new SfmcConnectionConfiguration(),
+                    logger: null
                 );
 
             DataExtensions.Clear();

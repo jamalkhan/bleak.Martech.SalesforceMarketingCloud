@@ -49,7 +49,11 @@ public partial class SfmcInstanceMenuPage : ContentPage
 
 	public async void OnShowDataExtensionsClicked(object sender, EventArgs e)
 	{
-		await Navigation.PushAsync(new SfmcDataExtensionListPage(_authRepository));
+		await Navigation.PushAsync(new SfmcDataExtensionListPage
+		(
+			_authRepository,
+			logger: null
+		));
 	}
 	public async void OnShowAssetClicked(object sender, EventArgs e)
 	{

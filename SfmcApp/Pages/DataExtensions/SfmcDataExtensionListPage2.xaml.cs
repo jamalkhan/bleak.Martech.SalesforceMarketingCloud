@@ -1,8 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SfmcApp.Models;
-using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
 using SfmcApp.ViewModels;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using bleak.Martech.SalesforceMarketingCloud.Api;
 
 #if MACCATALYST
