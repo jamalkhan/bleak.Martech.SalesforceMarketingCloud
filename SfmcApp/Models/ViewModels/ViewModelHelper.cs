@@ -1,5 +1,8 @@
+using bleak.Martech.SalesforceMarketingCloud;
+using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using bleak.Martech.SalesforceMarketingCloud.Models;
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
+
 
 
 namespace SfmcApp.Models.ViewModels
@@ -66,6 +69,49 @@ namespace SfmcApp.Models.ViewModels
             return folders.Select(
                 folder => folder.ToViewModel())
                 .ToList();
+        }
+
+
+        public static List<FolderViewModel> ToViewModel(this IEnumerable<DataExtensionFolder> folders)
+        {
+            return folders.Select(
+                folder => folder.ToViewModel())
+                .ToList();
+        }
+
+        public static FolderViewModel ToViewModel(this DataExtensionFolder folder)
+        {
+            return new FolderViewModel
+            {
+                Id = folder.Id,
+                Description = folder.Description,
+                EnterpriseId = folder.EnterpriseId,
+                MemberId = folder.MemberId,
+                Name = folder.Name,
+                ParentId = folder.ParentId,
+                //CategoryType = folder.ParentId,
+                FullPath = folder.FullPath,
+                SubFolders = folder.SubFolders?.Select(f => f.ToViewModel()).ToList() ?? new List<FolderViewModel>()
+            };
+        }
+
+        public static List<DataExtensionViewModel> ToViewModel(this IEnumerable<DataExtensionPoco> dataextensions)
+        {
+            return dataextensions.Select(
+                de => de.ToViewModel())
+                .ToList();
+        }
+        public static DataExtensionViewModel ToViewModel(this DataExtensionPoco dataextension)
+        {
+            return new DataExtensionViewModel
+            {
+                CategoryId = dataextension.CategoryID,
+                Name = dataextension.Name,
+                CustomerKey = dataextension.CustomerKey,
+                Description = dataextension.Description,
+                IsSendable = dataextension.IsSendable,
+                IsTestable = dataextension.IsTestable,
+            };
         }
     }
 }

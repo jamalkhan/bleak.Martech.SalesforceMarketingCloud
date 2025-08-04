@@ -188,8 +188,8 @@
             StrokeShape="RoundRectangle 8"
             >
             <CollectionView
-                ItemsSource="{Binding DataExtensions}"
-                IsVisible="{Binding IsDataExtensionsLoaded}"
+                ItemsSource="{Binding ContentResources}"
+                IsVisible="{Binding IsContentResourcesLoaded}"
                 >
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout Orientation="Vertical" ItemSpacing="20" />

@@ -5,25 +5,26 @@ using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Rest;
 using bleak.Martech.SalesforceMarketingCloud.Fileops;
 using bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
+using Microsoft.Extensions.Logging;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions
 {
 
-    public class DataExtensionRestApi : BaseRestApi, IDataExtensionRestApi
+    public class DataExtensionRestApi : BaseRestApi<DataExtensionRestApi>, IDataExtensionRestApi
     {
-        public DataExtensionRestApi(
-            IAuthRepository authRepository)
-            : this(authRepository, new SfmcConnectionConfiguration())
-        {
-        }
-        public DataExtensionRestApi(
+        public DataExtensionRestApi
+        (
             IAuthRepository authRepository,
-            SfmcConnectionConfiguration config)
-            : base(
+            SfmcConnectionConfiguration config,
+            ILogger<DataExtensionRestApi> logger
+        )
+            : base
+            (
                 restManager: new RestManager(new JsonSerializer(), new JsonSerializer()),
                 restManagerAsync: new RestManager(new JsonSerializer(), new JsonSerializer()),
                 authRepository: authRepository,
-                config: config
+                config: config,
+                logger: logger
             )
         {
         }

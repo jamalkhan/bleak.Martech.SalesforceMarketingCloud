@@ -4,6 +4,7 @@ using System.Windows.Input;
 using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.Api;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
+using bleak.Martech.SalesforceMarketingCloud.Fileops;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions;
 using Microsoft.Extensions.Logging;
 using SfmcApp.Models;
@@ -17,11 +18,13 @@ public partial class SfmcDataExtensionListViewModel
             SfmcDataExtensionListViewModel,
             FolderViewModel,
             IDataExtensionFolderApi,
-            AssetViewModel,
+            DataExtensionViewModel,
             IDataExtensionApi
         >
     , INotifyPropertyChanged
 {
+    public DataExtensionRestApi RestApi  { get; }
+
     public ICommand FolderTappedCommand { get; }
     public ICommand SearchCommand { get; }
     public ICommand OpenDownloadDirectoryCommand { get; }
@@ -31,7 +34,8 @@ public partial class SfmcDataExtensionListViewModel
         SfmcConnection sfmcConnection,
         ILogger<SfmcDataExtensionListViewModel> logger,
         IDataExtensionFolderApi folderApi,
-        IDataExtensionApi contentResourceApi
+        IDataExtensionApi contentResourceApi,
+        DataExtensionRestApi deRestApi
     )
        : base
        (
@@ -40,9 +44,10 @@ public partial class SfmcDataExtensionListViewModel
            folderApi: folderApi,
            contentResourceApi: contentResourceApi,
            resourceType: "DataExtensions"
-
        )
     {
+        RestApi = deRestApi;
+
         FolderTappedCommand = new Command<FolderViewModel>(folder => SelectedFolder = folder);
         SearchCommand = new Command(() => OnSearchButtonClicked());
         OpenDownloadDirectoryCommand = new Command(OpenDownloadDirectory);
@@ -52,7 +57,7 @@ public partial class SfmcDataExtensionListViewModel
 
     public override async Task LoadFoldersAsync()
     {
-        /*
+        
         try
         {
             IsFoldersLoaded = false;
@@ -70,8 +75,6 @@ public partial class SfmcDataExtensionListViewModel
         {
             _logger.LogError($"Error loading folders. {ex.Message}");
         }
-        */
-        throw new NotImplementedException();
     }
 
     private void OnSearchButtonClicked()
@@ -79,9 +82,38 @@ public partial class SfmcDataExtensionListViewModel
         // Search logic goes here
     }
 
-    public ICommand DownloadCommand => new Command<AssetViewModel>(async asset =>
+    public ICommand DownloadCommand => new Command<DataExtensionViewModel>(async dataExtension =>
     {
 
+        var filePath = Path.Combine(FileSystem.AppDataDirectory, $"{dataExtension.Name}.csv");
+
+        try
+        {
+            // Optional: Show loading UI
+            _logger.LogInformation($"Starting download of {dataExtension.Name} to {filePath}...", "OK");
+
+            
+            IFileWriter fileWriter = new DelimitedFileWriter
+            (
+                new DelimitedFileWriterOptions { Delimiter = "," }
+            );
+
+            // Run long sync task in background
+            long records = await Task.Run(() =>
+                RestApi.DownloadDataExtension(
+                    dataExtensionCustomerKey: dataExtension.CustomerKey,
+                    fileWriter: fileWriter,
+                    fileName: filePath
+                )
+            );
+
+            _logger.LogInformation($"Downloaded {records} records to {filePath}", "OK");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Download failed: {ex.ToString()}", "OK");
+        }
+        
     });
 
     public async override Task LoadContentResourcesForSelectedFolderAsync()
@@ -93,21 +125,20 @@ public partial class SfmcDataExtensionListViewModel
             IsContentResourcesLoaded = false;
             IsContentResourcesLoading = true;
             ContentResources.Clear();
-            var contentResource = await ContentResourceApi.GetDataExtensionsByFolderAsync(SelectedFolder.Id);
-            /*foreach (var asset in contentResource.ToViewModel())
+            var contentResources = await ContentResourceApi.GetDataExtensionsByFolderAsync(SelectedFolder.Id);
+            foreach (var contentResource in contentResources.ToViewModel())
             {
                 try
                 {
-                    ContentResources.Add(asset);
+                    ContentResources.Add(contentResource);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"Error processing asset {asset.Name}.");
+                    _logger.LogError(ex, $"Error processing Data Extension {contentResource.Name}.");
                     continue;
                 }
-                _logger.LogInformation($"Added asset: {asset.Name} ({asset.AssetType.Name}) Count {ContentResources.Count}");
+                _logger.LogInformation($"Added Data Extension: {contentResource.Name} Count {ContentResources.Count}");
             }
-            */
             IsContentResourcesLoading = false;
             IsContentResourcesLoaded = true;
 

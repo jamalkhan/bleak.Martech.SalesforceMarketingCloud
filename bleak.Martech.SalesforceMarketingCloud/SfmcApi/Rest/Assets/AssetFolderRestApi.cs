@@ -9,10 +9,9 @@ using Microsoft.Extensions.Logging;
 namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
 {
     public class AssetFolderRestApi
-    : BaseRestApi
+    : BaseRestApi<AssetFolderRestApi>
     , IAssetFolderRestApi
     {
-        private readonly ILogger<AssetFolderRestApi> _logger;
 
         private HttpVerbs verb = HttpVerbs.GET;
 
@@ -25,14 +24,14 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
                 restManager: new RestManager(new JsonSerializer(), new JsonSerializer()),
                 restManagerAsync: new RestManager(new JsonSerializer(), new JsonSerializer()),
                 authRepository: authRepository,
-                config: config
+                config: config,
+                logger: logger
             )
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            
             if (config == null) config = new SfmcConnectionConfiguration();
             if (config.PageSize > 500)
             {
-                _logger.LogWarning($"PageSize is set to {config.PageSize}, which exceeds the maximum allowed value of 500. Setting PageSize to 500.");
                 base._sfmcConnectionConfiguration.PageSize = 500; // Set a reasonable default max page size
             }
         }

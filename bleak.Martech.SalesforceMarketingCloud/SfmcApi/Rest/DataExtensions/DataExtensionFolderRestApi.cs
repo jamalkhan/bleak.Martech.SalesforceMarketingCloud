@@ -4,29 +4,27 @@ using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.Models;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Rest;
+using Microsoft.Extensions.Logging;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions
 {
 
-    public class DataExtensionFolderRestApi : BaseRestApi, IDataExtensionFolderRestApi
+    public class DataExtensionFolderRestApi : BaseRestApi<DataExtensionFolderRestApi>, IDataExtensionFolderRestApi
     {
         private HttpVerbs verb = HttpVerbs.GET;
 
         public DataExtensionFolderRestApi(
             RestManager restManager,
-            IAuthRepository authRepository)
-            : this(restManager, authRepository, new SfmcConnectionConfiguration())
-        {
-        }
-        public DataExtensionFolderRestApi(
-            RestManager restManager,
             IAuthRepository authRepository,
-            SfmcConnectionConfiguration sfmcConnectionConfiguration)
+            SfmcConnectionConfiguration sfmcConnectionConfiguration,
+            ILogger<DataExtensionFolderRestApi> logger
+            )
             : base(
                 restManager: new RestManager(new JsonSerializer(), new JsonSerializer()),
                 restManagerAsync: new RestManager(new JsonSerializer(), new JsonSerializer()),
                 authRepository: authRepository,
-                config: sfmcConnectionConfiguration
+                config: sfmcConnectionConfiguration,
+                logger: logger
             )
         {
         }

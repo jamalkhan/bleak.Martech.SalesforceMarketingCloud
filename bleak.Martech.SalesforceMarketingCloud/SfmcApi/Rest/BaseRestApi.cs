@@ -1,11 +1,14 @@
 using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Rest
 {
-    public class BaseRestApi
+    public class BaseRestApi<T>
     {
+        protected readonly ILogger<T> _logger;
+
         protected readonly IRestManagerAsync _restManagerAsync;
         protected readonly IRestManager _restManager;
         protected readonly IAuthRepository _authRepository;
@@ -23,8 +26,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.Rest
             IRestManager restManager,
             IRestManagerAsync restManagerAsync,
             IAuthRepository authRepository,
-            SfmcConnectionConfiguration config)
+            SfmcConnectionConfiguration config,
+            ILogger<T> logger
+            )
         {
+            _logger = logger;
             _restManager = restManager;
             _restManagerAsync = restManagerAsync;
             _authRepository = authRepository;

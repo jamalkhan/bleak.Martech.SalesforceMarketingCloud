@@ -187,7 +187,7 @@ namespace SfmcApp.Pages.DataExtensions
                     // Optional: Show loading UI
                     await DisplayAlert("Downloading", $"Starting download of {dataExtension.Name} to {filePath}...", "OK");
 
-                    var api = new DataExtensionRestApi(_authRepository);
+                    var api = new DataExtensionRestApi(_authRepository, new SfmcConnectionConfiguration(), null);
                     IFileWriter fileWriter = new DelimitedFileWriter(
                         new DelimitedFileWriterOptions { Delimiter = "," });
 
