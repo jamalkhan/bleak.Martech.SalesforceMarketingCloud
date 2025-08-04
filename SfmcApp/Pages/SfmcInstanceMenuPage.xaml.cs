@@ -28,7 +28,7 @@ public partial class SfmcInstanceMenuPage : ContentPage
 			}
 		}
 	}
-	
+
 	public SfmcInstanceMenuPage(
 		SfmcConnection connection,
 		ILogger<SfmcInstanceMenuPage> logger
@@ -59,6 +59,24 @@ public partial class SfmcInstanceMenuPage : ContentPage
 			{
 				var factory = services.GetRequiredService<Func<SfmcConnection, SfmcAssetListPage>>();
 				_logger.LogInformation("Creating SfmcContentListPage with connection");
+				var page = factory(connection);
+				await Navigation.PushAsync(page);
+			}
+			else
+			{
+				_logger.LogError("BindingContext is not SfmcConnection");
+			}
+		}
+	}
+	
+	public async void OnShowDataExtensions2Clicked(object sender, EventArgs e)
+	{
+		if (App.Current?.Services is IServiceProvider services)
+		{
+			if (BindingContext is SfmcConnection connection)
+			{
+				var factory = services.GetRequiredService<Func<SfmcConnection, SfmcDataExtensionListPage2>>();
+				_logger.LogInformation("Creating SfmcDataExtensionListPage with connection");
 				var page = factory(connection);
 				await Navigation.PushAsync(page);
 			}

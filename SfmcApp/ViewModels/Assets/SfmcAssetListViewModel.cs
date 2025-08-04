@@ -11,56 +11,21 @@ using SfmcApp.Models.ViewModels;
 namespace SfmcApp.ViewModels;
 
 public partial class SfmcAssetListViewModel
-    : BaseSfmcFolderAndListViewModel<SfmcAssetListViewModel, FolderViewModel, IAssetFolderRestApi, AssetViewModel, IAssetRestApi>
+    : BaseSfmcFolderAndListViewModel
+        <
+            SfmcAssetListViewModel,
+            FolderViewModel,
+            IAssetFolderRestApi,
+            AssetViewModel,
+            IAssetRestApi
+        >
     , INotifyPropertyChanged
 {
-    private bool _expandAmpscript = true;
-    public bool ExpandAmpscript
-    {
-        get => _expandAmpscript;
-        set => SetProperty(ref _expandAmpscript, value);
-    }
-
-
-
     public ICommand FolderTappedCommand { get; }
     public ICommand SearchCommand { get; }
     public ICommand OpenDownloadDirectoryCommand { get; }
 
-    public override async Task LoadFoldersAsync()
-    {
-        try
-        {
-            IsFoldersLoaded = false;
-            IsFoldersLoading = true;
-            var folderTree = await FolderApi.GetFolderTreeAsync();
-            Folders.Clear();
-            foreach (var folder in folderTree.ToViewModel())
-            {
-                Folders.Add(folder);
-            }
-            IsFoldersLoaded = true;
-            IsFoldersLoading = false;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Error loading folders. {ex.Message}");
-        }
-    }
-
-    #region Search
-    public ObservableCollection<StringSearchOptions> SearchOptions { get; } =
-        new(Enum.GetValues(typeof(StringSearchOptions)).Cast<StringSearchOptions>());
-
-    private StringSearchOptions _selectedSearchOption = StringSearchOptions.Like;
-    public StringSearchOptions SelectedSearchOption
-    {
-        get => _selectedSearchOption;
-        set => SetProperty(ref _selectedSearchOption, value);
-    }
-    #endregion Search
-
-    public SfmcAssetListViewModel
+     public SfmcAssetListViewModel
     (
         SfmcConnection sfmcConnection,
         ILogger<SfmcAssetListViewModel> logger,
@@ -83,6 +48,51 @@ public partial class SfmcAssetListViewModel
 
         LoadFoldersAsync();
     }
+
+    public override async Task LoadFoldersAsync()
+    {
+        try
+        {
+            IsFoldersLoaded = false;
+            IsFoldersLoading = true;
+            var folderTree = await FolderApi.GetFolderTreeAsync();
+            Folders.Clear();
+            foreach (var folder in folderTree.ToViewModel())
+            {
+                Folders.Add(folder);
+            }
+            IsFoldersLoaded = true;
+            IsFoldersLoading = false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error loading folders. {ex.Message}");
+        }
+    }
+
+
+    private bool _expandAmpscript = true;
+    public bool ExpandAmpscript
+    {
+        get => _expandAmpscript;
+        set => SetProperty(ref _expandAmpscript, value);
+    }
+
+    
+
+    #region Search
+    public ObservableCollection<StringSearchOptions> SearchOptions { get; } =
+        new(Enum.GetValues(typeof(StringSearchOptions)).Cast<StringSearchOptions>());
+
+    private StringSearchOptions _selectedSearchOption = StringSearchOptions.Like;
+    public StringSearchOptions SelectedSearchOption
+    {
+        get => _selectedSearchOption;
+        set => SetProperty(ref _selectedSearchOption, value);
+    }
+    #endregion Search
+
+   
 
     
 

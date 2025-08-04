@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Windows.Input;
 using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
-using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions;
 using Microsoft.Extensions.Logging;
 using SfmcApp.Models;
@@ -27,12 +26,12 @@ public partial class SfmcDataExtensionListViewModel
     public ICommand OpenDownloadDirectoryCommand { get; }
 
     public SfmcDataExtensionListViewModel
-   (
-       SfmcConnection sfmcConnection,
-       ILogger<SfmcDataExtensionListViewModel> logger,
-       DataExtensionFolderSoapApi folderApi,
-       DataExtensionSoapApi contentResourceApi
-   )
+    (
+        SfmcConnection sfmcConnection,
+        ILogger<SfmcDataExtensionListViewModel> logger,
+        DataExtensionFolderSoapApi folderApi,
+        DataExtensionSoapApi contentResourceApi
+    )
        : base
        (
            logger: logger,
@@ -49,16 +48,6 @@ public partial class SfmcDataExtensionListViewModel
 
         LoadFoldersAsync();
     }
-
-    private void OnSearchButtonClicked()
-    {
-        // Search logic goes here
-    }
-
-    public ICommand DownloadCommand => new Command<AssetViewModel>(async asset =>
-    {
-
-    });
 
     public override async Task LoadFoldersAsync()
     {
@@ -84,8 +73,47 @@ public partial class SfmcDataExtensionListViewModel
         throw new NotImplementedException();
     }
 
-    public override Task LoadContentResourcesForSelectedFolderAsync()
+    private void OnSearchButtonClicked()
     {
-        throw new NotImplementedException();
+        // Search logic goes here
+    }
+
+    public ICommand DownloadCommand => new Command<AssetViewModel>(async asset =>
+    {
+
+    });
+
+    public async override Task LoadContentResourcesForSelectedFolderAsync()
+    {
+        if (SelectedFolder == null) return;
+
+        try
+        {
+            IsContentResourcesLoaded = false;
+            IsContentResourcesLoading = true;
+            ContentResources.Clear();
+            var contentResource = await ContentResourceApi.GetDataExtensionsByFolderAsync(SelectedFolder.Id);
+            /*foreach (var asset in contentResource.ToViewModel())
+            {
+                try
+                {
+                    ContentResources.Add(asset);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error processing asset {asset.Name}.");
+                    continue;
+                }
+                _logger.LogInformation($"Added asset: {asset.Name} ({asset.AssetType.Name}) Count {ContentResources.Count}");
+            }
+            */
+            IsContentResourcesLoading = false;
+            IsContentResourcesLoaded = true;
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Failed to load assets. {ex.Message}");
+        }
     }
 }
