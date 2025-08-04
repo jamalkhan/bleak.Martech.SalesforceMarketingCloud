@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
 using bleak.Api.Rest;
+using bleak.Martech.SalesforceMarketingCloud.Api;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions;
 using Microsoft.Extensions.Logging;
@@ -15,9 +16,9 @@ public partial class SfmcDataExtensionListViewModel
         <
             SfmcDataExtensionListViewModel,
             FolderViewModel,
-            DataExtensionFolderSoapApi,
+            IDataExtensionFolderApi,
             AssetViewModel,
-            DataExtensionSoapApi
+            IDataExtensionApi
         >
     , INotifyPropertyChanged
 {
@@ -29,8 +30,8 @@ public partial class SfmcDataExtensionListViewModel
     (
         SfmcConnection sfmcConnection,
         ILogger<SfmcDataExtensionListViewModel> logger,
-        DataExtensionFolderSoapApi folderApi,
-        DataExtensionSoapApi contentResourceApi
+        IDataExtensionFolderApi folderApi,
+        IDataExtensionApi contentResourceApi
     )
        : base
        (

@@ -3,6 +3,7 @@ using SfmcApp.Models;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
 using SfmcApp.ViewModels;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
+using bleak.Martech.SalesforceMarketingCloud.Api;
 
 #if MACCATALYST
 /*using UIKit;
@@ -20,8 +21,8 @@ namespace SfmcApp.Pages.DataExtensions
         public SfmcDataExtensionListPage2(
             SfmcConnection sfmcConnection,
             ILogger<SfmcDataExtensionListViewModel> logger,
-            DataExtensionFolderSoapApi folderApi,
-            DataExtensionSoapApi objectApi)
+            IDataExtensionFolderApi folderApi,
+            IDataExtensionApi objectApi)
         {
             InitializeComponent();
 

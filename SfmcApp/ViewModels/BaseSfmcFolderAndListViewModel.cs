@@ -6,7 +6,13 @@ using SfmcApp.Models.ViewModels;
 namespace SfmcApp.ViewModels;
 
 public abstract class BaseSfmcFolderAndListViewModel
-    <T, TFolderViewModel, TFolderApi, TContentResourceViewModel, TContentResourceApi>
+    <
+        T,
+        TFolderViewModel,
+        TFolderApi,
+        TContentResourceViewModel,
+        TContentResourceApi
+    >
     : BaseSfmcViewModel<T>
     where TFolderViewModel : IFolder
 {

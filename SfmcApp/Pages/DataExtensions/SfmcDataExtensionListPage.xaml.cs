@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using SfmcApp.Models;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions;
+using bleak.Martech.SalesforceMarketingCloud.Api.Soap;
 
 #if MACCATALYST
 /*

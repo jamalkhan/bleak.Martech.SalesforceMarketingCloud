@@ -9,6 +9,8 @@ using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using SfmcApp.Models;
 using SfmcApp.ViewModels;
 using bleak.Martech.SalesforceMarketingCloud.Api;
+using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
+using bleak.Martech.SalesforceMarketingCloud.Api.Soap;
 
 namespace SfmcApp;
 
@@ -50,9 +52,18 @@ public static class MauiProgram
 		builder.Services.AddTransient<AssetFolderRestApi>();
 		builder.Services.AddTransient<IAssetFolderRestApi, AssetFolderRestApi>();
 
-		// Asset  API
+		// Asset API
 		builder.Services.AddTransient<AssetRestApi>();
 		builder.Services.AddTransient<IAssetRestApi, AssetRestApi>();
+		
+		// Data Extension Folder API
+		builder.Services.AddTransient<DataExtensionFolderSoapApi>();
+		builder.Services.AddTransient<IDataExtensionFolderApi, DataExtensionFolderSoapApi>();
+
+		// Data Extension API
+		builder.Services.AddTransient<DataExtensionSoapApi>();
+		builder.Services.AddTransient<IDataExtensionApi, DataExtensionSoapApi>();
+		
 
 		// Pages
 		builder.Services.AddTransient<MainPage>();
