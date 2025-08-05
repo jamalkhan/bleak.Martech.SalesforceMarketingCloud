@@ -15,7 +15,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Rest
         protected readonly SfmcConnectionConfiguration _sfmcConnectionConfiguration;
 
 
-        
+
         protected List<Header> _headers = new List<Header>
         {
             new Header() { Name = "Content-Type", Value = "application/json" },
@@ -53,6 +53,34 @@ namespace bleak.Martech.SalesforceMarketingCloud.Rest
             _headers.Add(
                 new Header() { Name = "Authorization", Value = $"Bearer {_authRepository.Token.access_token}" }
             );
+        }
+        
+        protected RestResults<T2, string> LoadApiWithRetry<T2>(
+            Func<string, RestResults<T2, string>> loadApiCall,
+            string url,
+            string authenticationError,
+            Action resolveAuthentication
+            )
+        {
+            var results = loadApiCall(url);
+
+            // Check if an error occurred and it matches the specified errorText
+            if (results != null && results.UnhandledError != null && results.UnhandledError.Contains(authenticationError))
+            {
+                Console.WriteLine($"Unauthenticated: {results.UnhandledError}");
+
+                // Resolve authentication
+                resolveAuthentication();
+                Console.WriteLine("Authentication Header has been reset");
+
+                // Retry the REST method
+                results = loadApiCall(url);
+
+                Console.WriteLine("Press Enter to Continue");
+                Console.ReadLine();
+            }
+
+            return results!;
         }
     }
 }

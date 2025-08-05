@@ -8,7 +8,12 @@ using Microsoft.Extensions.Logging;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Api.Soap;
 
-public partial class DataExtensionSoapApi : BaseSoapApi<DataExtensionSoapApi>, IDataExtensionApi
+public partial class DataExtensionSoapApi
+:
+    BaseSoapApi
+    <
+        DataExtensionSoapApi
+    >,  IDataExtensionApi
 {
     public DataExtensionSoapApi
     (

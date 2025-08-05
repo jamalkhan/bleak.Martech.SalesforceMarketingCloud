@@ -83,8 +83,8 @@ public partial class SfmcDataExtensionListViewModel
     {
         try
         {
-            var contentResources = await PerformSearch();
-            PopulateContentResources(contentResources.ToViewModel());
+            var contentResources = await PerformSearchAsync();
+            PopulateContentResources(contentResources);
         }
         catch (Exception ex)
         {
@@ -92,7 +92,7 @@ public partial class SfmcDataExtensionListViewModel
         }
     }
 
-    private async Task<List<DataExtensionPoco>> PerformSearch()
+    private async Task<List<DataExtensionViewModel>> PerformSearchAsync()
     {
         SelectedFolder = new FolderViewModel() { Name = $"Search for %{SearchText}% | No Folder Selected" };
         string searchType = SelectedSearchOption.ToString() ?? "Like";
@@ -121,7 +121,7 @@ public partial class SfmcDataExtensionListViewModel
                 break;
         }
 
-        return contentResources;
+        return contentResources.ToViewModel();
     }
     #endregion Search
 

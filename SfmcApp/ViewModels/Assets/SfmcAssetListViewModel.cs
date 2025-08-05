@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Windows.Input;
 using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.Api;
+using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
 using Microsoft.Extensions.Logging;
 using SfmcApp.Models;
@@ -133,8 +134,49 @@ public partial class SfmcAssetListViewModel
 
     private void OnSearchButtonClicked()
     {
-        // Search logic goes here
+        try
+        {
+            //var contentResources = await PerformSearchAsync();
+            //PopulateContentResources(contentResources);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Failed to perform search: {ex.Message}");
+        }
     }
+
+    /*
+    private async Task<List<AssetViewModel>> PerformSearchAsync()
+    {
+        SelectedFolder = new FolderViewModel() { Name = $"Search for %{SearchText}% | No Folder Selected" };
+        string searchType = SelectedSearchOption.ToString() ?? "Like";
+
+        // Check if search text is empty
+        if (string.IsNullOrEmpty(searchType))
+        {
+            _logger.LogError("Please enter a search term.");
+            searchType = "Like";
+        }
+
+        var contentResources = new List<AssetPoco>();
+        switch (searchType)
+        {
+            case "Starts With":
+                contentResources = await ContentResourceApi.GetDataExtensionsNameStartsWithAsync(SearchText);
+                break;
+            case "Like":
+                contentResources = await ContentResourceApi.GetDataExtensionsNameLikeAsync(SearchText);
+                break;
+            case "Ends With":
+                contentResources = await ContentResourceApi.GetDataExtensionsNameEndsWithAsync(SearchText);
+                break;
+            default:
+                contentResources = await ContentResourceApi.GetDataExtensionsNameLikeAsync(SearchText);
+                break;
+        }
+
+        return contentResources.ToViewModel();
+    }*/
 
     public ICommand DownloadCommand => new Command<AssetViewModel>(async asset =>
     {
