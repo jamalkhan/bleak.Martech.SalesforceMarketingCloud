@@ -53,10 +53,16 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions
             long totalRecords = 0;
             try
             {
+                _logger.LogInformation($"writing file to {fileName}");
+
+                Directory.CreateDirectory(Path.GetDirectoryName(fileName)!);
+
+                
                 string baseUrl = $"https://{_authRepository.Subdomain}.rest.marketingcloudapis.com/data";
                 string url = $"{baseUrl}/v1/customobjectdata/key/{dataExtensionCustomerKey}/rowset?$page=1&$pageSize=2500";
                 do
                 {
+                    _logger.LogInformation($"Downloading Data Extension[{dataExtensionCustomerKey}] from  {url}");
                     RestResults<DataExtensionDataDto, string> results = LoadApiWithRetry<DataExtensionDataDto>(
                         loadApiCall: LoadApiCall,
                         url: url,
@@ -79,24 +85,21 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions
                     // add data to return value.
                     fileWriter.WriteToFile(fileName, results.Results.ToDictionaryList());
 
+                    _logger.LogInformation($"Current Page had {currentPageSize} records. There are now {totalRecords} Records Identified.");
 
-                    if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {totalRecords} Records Identified.");
-
-                    if (results == null || results?.Results == null || results.Results.links == null || results!.Results.links == null)
+                    if (results == null || results.Results == null || results.Results.links == null || results.Results.links == null || string.IsNullOrEmpty(results.Results.links.next))
                     {
-                        if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"No more pages to process. Exiting loop.");
+                        _logger.LogInformation($"No more pages to process. Exiting loop.");
                         break;
                     }
-                    if (results!.Results.links.next != null)
-                    {
-                        if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"Running Loop Again");
-                        url = $"{baseUrl}{results.Results.links.next}";
-                    }
+                    
+                    _logger.LogInformation($"Running Loop Again");
+                    url = $"{baseUrl}{results.Results.links.next}";
                 } while (true);
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine($"{ex.Message}");
+                _logger.LogError($"{ex.Message}");
                 throw;
             }
             return totalRecords;
