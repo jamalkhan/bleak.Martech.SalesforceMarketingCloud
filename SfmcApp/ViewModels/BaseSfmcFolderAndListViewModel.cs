@@ -120,7 +120,30 @@ public abstract class BaseSfmcFolderAndListViewModel
         set => SetProperty(ref _isContentResourcesLoaded, value);
     }
 
+    protected virtual async Task PopulateContentResources(IEnumerable<TContentResourceViewModel> contentResources)
+    {
+        IsContentResourcesLoaded = false;
+        IsContentResourcesLoading = true;
+        ContentResources.Clear();
+        foreach (var contentResource in contentResources)
+        {
+            try
+            {
+                ContentResources.Add(contentResource);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error processing Data Extension {contentResource}.");
+                continue;
+            }
+            _logger.LogInformation($"Added Data Extension: {contentResource.ToString()} Count {ContentResources.Count}");
+        }
+        IsContentResourcesLoading = false;
+        IsContentResourcesLoaded = true;
+    }
     #endregion ContentResources
+
+
 
     public abstract Task LoadContentResourcesForSelectedFolderAsync();
 

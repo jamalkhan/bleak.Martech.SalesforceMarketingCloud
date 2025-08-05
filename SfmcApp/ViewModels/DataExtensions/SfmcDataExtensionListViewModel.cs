@@ -81,8 +81,20 @@ public partial class SfmcDataExtensionListViewModel
         
     private async void OnSearchButtonClicked()
     {
-        ContentResources.Clear();
+        try
+        {
+            var contentResources = await PerformSearch();
+            PopulateContentResources(contentResources.ToViewModel());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Failed to perform search: {ex.Message}");
+        }
+    }
 
+    private async Task<List<DataExtensionPoco>> PerformSearch()
+    {
+        SelectedFolder = new FolderViewModel() { Name = $"Search for %{SearchText}% | No Folder Selected" };
         string searchType = SelectedSearchOption.ToString() ?? "Like";
 
         // Check if search text is empty
@@ -92,35 +104,24 @@ public partial class SfmcDataExtensionListViewModel
             searchType = "Like";
         }
 
-        try
+        var contentResources = new List<DataExtensionPoco>();
+        switch (searchType)
         {
-            // Assume DataExtensions is a property in the view model or code-behind
-            // and api is an instance of your API client
-            List<DataExtensionPoco> results = new List<DataExtensionPoco>();
-            switch (searchType)
-            {
-                case "Starts With":
-                    results = await ContentResourceApi.GetDataExtensionsNameStartsWithAsync(SearchText);
-                    break;
-                case "Like":
-                    results = await ContentResourceApi.GetDataExtensionsNameLikeAsync(SearchText);
-                    break;
-                case "Ends With":
-                    results = await ContentResourceApi.GetDataExtensionsNameEndsWithAsync(SearchText);
-                    break;
-                default:
-                    results = await ContentResourceApi.GetDataExtensionsNameLikeAsync(SearchText);
-                    break;
-            }
-            foreach (var item in results.ToViewModel())
-            {
-                ContentResources.Add(item);
-            }
+            case "Starts With":
+                contentResources = await ContentResourceApi.GetDataExtensionsNameStartsWithAsync(SearchText);
+                break;
+            case "Like":
+                contentResources = await ContentResourceApi.GetDataExtensionsNameLikeAsync(SearchText);
+                break;
+            case "Ends With":
+                contentResources = await ContentResourceApi.GetDataExtensionsNameEndsWithAsync(SearchText);
+                break;
+            default:
+                contentResources = await ContentResourceApi.GetDataExtensionsNameLikeAsync(SearchText);
+                break;
         }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Failed to perform search: {ex.Message}");
-        }
+
+        return contentResources;
     }
     #endregion Search
 
@@ -161,29 +162,10 @@ public partial class SfmcDataExtensionListViewModel
     public async override Task LoadContentResourcesForSelectedFolderAsync()
     {
         if (SelectedFolder == null) return;
-
         try
         {
-            IsContentResourcesLoaded = false;
-            IsContentResourcesLoading = true;
-            ContentResources.Clear();
             var contentResources = await ContentResourceApi.GetDataExtensionsByFolderAsync(SelectedFolder.Id);
-            foreach (var contentResource in contentResources.ToViewModel())
-            {
-                try
-                {
-                    ContentResources.Add(contentResource);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, $"Error processing Data Extension {contentResource.Name}.");
-                    continue;
-                }
-                _logger.LogInformation($"Added Data Extension: {contentResource.Name} Count {ContentResources.Count}");
-            }
-            IsContentResourcesLoading = false;
-            IsContentResourcesLoaded = true;
-
+            PopulateContentResources(contentResources.ToViewModel());
         }
         catch (Exception ex)
         {
