@@ -77,6 +77,29 @@ public abstract class BaseSfmcFolderAndListViewModel
     public ObservableCollection<TFolderViewModel> Folders { get; } = [];
     #endregion Folders
 
+    #region Search
+
+    private string _searchText = string.Empty;
+    public string SearchText
+    {
+        get => _searchText;
+        set => SetProperty(ref _searchText, value);
+    }
+
+    public ObservableCollection<StringSearchOptions> SearchOptions { get; }
+            = new ObservableCollection<StringSearchOptions>(
+                Enum.GetValues(typeof(StringSearchOptions)).Cast<StringSearchOptions>());
+
+    private StringSearchOptions _selectedSearchOption = StringSearchOptions.Like;
+    public StringSearchOptions SelectedSearchOption
+    {
+        get => _selectedSearchOption;
+        set => SetProperty(ref _selectedSearchOption, value);
+    }
+
+
+    #endregion Search
+
     #region ContentResources
 
     public ObservableCollection<TContentResourceViewModel> ContentResources { get; } = [];

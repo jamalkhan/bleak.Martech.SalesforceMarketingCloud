@@ -11,25 +11,26 @@ using CoreGraphics;
 using UniformTypeIdentifiers;*/
 #endif
 
-namespace SfmcApp.Pages.DataExtensions
+namespace SfmcApp.Pages.DataExtensions;
+
+public partial class SfmcDataExtensionListPage2 : ContentPage
 {
-    public partial class SfmcDataExtensionListPage2 : ContentPage
+    private readonly SfmcDataExtensionListViewModel _viewModel;
+
+    public SfmcDataExtensionListPage2
+    (
+        SfmcConnection sfmcConnection,
+        ILogger<SfmcDataExtensionListViewModel> logger,
+        IDataExtensionFolderApi folderApi,
+        IDataExtensionApi objectApi,
+        DataExtensionRestApi restApi
+    )
     {
-        private readonly SfmcDataExtensionListViewModel _viewModel;
+        InitializeComponent();
 
-        public SfmcDataExtensionListPage2(
-            SfmcConnection sfmcConnection,
-            ILogger<SfmcDataExtensionListViewModel> logger,
-            IDataExtensionFolderApi folderApi,
-            IDataExtensionApi objectApi,
-            DataExtensionRestApi restApi)
-        {
-            InitializeComponent();
+        _viewModel = new SfmcDataExtensionListViewModel(sfmcConnection, logger, folderApi, objectApi, restApi);
+        BindingContext = _viewModel;
 
-            _viewModel = new SfmcDataExtensionListViewModel(sfmcConnection, logger, folderApi, objectApi, restApi);
-            BindingContext = _viewModel;
-
-            //SearchBarText.SearchButtonPressed += (s, e) => _viewModel.SearchCommand.Execute(null);
-        }
+        //SearchBarText.SearchButtonPressed += (s, e) => _viewModel.SearchCommand.Execute(null);
     }
 }

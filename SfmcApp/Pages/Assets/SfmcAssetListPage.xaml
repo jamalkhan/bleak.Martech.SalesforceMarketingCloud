@@ -4,7 +4,6 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:local="clr-namespace:SfmcApp.Pages.Assets"
              xmlns:converters="clr-namespace:SfmcApp.Converters"
-
              x:Class="SfmcApp.Pages.Assets.SfmcAssetListPage"
              Title="{Binding Title}">
     <ContentPage.Resources>

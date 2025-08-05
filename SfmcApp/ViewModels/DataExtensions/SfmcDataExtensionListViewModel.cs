@@ -49,7 +49,7 @@ public partial class SfmcDataExtensionListViewModel
         RestApi = deRestApi;
 
         FolderTappedCommand = new Command<FolderViewModel>(folder => SelectedFolder = folder);
-        SearchCommand = new Command(() => OnSearchButtonClicked());
+        SearchCommand = new Command(OnSearchButtonClicked);
         OpenDownloadDirectoryCommand = new Command(OpenDownloadDirectory);
 
         LoadFoldersAsync();
@@ -77,10 +77,52 @@ public partial class SfmcDataExtensionListViewModel
         }
     }
 
-    private void OnSearchButtonClicked()
+    #region Search
+        
+    private async void OnSearchButtonClicked()
     {
-        // Search logic goes here
+        ContentResources.Clear();
+
+        string searchType = SelectedSearchOption.ToString() ?? "Like";
+
+        // Check if search text is empty
+        if (string.IsNullOrEmpty(searchType))
+        {
+            _logger.LogError("Please enter a search term.");
+            searchType = "Like";
+        }
+
+        try
+        {
+            // Assume DataExtensions is a property in the view model or code-behind
+            // and api is an instance of your API client
+            List<DataExtensionPoco> results = new List<DataExtensionPoco>();
+            switch (searchType)
+            {
+                case "Starts With":
+                    results = await ContentResourceApi.GetDataExtensionsNameStartsWithAsync(SearchText);
+                    break;
+                case "Like":
+                    results = await ContentResourceApi.GetDataExtensionsNameLikeAsync(SearchText);
+                    break;
+                case "Ends With":
+                    results = await ContentResourceApi.GetDataExtensionsNameEndsWithAsync(SearchText);
+                    break;
+                default:
+                    results = await ContentResourceApi.GetDataExtensionsNameLikeAsync(SearchText);
+                    break;
+            }
+            foreach (var item in results.ToViewModel())
+            {
+                ContentResources.Add(item);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Failed to perform search: {ex.Message}");
+        }
     }
+    #endregion Search
 
     public ICommand DownloadCommand => new Command<DataExtensionViewModel>(async dataExtension =>
     {
@@ -92,7 +134,7 @@ public partial class SfmcDataExtensionListViewModel
             // Optional: Show loading UI
             _logger.LogInformation($"Starting download of {dataExtension.Name} to {filePath}...", "OK");
 
-            
+
             IFileWriter fileWriter = new DelimitedFileWriter
             (
                 new DelimitedFileWriterOptions { Delimiter = "," }
@@ -113,7 +155,7 @@ public partial class SfmcDataExtensionListViewModel
         {
             _logger.LogError($"Download failed: {ex.ToString()}", "OK");
         }
-        
+
     });
 
     public async override Task LoadContentResourcesForSelectedFolderAsync()
