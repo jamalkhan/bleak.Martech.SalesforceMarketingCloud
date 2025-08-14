@@ -4,6 +4,7 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:local="clr-namespace:SfmcApp.Pages.DataExtensions"
              xmlns:converters="clr-namespace:SfmcApp.Converters"
+             xmlns:viewmodels="clr-namespace:SfmcApp.Models.ViewModels"
              x:Class="SfmcApp.Pages.DataExtensions.SfmcDataExtensionListPage2"
              Title="{Binding Title}">
     <ContentPage.Resources>
@@ -137,11 +138,12 @@
                     FontAttributes="Bold" 
                     VerticalOptions="Center" />
 
-                <!-- Switch -->
+                <!-- Switch 
                 <Switch 
                     Grid.Column="4"
                     IsToggled="{Binding ExpandAmpscript, Mode=TwoWay}" 
                     VerticalOptions="Center" />
+                    -->
             </Grid>
             
         </Grid>
@@ -195,7 +197,7 @@
                     <LinearItemsLayout Orientation="Vertical" ItemSpacing="20" />
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
-                    <DataTemplate>
+                    <DataTemplate x:DataType="viewmodels:DataExtensionViewModel">
                         <Border 
                             Stroke="LightGray" 
                             StrokeThickness="1" 
@@ -241,8 +243,8 @@
                                         <Label Text="Type: " Grid.Row="1" Grid.Column="0" />
                                         <Label Text="{Binding DataExtensionType.Name}" Grid.Row="1" Grid.Column="1" />
 
-                                        <Label Text="ContentType: " Grid.Row="1" Grid.Column="2" IsVisible="{Binding ContentTypeVisible}" />
-                                        <Label Text="{Binding ContentType}" Grid.Row="1" Grid.Column="3" />
+                                        <!--<Label Text="ContentType: " Grid.Row="1" Grid.Column="2" IsVisible="{Binding ContentTypeVisible}" />
+                                        <Label Text="{Binding ContentType}" Grid.Row="1" Grid.Column="3" />-->
                                     </Grid>
                                 </HorizontalStackLayout>
 
@@ -263,7 +265,7 @@
                                     IsVisible="false"
                                     SemanticProperties.Description="Is Sendable = true" />
 
-                                <Image Grid.Column="3"
+                                <!--<Image Grid.Column="3"
                                     Grid.RowSpan="4"
                                     Source="download.png"
                                     WidthRequest="30"
@@ -278,6 +280,7 @@
                                             CommandParameter="{Binding .}" />
                                     </Image.GestureRecognizers>
                                 </Image>
+                            -->
                             </Grid>
                         </Border>
                     </DataTemplate>

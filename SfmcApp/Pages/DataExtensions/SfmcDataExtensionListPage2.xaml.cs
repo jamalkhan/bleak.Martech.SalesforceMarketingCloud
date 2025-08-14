@@ -27,7 +27,6 @@ public partial class SfmcDataExtensionListPage2 : ContentPage
     )
     {
         InitializeComponent();
-
         _viewModel = new SfmcDataExtensionListViewModel(sfmcConnection, logger, folderApi, objectApi, restApi);
         BindingContext = _viewModel;
 

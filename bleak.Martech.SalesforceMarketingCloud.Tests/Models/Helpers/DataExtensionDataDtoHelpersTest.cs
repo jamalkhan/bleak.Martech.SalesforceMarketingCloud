@@ -47,7 +47,7 @@ public class DataExtensionDataDtoConvertersTest
     {
         var dto = new DataExtensionDataDto
         {
-            items = new List<ItemDto>()
+            items = []
         };
 
         var results = DataExtensionDataDtoHelpers.ToDictionaryList(dto);
@@ -61,14 +61,14 @@ public class DataExtensionDataDtoConvertersTest
     {
         var dto = new DataExtensionDataDto
         {
-            items = new List<ItemDto>
-            {
+            items =
+            [
                 new ItemDto
                 {
-                    keys = null,
-                    values = null
+                    keys = [],
+                    values = []
                 }
-            }
+            ]
         };
 
         var results = DataExtensionDataDtoHelpers.ToDictionaryList(dto);

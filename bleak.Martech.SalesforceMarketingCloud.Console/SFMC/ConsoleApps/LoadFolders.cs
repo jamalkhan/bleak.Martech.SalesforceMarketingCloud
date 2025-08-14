@@ -6,169 +6,172 @@ using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using System.Diagnostics;
 using System.ServiceModel;
 using System.Net.Http.Headers;
+using System.Threading.Tasks;
 
-namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
+namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps;
+
+public class LoadFolders
 {
-    public class LoadFolders
+    IRestClientAsync _restClientAsync;
+    IAuthRepository _authRepository;
+    public LoadFolders(IRestClientAsync restClientAsync, IAuthRepository authRepository)
     {
-        RestManager _restManager;
-        IAuthRepository _authRepository;
-        public LoadFolders(RestManager restManager, IAuthRepository authRepository)
+        _restClientAsync = restClientAsync;
+        _authRepository = authRepository;
+    }
+
+    private HttpVerbs verb = HttpVerbs.GET;
+    private List<Header> headers = new List<Header>
+    {
+        new Header() { Name = "Content-Type", Value = "application/json" },
+    };
+
+    public async Task<List<FolderObject>> GetFolderTreeAsync()
+    {
+        int page = 1;
+        int currentPageSize = 0;
+        
+        var sfmcFolders = new List<SfmcFolder>();
+        do
         {
-            _restManager = restManager;
-            _authRepository = authRepository;
+            currentPageSize = await LoadFolderAsync(page, sfmcFolders);
+            page++;
+        }
+        while (AppConfiguration.Instance.PageSize == currentPageSize);
+
+        if (sfmcFolders.Any())
+        {
+            return BuildFolderTree(sfmcFolders);
         }
 
-        private HttpVerbs verb = HttpVerbs.GET;
-        private List<Header> headers = new List<Header>
-        {
-            new Header() { Name = "Content-Type", Value = "application/json" },
-        };
+        throw new Exception("Error Loading Folders");
+    }
 
-        public List<FolderObject> GetFolderTree()
+    List<FolderObject> BuildFolderTree(List<SfmcFolder> sfmcFolders)
+    {
+        const int root_folder = 0;
+
+        // Find root folders
+        var sfmcRoots = sfmcFolders.Where(f => f.parentId == root_folder).ToList();
+        var retval = new List<FolderObject>();
+        foreach (var sfmcRoot in sfmcRoots)
         {
-            int page = 1;
-            int currentPageSize = 0;
+            var folderObject = sfmcRoot.ToFolderObject();
+            folderObject.FullPath = "/";
+
+            // TODO: Reimplement this
+            // GetAssetsByFolder(folderObject);
+            // AddChildren(folderObject, sfmcFolders);
+            retval.Add(folderObject);
+        }
+        return retval;
+    }
+
+    private async Task<int> LoadFolderAsync(int page, List<SfmcFolder> sfmcFolders)
+    {
+        int currentPageSize;
+        try
+        {
+            if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Loading Folder Page #{page}"); }
             
-            var sfmcFolders = new List<SfmcFolder>();
-            do
-            {
-                currentPageSize = LoadFolder(page, sfmcFolders);
-                page++;
-            }
-            while (AppConfiguration.Instance.PageSize == currentPageSize);
+            RestResults<SfmcRestWrapper<SfmcFolder>, string> results;
+            string url = $"https://{AppConfiguration.Instance.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/categories?$page={page}&$pagesize={AppConfiguration.Instance.PageSize}";
 
-            if (sfmcFolders.Any())
-            {
-                return BuildFolderTree(sfmcFolders);
-            }
-
-            throw new Exception("Error Loading Folders");
-        }
-
-        List<FolderObject> BuildFolderTree(List<SfmcFolder> sfmcFolders)
-        {
-            const int root_folder = 0;
-
-            // Find root folders
-            var sfmcRoots = sfmcFolders.Where(f => f.parentId == root_folder).ToList();
-            var retval = new List<FolderObject>();
-            foreach (var sfmcRoot in sfmcRoots)
-            {
-                var folderObject = sfmcRoot.ToFolderObject();
-                folderObject.FullPath = "/";
-
-                // TODO: Reimplement this
-                // GetAssetsByFolder(folderObject);
-                // AddChildren(folderObject, sfmcFolders);
-                retval.Add(folderObject);
-            }
-            return retval;
-        }
-
-        private int LoadFolder(int page, List<SfmcFolder> sfmcFolders)
-        {
-            int currentPageSize;
-            try
-            {
-                if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Loading Folder Page #{page}"); }
-                
-                RestResults<SfmcRestWrapper<SfmcFolder>, string> results;
-                string url = $"https://{AppConfiguration.Instance.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/categories?$page={page}&$pagesize={AppConfiguration.Instance.PageSize}";
-                
-                results = ExecuteRestMethodWithRetry(
-                    loadFolderApiCall: LoadFolderApiCall,
-                    url: url,
-                    authenticationError: "401", 
-                    resolveAuthentication: _authRepository.ResolveAuthentication
-                );
-
-                if (AppConfiguration.Instance.Debug) Console.WriteLine($"results.Value = {results?.Results}");
-                if (results?.Error != null) Console.WriteLine($"results.Error = {results.Error}");
-
-                currentPageSize = results!.Results.items.Count();
-                sfmcFolders.AddRange(results.Results.items);
-                if (AppConfiguration.Instance.Debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {sfmcFolders.Count()} Total Folders Identified.");
-
-                if (AppConfiguration.Instance.PageSize == currentPageSize)
-                {
-                    if (AppConfiguration.Instance.Debug) Console.WriteLine($"Running Loop Again");
-                }
-
-            }
-            catch (System.Exception ex)
-            {
-                Console.WriteLine($"{ex.Message}");
-                throw;
-            }
-
-            return currentPageSize;
-        }
-
-        private RestResults<SfmcRestWrapper<SfmcFolder>, string> LoadFolderApiCall(
-            string url
-        )
-        {
-            // string opens = await GetTrackingData($"{baseUri}/messageDefinitionSends/key:{definitionKey}/tracking/opens", accessToken);
-            // string clicks = await GetTrackingData($"{baseUri}/messageDefinitionSends/key:{definitionKey}/tracking/clicks", accessToken);
-            // string bounces = await GetTrackingData($"{baseUri}/messageDefinitionSends/key:{definitionKey}/tracking/bounces", accessToken);
-            // string sends = await GetTrackingData($"{baseUri}/messageDefinitionSends/key:{definitionKey}/tracking", accessToken);
-
-            if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Attempting to {verb} to {url} with accessToken: {_authRepository.Token.access_token}"); }
-
-            var headersWithAuth = SetAuthHeader(headers);
-
-            var results = _restManager.ExecuteRestMethod<SfmcRestWrapper<SfmcFolder>, string>(
-                uri: new Uri(url),
-                verb: verb,
-                headers: headersWithAuth
-                );
-
-            return results!;
-        }
-
-        private RestResults<SfmcRestWrapper<SfmcFolder>, string> ExecuteRestMethodWithRetry(
-            Func<string, RestResults<SfmcRestWrapper<SfmcFolder>, string>> loadFolderApiCall,
-            string url,
-            string authenticationError,
-            Action resolveAuthentication
-            )
-        {
-            var results = loadFolderApiCall(url);
-
-            // Check if an error occurred and it matches the specified errorText
-            if (results != null && results.UnhandledError != null && results.UnhandledError.Contains(authenticationError))
-            {
-                Console.WriteLine($"Unauthenticated: {results.UnhandledError}");
-
-                // Resolve authentication
-                resolveAuthentication();
-                Console.WriteLine("Authentication Header has been reset");
-
-                // Retry the REST method
-                results = loadFolderApiCall(url);
-
-                Console.WriteLine("Press Enter to Continue");
-                Console.ReadLine();
-            }
-
-            return results!;
-        }
-
-        private List<Header> SetAuthHeader(List<Header> headers)
-        {
-            var headersWithAuth = new List<Header>();
-
-            foreach (var header in headers)
-            {
-                headersWithAuth.Add(new Header() { Name = header.Name, Value = header.Value });
-            }
-
-            headersWithAuth.Add(
-                new Header() { Name = "Authorization", Value = $"Bearer {_authRepository.Token.access_token}" }
+            results = await ExecuteRestMethodWithRetryAsync(
+                loadFolderApiCallAsync: LoadFolderApiCallAsync,
+                url: url,
+                authenticationError: "401", 
+                resolveAuthenticationAsync: _authRepository.ResolveAuthenticationAsync
             );
 
-            return headersWithAuth;
+            if (AppConfiguration.Instance.Debug) Console.WriteLine($"results.Value = {results?.Results}");
+            if (results?.Error != null) Console.WriteLine($"results.Error = {results.Error}");
+
+            currentPageSize = results!.Results.items.Count();
+            sfmcFolders.AddRange(results.Results.items);
+            if (AppConfiguration.Instance.Debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {sfmcFolders.Count()} Total Folders Identified.");
+
+            if (AppConfiguration.Instance.PageSize == currentPageSize)
+            {
+                if (AppConfiguration.Instance.Debug) Console.WriteLine($"Running Loop Again");
+            }
+
         }
+        catch (System.Exception ex)
+        {
+            Console.WriteLine($"{ex.Message}");
+            throw;
+        }
+
+        return currentPageSize;
+    }
+
+    private async Task<RestResults<SfmcRestWrapper<SfmcFolder>, string>> LoadFolderApiCallAsync(
+        string url
+    )
+    {
+        // string opens = await GetTrackingData($"{baseUri}/messageDefinitionSends/key:{definitionKey}/tracking/opens", accessToken);
+        // string clicks = await GetTrackingData($"{baseUri}/messageDefinitionSends/key:{definitionKey}/tracking/clicks", accessToken);
+        // string bounces = await GetTrackingData($"{baseUri}/messageDefinitionSends/key:{definitionKey}/tracking/bounces", accessToken);
+        // string sends = await GetTrackingData($"{baseUri}/messageDefinitionSends/key:{definitionKey}/tracking", accessToken);
+
+        if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Attempting to {verb} to {url} with accessToken: {_authRepository.Token.access_token}"); }
+
+        var headersWithAuth = SetAuthHeader(headers);
+
+        var results = await _restClientAsync.ExecuteRestMethodAsync<SfmcRestWrapper<SfmcFolder>, string>(
+            uri: new Uri(url),
+            verb: verb,
+            headers: headersWithAuth
+            );
+
+        return results!;
+    }
+
+    private async Task<RestResults<SfmcRestWrapper<SfmcFolder>, string>> ExecuteRestMethodWithRetryAsync(
+        Func<string, Task<RestResults<SfmcRestWrapper<SfmcFolder>, string>>> loadFolderApiCallAsync,
+        string url,
+        string authenticationError,
+        Func<Task> resolveAuthenticationAsync
+    )
+    {
+        var results = await loadFolderApiCallAsync(url).ConfigureAwait(false);
+
+        // Check if an error occurred and it matches the specified errorText
+        if (results != null && results.UnhandledError != null &&
+            results.UnhandledError.Contains(authenticationError))
+        {
+            Console.WriteLine($"Unauthenticated: {results.UnhandledError}");
+
+            // Resolve authentication
+            await resolveAuthenticationAsync().ConfigureAwait(false);
+            Console.WriteLine("Authentication Header has been reset");
+
+            // Retry the REST method
+            results = await loadFolderApiCallAsync(url).ConfigureAwait(false);
+
+            Console.WriteLine("Press Enter to Continue");
+            // You may want to remove or replace this for non-blocking UI scenarios
+            Console.ReadLine();
+        }
+
+        return results!;
+    }
+
+
+    private List<Header> SetAuthHeader(List<Header> headers)
+    {
+        var headersWithAuth = new List<Header>();
+
+        foreach (var header in headers)
+        {
+            headersWithAuth.Add(new Header() { Name = header.Name, Value = header.Value });
+        }
+
+        headersWithAuth.Add(
+            new Header() { Name = "Authorization", Value = $"Bearer {_authRepository.Token.access_token}" }
+        );
+
+        return headersWithAuth;
     }
 }

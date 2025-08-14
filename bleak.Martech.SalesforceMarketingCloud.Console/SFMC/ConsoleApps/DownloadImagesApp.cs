@@ -10,6 +10,7 @@ using System.IO;
 using bleak.Martech.SalesforceMarketingCloud.Wsdl;
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 using bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
+using System.Threading.Tasks;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 {
@@ -19,22 +20,22 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
         static JsonSerializer serializer = new JsonSerializer();
         private static int assetCounter = 0;
         private static HashSet<string> assetTypes = new HashSet<string>();
-        RestManager _restManager;
+        IRestClientAsync _restClient;
         IAuthRepository _authRepository;
         string fullPath = string.Empty;
-        public DownloadImagesApp(RestManager restManager, IAuthRepository authRepository)
+        public DownloadImagesApp(IRestClientAsync restClient, IAuthRepository authRepository)
         {
-            _restManager = restManager;
+            _restClient = restClient;
             _authRepository = authRepository;
         }
 
-        public void Execute()
+        public async Task Execute()
         {
             Console.WriteLine("Give me the folder ID");
             var folder = Console.ReadLine();
             
             int.TryParse(folder, out int folderId);
-            DownloadAllAssets(folderId);
+            await DownloadAllAssetsAsync(folderId);
         }
 
 
@@ -58,14 +59,14 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
         }
 
 
-        private void DownloadAllAssets(int folderId)
+        private async Task DownloadAllAssetsAsync(int folderId)
         {
             CreateFolder();
 
             Console.WriteLine("Download All Assets");
             Console.WriteLine("---------------------");
 
-            assetCounter = DownloadAllAssetsForAFolder(folderId);
+            assetCounter = await DownloadAllAssetsForAFolderAsync(folderId);
 
             
             Console.WriteLine("Assets have been downloaded");
@@ -81,9 +82,9 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
             
         }
 
-        private int DownloadAllAssetsForAFolder(int folderId)
+        private async Task<int> DownloadAllAssetsForAFolderAsync(int folderId)
         {
-            var assets = GetAssetsByFolder(folderId);
+            var assets = await GetAssetsByFolderAsync(folderId);
 
             foreach (var asset in assets)
             {
@@ -218,7 +219,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 
         
         
-        private List<AssetPoco> GetAssetsByFolder(int folderId)
+        private async Task<List<AssetPoco>> GetAssetsByFolderAsync(int folderId)
         {
             int page = 1;
             int currentPageSize = 0;
@@ -227,8 +228,15 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
             {
                 try
                 {
-                    RestResults<SfmcRestWrapper<SfmcAsset>, string>? results = LoadPageOfAssets(folderId, page);
-                    currentPageSize = ProcessSfmcAssets(folderId, retval, results);
+                    var results = await LoadPageOfAssetsAsync
+                    (
+                        folderId,
+                        page
+                    );
+                    if (results != null)
+                    {
+                        currentPageSize = ProcessSfmcAssets(folderId, retval, results!);
+                    }
                 }
                 catch (System.Exception ex)
                 {
@@ -273,14 +281,14 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
             return currentPageSize;
         }
 
-        private RestResults<SfmcRestWrapper<SfmcAsset>, string>? LoadPageOfAssets(int folderId, int page)
+        private async Task<RestResults<SfmcRestWrapper<SfmcAsset>, string>?> LoadPageOfAssetsAsync(int folderId, int page)
         {
             if (AppConfiguration.Instance.Debug) Console.WriteLine($"Loading Assets Page #{page}");
             string uri = $"https://{AppConfiguration.Instance.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/assets?$page={page}&$pagesize={AppConfiguration.Instance.PageSize}&$orderBy=name&$filter=category.id eq {folderId}";
 
             if (AppConfiguration.Instance.Debug) Console.WriteLine($"Trying to download to {uri} with {_authRepository.Token.access_token}");
 
-            var results = _restManager.ExecuteRestMethod<SfmcRestWrapper<SfmcAsset>, string>(
+            var results = await _restClient.ExecuteRestMethodAsync<SfmcRestWrapper<SfmcAsset>, string>(
                 uri: new Uri(uri),
                 verb: HttpVerbs.GET,
                 headers:
@@ -294,9 +302,9 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
             if (results != null && results.UnhandledError != null && results.UnhandledError.Contains("401"))
             {
                 Console.WriteLine($"Unauthenticated: {results.UnhandledError}");
-                _authRepository.ResolveAuthentication();
+                await _authRepository.ResolveAuthenticationAsync();
 
-                results = _restManager.ExecuteRestMethod<SfmcRestWrapper<SfmcAsset>, string>(
+                results = await _restClient.ExecuteRestMethodAsync<SfmcRestWrapper<SfmcAsset>, string>(
                     uri: new Uri(uri),
                     verb: HttpVerbs.GET,
                     headers:

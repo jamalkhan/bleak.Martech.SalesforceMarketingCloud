@@ -136,7 +136,7 @@ public abstract class BaseSfmcFolderAndListViewModel
             {
                 _logger.LogError(ex, $"Error processing Data Extension {contentResource}.");
                 continue;
-            }            
+            }
         }
         IsContentResourcesLoading = false;
         IsContentResourcesLoaded = true;
@@ -147,5 +147,52 @@ public abstract class BaseSfmcFolderAndListViewModel
 
     public abstract Task LoadContentResourcesForSelectedFolderAsync();
 
-    public abstract Task LoadFoldersAsync();
+    //public abstract Task LoadFoldersAsync();
+
+    public virtual async Task LoadFoldersAsync()
+    {
+        try
+        {
+            _logger.LogInformation("Loading Base folders...");
+            IsFoldersLoaded = false;
+            IsFoldersLoading = true;
+            _logger.LogInformation("Set Booleans");
+            
+            // Add timeout to prevent infinite waiting
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            var folderTree = await GetFolderTreeAsync().WaitAsync(cts.Token);
+            _logger.LogInformation($"Retrieved {folderTree?.Count() ?? 0} folders from API");
+            
+            Folders.Clear();
+            _logger.LogInformation("Cleared Folders collection.");
+            
+            if (folderTree != null)
+            {
+                foreach (var folder in folderTree)
+                {
+                    Folders.Add(folder);
+                }
+            }
+            
+            IsFoldersLoaded = true;
+            IsFoldersLoading = false;
+            _logger.LogInformation("Folder loading completed successfully");
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogError("Folder loading timed out after 30 seconds");
+            IsFoldersLoaded = false;
+            IsFoldersLoading = false;
+            throw new TimeoutException("Folder loading timed out. Please check your connection and try again.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error loading Base folders: {ex.Message}");
+            IsFoldersLoaded = false;
+            IsFoldersLoading = false;
+            throw; // Re-throw to help with debugging
+        }
+    }
+
+    public abstract Task<IEnumerable<TFolderViewModel>> GetFolderTreeAsync();
 }

@@ -55,30 +55,47 @@ public partial class SfmcDataExtensionListViewModel
         LoadFoldersAsync();
     }
 
-    public override async Task LoadFoldersAsync()
+    public async Task LoadFoldersAsync()
     {
-        
         try
         {
+            _logger.LogInformation("Loading Base folders...");
             IsFoldersLoaded = false;
             IsFoldersLoading = true;
+            _logger.LogInformation("Set Booleans");
+            _logger.LogInformation("Calling GetFolderTreeAsync...");
+            _logger.LogInformation($"FolderAPI: {FolderApi != null} {FolderApi.GetType().Name}");
             var folderTree = await FolderApi.GetFolderTreeAsync();
+            _logger.LogInformation("Set Booleans");
             Folders.Clear();
+            _logger.LogInformation("Cleared Folders collection.");
             foreach (var folder in folderTree.ToViewModel())
             {
+                _logger.LogInformation($"Adding folder: {folder.Name}");
                 Folders.Add(folder);
             }
+            _logger.LogInformation("Folders loaded successfully.");
+            _logger.LogInformation($"Total folders loaded: {Folders.Count}");
             IsFoldersLoaded = true;
             IsFoldersLoading = false;
+            _logger.LogInformation("Set Booleans");
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error loading folders. {ex.Message}");
+            _logger.LogError($"View Model: Error loading Data Extension folders. {Environment.NewLine}Stack Trace ----------{Environment.NewLine} {ex.StackTrace}");
         }
     }
 
+    // TODO: NOt currently used. Async bug in RestManager
+    public override async Task<IEnumerable<FolderViewModel>> GetFolderTreeAsync()
+    {
+        var folders = await FolderApi.GetFolderTreeAsync();
+        return folders.ToViewModel();
+    }
+    
+    
     #region Search
-        
+
     private async void OnSearchButtonClicked()
     {
         try
@@ -142,13 +159,12 @@ public partial class SfmcDataExtensionListViewModel
             );
 
             // Run long sync task in background
-            long records = await Task.Run(() =>
-                RestApi.DownloadDataExtension(
+            long records = await 
+                RestApi.DownloadDataExtensionAsync(
                     dataExtensionCustomerKey: dataExtension.CustomerKey,
                     fileWriter: fileWriter,
                     fileName: filePath
-                )
-            );
+                );
 
             _logger.LogInformation($"Downloaded {records} records to {filePath}", "OK");
         }

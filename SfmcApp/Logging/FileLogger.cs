@@ -12,11 +12,14 @@ public class FileLogger : ILogger
         _filePath = filePath;
     }
 
-    public IDisposable BeginScope<TState>(TState state) => null!;
+    IDisposable ILogger.BeginScope<TState>(TState state)
+    {
+        return null!;
+    }
     public bool IsEnabled(LogLevel logLevel) => true;
 
     public void Log<TState>(LogLevel logLevel, EventId eventId,
-        TState state, Exception exception, Func<TState, Exception?, string> formatter)
+        TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
         var logRecord = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{logLevel}] {_category}: {formatter(state, exception)}{Environment.NewLine}";
         File.AppendAllText(_filePath, logRecord);

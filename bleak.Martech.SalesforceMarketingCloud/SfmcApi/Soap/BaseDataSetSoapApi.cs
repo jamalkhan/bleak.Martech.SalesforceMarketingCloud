@@ -5,10 +5,11 @@ using bleak.Martech.SalesforceMarketingCloud.Fileops;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Api.Soap;
 
-public abstract class BaseDataSetSoapApi<TAPIObject, TPoco> : BaseSoapApi<TAPIObject>
+public abstract class BaseDataSetSoapApi<TApiImplementation, TAPIObject, TPoco> : BaseSoapApi<TApiImplementation>
     where TAPIObject : APIObject
     where TPoco : IPoco
 {
@@ -18,13 +19,15 @@ public abstract class BaseDataSetSoapApi<TAPIObject, TPoco> : BaseSoapApi<TAPIOb
 
     public BaseDataSetSoapApi
     (
+        IRestClientAsync restClientAsync,
         IAuthRepository authRepository,
         IFileWriter fileWriter,
         SfmcConnectionConfiguration config,
-        ILogger<TAPIObject> logger
+        ILogger<TApiImplementation> logger
     )
         : base
         (
+            restClientAsync: restClientAsync,
             authRepository: authRepository,
             sfmcConnectionConfiguration: config,
             logger: logger
@@ -33,43 +36,57 @@ public abstract class BaseDataSetSoapApi<TAPIObject, TPoco> : BaseSoapApi<TAPIOb
         FileWriter = fileWriter;
     }
     
-    public void LoadDataSet(string filePath)
+   public async Task LoadDataSetAsync(string filePath)
     {
         string? status = "";
+
         do
         {
             try
             {
-                
-                if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Invoking SOAP Call. URL: {url}");
-                RestResults<SoapEnvelope<TAPIObject>, string> results = 
-                    ExecuteWithReauth
-                    (
-                        apiCall: () => _restManager.ExecuteRestMethod<SoapEnvelope<TAPIObject>, string>(
+                _logger.LogInformation(
+                    $"[{GetType().Name} {DateTime.Now:yyyy-MM-dd HH:mm:ss}] Invoking SOAP Call. URL: {url}");
+
+                RestResults<SoapEnvelope<TAPIObject>, string> results =
+                    await ExecuteWithReauthAsync(
+                        apiCallAsync: () => _restClientAsync.ExecuteRestMethodAsync<SoapEnvelope<TAPIObject>, string>(
                             uri: new Uri(url),
                             verb: HttpVerbs.POST,
                             serializedPayload: BuildRequest(),
                             headers: BuildHeaders()
                         ),
-                        errorCondition: HandleError,
-                        reauthenticate: () => _authRepository.ResolveAuthentication()
-                    );
+                        errorConditionAsync: HandleError,
+                        reauthenticateAsync: _authRepository.ResolveAuthenticationAsync
+                    ).ConfigureAwait(false);
 
-                if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] results.Value = {results?.Results}");
-                if (results?.Error != null) Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] results.Error = {results.Error}");
+                _logger.LogInformation(
+                    $"[{GetType().Name} {DateTime.Now:yyyy-MM-dd HH:mm:ss}] results.Value = {results?.Results}");
+
+                if (results?.Error != null)
+                {
+                    _logger.LogError(
+                        $"[{GetType().Name} {DateTime.Now:yyyy-MM-dd HH:mm:ss}] results.Error = {results.Error}");
+                }
 
                 status = results?.Results?.Body?.RetrieveResponse?.OverallStatus;
 
                 // Process Results
-                if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Overall Status: {results!.Results.Body.RetrieveResponse.OverallStatus}");
+                _logger.LogInformation(
+                    $"[{GetType().Name} {DateTime.Now:yyyy-MM-dd HH:mm:ss}] Overall Status: {results!.Results.Body.RetrieveResponse.OverallStatus}");
+
                 int currentPageSize = 0;
+
                 if (results!.Results.Body.RetrieveResponse.Results.Any())
                 {
                     var wsdlObjects = results!.Results.Body.RetrieveResponse.Results;
-                    List<TPoco> pocos = new List<TPoco>();
-                    pocos.AddRange(wsdlObjects.Select(x => ConvertToPoco((TAPIObject)x)));
-                    FileWriter.WriteToFile(filePath, pocos);
-                    
+
+                    // Convert to POCOs
+                    List<TPoco> pocos = wsdlObjects
+                        .Select(x => ConvertToPoco((TAPIObject)x))
+                        .ToList();
+
+                    await Task.Run(() => FileWriter.WriteToFile(filePath, pocos))
+                    .ConfigureAwait(false);
 
                     currentPageSize = wsdlObjects.Count();
                     RunningTally += currentPageSize;
@@ -77,52 +94,54 @@ public abstract class BaseDataSetSoapApi<TAPIObject, TPoco> : BaseSoapApi<TAPIOb
                     pocos.Clear();
                     pocos.TrimExcess();
 
-                    
                     if (status == "MoreDataAvailable")
                     {
-                        Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] More Data Available. Added: {currentPageSize} records; Total: {RunningTally}; Request ID: {results.Results.Body.RetrieveResponse.RequestID}");
+                        _logger.LogInformation(
+                            $"[{GetType().Name} {DateTime.Now:yyyy-MM-dd HH:mm:ss}] More Data Available. Added: {currentPageSize} records; Total: {RunningTally}; Request ID: {results.Results.Body.RetrieveResponse.RequestID}");
                     }
                     else
                     {
-                        Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Current Page: {currentPageSize} records. Total: {RunningTally} Request ID: {results.Results.Body.RetrieveResponse.RequestID}");
+                        _logger.LogInformation(
+                            $"[{GetType().Name} {DateTime.Now:yyyy-MM-dd HH:mm:ss}] Current Page: {currentPageSize} records. Total: {RunningTally} Request ID: {results.Results.Body.RetrieveResponse.RequestID}");
                     }
                 }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                Console.WriteLine($"Error {ex.Message}");
+                _logger.LogError($"Error {ex.Message}");
                 status = $"Error - {ex.Message}";
             }
-        }
-        while (status == "MoreDataAvailable");
+
+        } while (status == "MoreDataAvailable");
     }
+
 
     private bool HandleError(RestResults<SoapEnvelope<TAPIObject>, string> results)
     {
         if (results == null)
         {
-            Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Error: results is null.");
+            _logger.LogError($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Error: results is null.");
             return true;
         }
         if (results.Results == null)
         {
-            Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Error: results.Results is null.");
+            _logger.LogError($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Error: results.Results is null.");
             return true;
         }
         if (results.Results.Body == null)
         {
-            Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Error: results.Results.Body is null.");
+            _logger.LogError($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Error: results.Results.Body is null.");
             return true;
         }
         if (results.Results.Body.RetrieveResponse == null)
         {
-            Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Error: results.Results.Body.RetrieveResponse is null.");
+            _logger.LogError($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Error: results.Results.Body.RetrieveResponse is null.");
             return true;
         }
 
         if (results.Results.Body.RetrieveResponse.OverallStatus == "Error" || results?.UnhandledError?.Contains("401") == true)
         {
-            Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] RetrieveResponse.OverallStatus: {results.Results.Body.RetrieveResponse.OverallStatus}.");
+            _logger.LogInformation($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] RetrieveResponse.OverallStatus: {results.Results.Body.RetrieveResponse.OverallStatus}.");
             return true;
         }
         else
@@ -131,26 +150,25 @@ public abstract class BaseDataSetSoapApi<TAPIObject, TPoco> : BaseSoapApi<TAPIOb
         }
     }
 
-    private RestResults<TResponse, string> ExecuteWithReauth<TResponse>
+    private async Task<RestResults<TResponse, string>> ExecuteWithReauthAsync<TResponse>
     (
-        Func<RestResults<TResponse, string>> apiCall,
-        Func<RestResults<TResponse, string>, bool> errorCondition,
-        Action reauthenticate
+        Func<Task<RestResults<TResponse, string>>> apiCallAsync,
+        Func<RestResults<TResponse, string>, bool> errorConditionAsync,
+        Func<Task> reauthenticateAsync
     )
     {
-        var results = apiCall();
-        
-        if (errorCondition(results))
+        var results = await apiCallAsync().ConfigureAwait(false);
+
+        if (errorConditionAsync(results))
         {
-            Console.WriteLine($"Unauthenticated: {results.UnhandledError}");
-            reauthenticate();
-            Console.WriteLine($"Reauthenticated!");
-            results = apiCall();
+            _logger.LogInformation($"Unauthenticated: {results.UnhandledError}");
+            await reauthenticateAsync().ConfigureAwait(false);
+            _logger.LogInformation($"Reauthenticated!");
+            results = await apiCallAsync().ConfigureAwait(false);
         }
-        
+
         return results;
     }
-
     public abstract TPoco ConvertToPoco(TAPIObject wsdlObject);
 
     public abstract string BuildRequest();

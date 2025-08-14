@@ -6,6 +6,7 @@ using bleak.Martech.SalesforceMarketingCloud.Rest;
 using bleak.Martech.SalesforceMarketingCloud.Fileops;
 using bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
 using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions;
 
@@ -19,14 +20,14 @@ public class DataExtensionRestApi
 {
     public DataExtensionRestApi
     (
+        IRestClientAsync restClientAsync,
         IAuthRepository authRepository,
         SfmcConnectionConfiguration config,
         ILogger<DataExtensionRestApi> logger
     )
         : base
         (
-            restManager: new RestManager(new JsonSerializer(), new JsonSerializer()),
-            restManagerAsync: new RestManager(new JsonSerializer(), new JsonSerializer()),
+            restClientAsync: restClientAsync,
             authRepository: authRepository,
             config: config,
             logger: logger
@@ -38,16 +39,7 @@ public class DataExtensionRestApi
     //"https://{{et_subdomain}}.rest.marketingcloudapis.com/data/v1/customobjectdata/key/Person_NA/rowset";
 
 
-    public async Task<long> DownloadDataExtensionAsync(
-        string dataExtensionCustomerKey,
-        IFileWriter fileWriter,
-        string fileName
-    )
-    {
-        return await Task.FromResult(DownloadDataExtension(dataExtensionCustomerKey, fileWriter, fileName));
-    }
-
-    public long DownloadDataExtension
+    public async Task<long> DownloadDataExtensionAsync
         (
         string dataExtensionCustomerKey,
         IFileWriter fileWriter,
@@ -62,18 +54,18 @@ public class DataExtensionRestApi
 
             Directory.CreateDirectory(Path.GetDirectoryName(fileName)!);
 
-
             string baseUrl = $"https://{_authRepository.Subdomain}.rest.marketingcloudapis.com/data";
             string url = $"{baseUrl}/v1/customobjectdata/key/{dataExtensionCustomerKey}/rowset?$page=1&$pageSize=2500";
             do
             {
                 _logger.LogInformation($"Downloading Data Extension[{dataExtensionCustomerKey}] from  {url}");
-                RestResults<DataExtensionDataDto, string> results = LoadApiWithRetry<DataExtensionDataDto>(
-                    loadApiCall: LoadApiCall,
+                var results = await LoadApiWithRetryAsync<DataExtensionDataDto>(
+                    loadApiCallAsync: LoadApiCallAsync,
                     url: url,
                     authenticationError: "401",
-                    resolveAuthentication: _authRepository.ResolveAuthentication
+                    resolveAuthenticationAsync: _authRepository.ResolveAuthenticationAsync
                 );
+                
                 if (results?.Error != null)
                 {
                     throw new Exception($"Error: {results.Error}");
@@ -112,19 +104,17 @@ public class DataExtensionRestApi
 
 
     // TODO: Figure out how to Generic this and move down to BaseRestApi
-    private RestResults<DataExtensionDataDto, string> LoadApiCall(
+    private async Task<RestResults<DataExtensionDataDto, string>> LoadApiCallAsync(
         string url
     )
     {
-        if (_sfmcConnectionConfiguration.Debug) { Console.WriteLine($"Attempting to {verb} to {url} with accessToken: {_authRepository.Token.access_token}"); }
+        _logger.LogInformation($"Attempting to {verb} to {url} with accessToken: {_authRepository.Token.access_token}");
 
         SetAuthHeader();
-        var results = _restManager.ExecuteRestMethod<DataExtensionDataDto, string>(
+        return await _restClientAsync.ExecuteRestMethodAsync<DataExtensionDataDto, string>(
             uri: new Uri(url),
             verb: verb,
             headers: _headers
             );
-
-        return results!;
     }
 }

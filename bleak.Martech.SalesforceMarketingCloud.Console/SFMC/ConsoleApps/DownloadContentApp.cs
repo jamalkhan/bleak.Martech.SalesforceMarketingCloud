@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System;
 using System.IO;
 using bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
+using System.Threading.Tasks;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 {
@@ -18,30 +19,26 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
         private static int assetCounter = 0;
         private static int folderCounter = 0;
         private static HashSet<string> assetTypes = new HashSet<string>();
-        RestManager _restManager;
+        IRestClientAsync _restClientAsync;
         IAuthRepository _authRepository;
-        public DownloadContentApp( RestManager restManager, IAuthRepository authRepository)
+        public DownloadContentApp(IRestClientAsync restClientAsync, IAuthRepository authRepository)
         {
-            _restManager = restManager;
+            _restClientAsync = restClientAsync;
             _authRepository = authRepository;
         }
 
-        public void Execute()
+        public async Task Execute()
         {
             Console.WriteLine($"Getting Folder Tree");
             Console.WriteLine("---------------------");
-            LoadFolders loadFolders = new LoadFolders(restManager: _restManager, authRepository: _authRepository);
-            var folderTree = loadFolders.GetFolderTree();
+            LoadFolders loadFolders = new LoadFolders(restClientAsync: _restClientAsync, authRepository: _authRepository);
+            var folderTree = await loadFolders.GetFolderTreeAsync();
             Console.WriteLine($"Completed Building Folder Tree");
             Console.WriteLine("---------------------");
             // PrintChildren(folderTree);
             // PrintFolders(folderTree);
             DownloadAllAssets(folderTree);
         }
-
-
-
-
 
         private static void DownloadAllAssets(List<FolderObject> folderTree)
         {
@@ -160,7 +157,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 
         
         
-        private void GetAssetsByFolder(FolderObject folderObject)
+        private async Task GetAssetsByFolder(FolderObject folderObject)
         {
             int page = 1;
             int currentPageSize = 0;
@@ -176,7 +173,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 
                     if (AppConfiguration.Instance.Debug) Console.WriteLine($"Trying to download to {uri} with {_authRepository.Token.access_token}");
 
-                    var results = _restManager.ExecuteRestMethod<SfmcRestWrapper<SfmcAsset>, string>(
+                    var results = await _restClientAsync.ExecuteRestMethodAsync<SfmcRestWrapper<SfmcAsset>, string>(
                         uri: new Uri(uri),
                         verb: HttpVerbs.GET,
                         headers:
@@ -190,9 +187,9 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                     if (results != null && results.UnhandledError != null && results.UnhandledError.Contains("401"))
                     {
                         Console.WriteLine($"Unauthenticated: {results.UnhandledError}");
-                        _authRepository.ResolveAuthentication();
+                        await _authRepository.ResolveAuthenticationAsync();
 
-                        results = _restManager.ExecuteRestMethod<SfmcRestWrapper<SfmcAsset>, string>(
+                        results = await _restClientAsync.ExecuteRestMethodAsync<SfmcRestWrapper<SfmcAsset>, string>(
                             uri: new Uri(uri),
                             verb: HttpVerbs.GET,
                             headers:
@@ -244,7 +241,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
         }
 
         
-        private void AddChildren(FolderObject parentFolder, List<SfmcFolder> sfmcFolders)
+        private async Task AddChildrenAsync(FolderObject parentFolder, List<SfmcFolder> sfmcFolders)
         {
             var sfmcFolders_w_MatchingParentId = sfmcFolders.Where(x => x.parentId == parentFolder.Id).ToList();
             if (sfmcFolders_w_MatchingParentId.Any())
@@ -254,8 +251,8 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                 {
                     var subfolder = sfmcFolder.ToFolderObject();
                     subfolder.FullPath = parentFolder.FullPath + subfolder.Name + "/";
-                    GetAssetsByFolder(subfolder);
-                    AddChildren(subfolder, sfmcFolders);
+                    await GetAssetsByFolder(subfolder);
+                    await AddChildrenAsync(subfolder, sfmcFolders);
                     parentFolder.SubFolders.Add(subfolder);
                 }
             }

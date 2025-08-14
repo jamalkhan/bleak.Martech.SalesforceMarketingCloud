@@ -47,30 +47,37 @@ public partial class SfmcAssetListViewModel
         SearchCommand = new Command(() => OnSearchButtonClicked());
         OpenDownloadDirectoryCommand = new Command(OpenDownloadDirectory);
 
-        LoadFoldersAsync();
+        // Remove the async call from constructor to prevent blocking
+        // LoadFoldersAsync();
     }
 
-    public override async Task LoadFoldersAsync()
+    public override async Task<IEnumerable<FolderViewModel>> GetFolderTreeAsync()
     {
         try
         {
-            IsFoldersLoaded = false;
-            IsFoldersLoading = true;
-            var folderTree = await FolderApi.GetFolderTreeAsync();
-            Folders.Clear();
-            foreach (var folder in folderTree.ToViewModel())
-            {
-                Folders.Add(folder);
-            }
-            IsFoldersLoaded = true;
-            IsFoldersLoading = false;
+            _logger.LogInformation("Calling FolderApi.GetFolderTreeAsync()");
+            
+            // Add timeout to prevent infinite waiting
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            var folders = await FolderApi.GetFolderTreeAsync().WaitAsync(cts.Token);
+            
+            _logger.LogInformation($"Received {folders?.Count() ?? 0} folders from API");
+            var viewModels = folders.ToViewModel();
+            _logger.LogInformation($"Converted to {viewModels?.Count() ?? 0} view models");
+            return viewModels;
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogError("API call timed out after 30 seconds");
+            throw new TimeoutException("API call timed out. Please check your connection and try again.");
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error loading folders. {ex.Message}");
+            _logger.LogError(ex, "Error getting folder tree from API");
+            throw;
         }
     }
-
+    
 
     private bool _expandAmpscript = true;
     public bool ExpandAmpscript
@@ -120,7 +127,7 @@ public partial class SfmcAssetListViewModel
                     _logger.LogError(ex, $"Error processing asset {asset.Name}.");
                     continue;
                 }
-                _logger.LogInformation($"Added asset: {asset.Name} ({asset.AssetType.Name}) Count {ContentResources.Count}");
+                _logger.LogTrace($"Added asset: {asset.Name} ({asset.AssetType.Name}) Count {ContentResources.Count}");
             }
             IsContentResourcesLoading = false;
             IsContentResourcesLoaded = true;

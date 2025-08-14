@@ -4,7 +4,6 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions
 {
     public interface IDataExtensionFolderRestApi
     {
-        List<FolderObject> GetFolderTree();
         Task<List<FolderObject>> GetFolderTreeAsync();
     }
 }

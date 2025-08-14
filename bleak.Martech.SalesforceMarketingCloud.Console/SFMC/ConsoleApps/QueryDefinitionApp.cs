@@ -7,25 +7,29 @@ using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using System.Diagnostics;
 using System;
 using System.IO;
+using NLog;
+using Microsoft.Extensions.Logging;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 {
     public class QueryDefinitionApp<T> : IConsoleApp
         where T : QueryDefinitionPoco
     {
-        private static int assetCounter = 0;
-        private static int folderCounter = 0;
-        private static HashSet<string> assetTypes = new HashSet<string>();
         IAuthRepository _authRepository;
         public QueryDefinitionApp(IAuthRepository authRepository)
         {
             _authRepository = authRepository;
         }
 
-        public void Execute()
+        public async Task Execute()
         {
-            var lf = new Sfmc.Soap.QueryDefinitionSoapApi(authRepository: _authRepository);
-            var pocos = lf.GetQueryDefinitionPocos();
+            var lf = new QueryDefinitionSoapApi
+            (
+                restClientAsync: new RestClient(),
+                authRepository: _authRepository,
+                logger: (ILogger<QueryDefinitionSoapApi>)LogManager.GetLogger(typeof(QueryDefinitionSoapApi).FullName ?? "QueryDefinitionSoapApi")
+            );
+            var pocos = await lf.GetQueryDefinitionPocosAsync();
             WriteFile(pocos);
         }
 

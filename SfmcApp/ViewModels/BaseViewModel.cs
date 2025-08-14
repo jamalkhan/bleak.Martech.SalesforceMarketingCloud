@@ -8,9 +8,9 @@ public abstract class BaseViewModel<T>
 {
     #region INotifyPropertyChanged implementation
     public event PropertyChangedEventHandler? PropertyChanged;
-    public bool SetProperty<T>(ref T backingStore, T value, [CallerMemberName] string propertyName = "")
+    public bool SetProperty<TProp>(ref TProp backingStore, TProp value, [CallerMemberName] string propertyName = "")
     {
-        if (EqualityComparer<T>.Default.Equals(backingStore, value))
+        if (EqualityComparer<TProp>.Default.Equals(backingStore, value))
             return false;
 
         backingStore = value;

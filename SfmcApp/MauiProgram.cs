@@ -1,17 +1,18 @@
-﻿using Microsoft.Extensions.Logging;
-using CommunityToolkit.Maui;
-using SfmcApp.Logging;
-using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
-using bleak.Martech.SalesforceMarketingCloud.Authentication;
-using bleak.Martech.SalesforceMarketingCloud.Sfmc.Models;
-using SfmcApp.Pages.Assets;
-using bleak.Martech.SalesforceMarketingCloud.Configuration;
-using SfmcApp.Models;
-using SfmcApp.ViewModels;
+﻿using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.Api;
 using bleak.Martech.SalesforceMarketingCloud.Api.Soap;
-using SfmcApp.Pages.DataExtensions;
+using bleak.Martech.SalesforceMarketingCloud.Authentication;
+using bleak.Martech.SalesforceMarketingCloud.Configuration;
+using bleak.Martech.SalesforceMarketingCloud.Sfmc.Models;
+using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions;
+using CommunityToolkit.Maui;
+using Microsoft.Extensions.Logging;
+using SfmcApp.Logging;
+using SfmcApp.Models;
+using SfmcApp.Pages.Assets;
+using SfmcApp.Pages.DataExtensions;
+using SfmcApp.ViewModels;
 
 namespace SfmcApp;
 
@@ -19,149 +20,189 @@ public static class MauiProgram
 {
 	public static MauiApp CreateMauiApp()
 	{
-		var builder = MauiApp.CreateBuilder();
-		builder
-			.UseMauiApp<App>()
-			.ConfigureFonts(fonts =>
-			{
-				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-			})
-			.UseMauiCommunityToolkit()
-			;
-		
-		string logPath = Path.Combine(FileSystem.AppDataDirectory, "app.log");
-        builder.Logging.AddProvider(new FileLoggerProvider(logPath));
-        builder.Logging.SetMinimumLevel(LogLevel.Debug); // Or whatever level you want
-
-
-		// Sfmc Connection Configuration
-		builder.Services.AddTransient<SfmcConnectionConfiguration>();
-
-		// Auth Repository
-		builder.Services.AddTransient<Func<SfmcConnection, IAuthRepository>>(sp => connection =>
+		try
 		{
-			var logger = sp.GetRequiredService<ILogger<MauiAuthRepository>>();
-			return new MauiAuthRepository(connection, logger);
-		});
 
-		// Asset View Model
-		builder.Services.AddTransient<SfmcAssetListViewModel>();
+			var builder = MauiApp.CreateBuilder();
+			builder
+				.UseMauiApp<App>()
+				.ConfigureFonts(fonts =>
+				{
+					fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+					fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+				})
+				.UseMauiCommunityToolkit()
+				;
+
+			string logPath = Path.Combine(FileSystem.AppDataDirectory, "app.log");
+			builder.Logging.AddProvider(new FileLoggerProvider(logPath));
+			builder.Logging.SetMinimumLevel(LogLevel.Debug); // Or whatever level you want
 
 
-		// Asset Folder API
-		builder.Services.AddTransient<AssetFolderRestApi>();
-		builder.Services.AddTransient<IAssetFolderRestApi, AssetFolderRestApi>();
+			// Sfmc Connection Configuration
+			builder.Services.AddSingleton<SfmcConnectionConfiguration>();
 
-		// Asset API
-		builder.Services.AddTransient<AssetRestApi>();
-		builder.Services.AddTransient<IAssetRestApi, AssetRestApi>();
-		
-		// Data Extension Folder API
-		builder.Services.AddTransient<DataExtensionFolderSoapApi>();
-		builder.Services.AddTransient<IDataExtensionFolderApi, DataExtensionFolderSoapApi>();
-
-		// Data Extension API
-		builder.Services.AddTransient<DataExtensionSoapApi>();
-		builder.Services.AddTransient<IDataExtensionApi, DataExtensionSoapApi>();
-		
-
-		// Pages
-		builder.Services.AddTransient<MainPage>();
-		builder.Services.AddTransient<SfmcConnectionEditPage>();
-		builder.Services.AddTransient<SfmcConnectionListPage>();
-		builder.Services.AddTransient<SfmcInstanceMenuPage>();
-
-		// This lets the DI container resolve everything except SfmcConnection
-		// which you provide at runtime.
-		builder.Services.AddTransient<Func<SfmcConnection, SfmcInstanceMenuPage>>(sp => connection =>
-		{
-			var logger = sp.GetRequiredService<ILogger<SfmcInstanceMenuPage>>();
-			return new SfmcInstanceMenuPage(connection, logger);
-		});
-
-		// Asset List Page
-		builder.Services.AddTransient<Func<SfmcConnection, SfmcAssetListPage>>
-		(
-			sp => connection =>
+			// Auth Repository
+			builder.Services.AddTransient<Func<SfmcConnection, IAuthRepository>>(sp => connection =>
 			{
-				var viewModelLogger = sp.GetRequiredService<ILogger<SfmcAssetListViewModel>>();
-				var logger = sp.GetRequiredService<ILogger<SfmcAssetListPage>>();
+				var logger = sp.GetRequiredService<ILogger<MauiAuthRepository>>();
+				return new MauiAuthRepository
+				(
+					subdomain: connection.Subdomain,
+					clientId: connection.ClientId,
+					clientSecret: connection.ClientSecret,
+					memberId: connection.MemberId,
+					jsonSerializer: sp.GetRequiredService<JsonSerializer>(),
+					restClientAsync: sp.GetRequiredService<IRestClientAsync>(),
+					logger: logger
+				);
+			});
+
+			// Asset View Model
+			// Remove this line as it's causing conflicts
+			// builder.Services.AddTransient<SfmcAssetListViewModel>();
+
+			// Asset View Model with factory for SfmcConnection dependency
+			builder.Services.AddTransient<Func<SfmcConnection, SfmcAssetListViewModel>>(sp => connection =>
+			{
+				var logger = sp.GetRequiredService<ILogger<SfmcAssetListViewModel>>();
 				var folderApiLogger = sp.GetRequiredService<ILogger<AssetFolderRestApi>>();
 				var objectApiLogger = sp.GetRequiredService<ILogger<AssetRestApi>>();
-				var authRepoFactory = sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>();
-				var authRepository = authRepoFactory(connection);
-				var sfmcConnectionConfiguration = new SfmcConnectionConfiguration();
-				var folderApi = new AssetFolderRestApi(
-					authRepository: authRepository,
+				var sfmcConnectionConfiguration = sp.GetRequiredService<SfmcConnectionConfiguration>();
+				
+				var folderApi = new AssetFolderRestApi
+				(
+					restClientAsync: sp.GetRequiredService<RestClient>(),
+					authRepository: sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>()(connection),
 					config: sfmcConnectionConfiguration,
 					logger: folderApiLogger
 				);
-				var objectApi = new AssetRestApi(
-					authRepository: authRepository,
+				
+				var objectApi = new AssetRestApi
+				(
+					restClientAsync: sp.GetRequiredService<RestClient>(),
+					authRepository: sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>()(connection),
 					config: sfmcConnectionConfiguration,
 					logger: objectApiLogger
 				);
-				return new SfmcAssetListPage(
-					sfmcConnection: connection,
-					logger: viewModelLogger,
-					folderApi: folderApi,
-					objectApi: objectApi
-					);
-			}
-		);
+				
+				return new SfmcAssetListViewModel(connection, logger, folderApi, objectApi);
+			});
+
+			// RestManager
+			builder.Services.AddTransient<JsonSerializer>();
+			builder.Services.AddTransient<ISerializer, JsonSerializer>();
+			builder.Services.AddTransient<IDeserializer, JsonSerializer>();
+			builder.Services.AddTransient<RestClient>();
+			builder.Services.AddTransient<IRestClientAsync, RestClient>();
 
 
-		// Data Extension List Page
-		builder.Services.AddTransient<Func<SfmcConnection, SfmcDataExtensionListPage2>>
-		(
-			sp => connection =>
+			// Asset Folder API
+			builder.Services.AddTransient<AssetFolderRestApi>();
+			builder.Services.AddTransient<IAssetFolderRestApi, AssetFolderRestApi>();
+
+			// Asset API
+			builder.Services.AddTransient<AssetRestApi>();
+			builder.Services.AddTransient<IAssetRestApi, AssetRestApi>();
+
+			// Data Extension Folder API
+			builder.Services.AddTransient<DataExtensionFolderSoapApi>();
+			builder.Services.AddTransient<IDataExtensionFolderApi, DataExtensionFolderSoapApi>();
+
+			// Data Extension API
+			builder.Services.AddTransient<DataExtensionSoapApi>();
+			builder.Services.AddTransient<IDataExtensionApi, DataExtensionSoapApi>();
+
+
+			// Pages
+			builder.Services.AddTransient<MainPage>();
+			builder.Services.AddTransient<SfmcConnectionEditPage>();
+			builder.Services.AddTransient<SfmcConnectionListPage>();
+			builder.Services.AddTransient<SfmcInstanceMenuPage>();
+
+			// This lets the DI container resolve everything except SfmcConnection
+			// which you provide at runtime.
+			builder.Services.AddTransient<Func<SfmcConnection, SfmcInstanceMenuPage>>(sp => connection =>
 			{
-				var viewModelLogger = sp.GetRequiredService<ILogger<SfmcDataExtensionListViewModel>>();
-				var logger = sp.GetRequiredService<ILogger<SfmcDataExtensionListPage2>>();
-				var folderApiLogger = sp.GetRequiredService<ILogger<DataExtensionFolderSoapApi>>();
-				var objectApiLogger = sp.GetRequiredService<ILogger<DataExtensionSoapApi>>();
-				var restApiLogger = sp.GetRequiredService<ILogger<DataExtensionRestApi>>();
-				var authRepoFactory = sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>();
-				var authRepository = authRepoFactory(connection);
-				var sfmcConnectionConfiguration = new SfmcConnectionConfiguration();
-				var folderApi = new DataExtensionFolderSoapApi
+				var logger = sp.GetRequiredService<ILogger<SfmcInstanceMenuPage>>();
+				return new SfmcInstanceMenuPage
 				(
-					authRepository: authRepository,
-					config: sfmcConnectionConfiguration,
-					logger: folderApiLogger
+					connection: connection,
+					restManagerAsync: sp.GetRequiredService<IRestClientAsync>(),
+					authRepository: sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>()(connection),
+					logger: logger
 				);
-				var objectApi = new DataExtensionSoapApi
-				(
-					authRepository: authRepository,
-					config: sfmcConnectionConfiguration,
-					logger: objectApiLogger
-				);
-				var dataExtensionRestApi = new DataExtensionRestApi
-				(
-					authRepository: authRepository,
-					config: sfmcConnectionConfiguration,
-					logger: restApiLogger
-				);
-				return new SfmcDataExtensionListPage2
-				(
-					sfmcConnection: connection,
-					logger: viewModelLogger,
-					folderApi: folderApi,
-					objectApi: objectApi,
-					restApi: dataExtensionRestApi
-				);
-			}
-		);
-		
-		builder.Services.AddSingleton<SfmcConnectionConfiguration>();
-		
+			});
+
+			// Asset List Page - Simplified registration
+			builder.Services.AddTransient<SfmcAssetListPage>();
+
+			// Asset List Page with factory for SfmcConnection dependency
+			builder.Services.AddTransient<Func<SfmcConnection, SfmcAssetListPage>>(sp => connection =>
+			{
+				var viewModelFactory = sp.GetRequiredService<Func<SfmcConnection, SfmcAssetListViewModel>>();
+				var viewModel = viewModelFactory(connection);
+				return new SfmcAssetListPage(viewModel);
+			});
 
 
+			// Data Extension List Page
+			builder.Services.AddTransient<Func<SfmcConnection, SfmcDataExtensionListPage2>>
+			(
+				sp => connection =>
+				{
+					var viewModelLogger = sp.GetRequiredService<ILogger<SfmcDataExtensionListViewModel>>();
+					var logger = sp.GetRequiredService<ILogger<SfmcDataExtensionListPage2>>();
+					var folderApiLogger = sp.GetRequiredService<ILogger<DataExtensionFolderSoapApi>>();
+					var objectApiLogger = sp.GetRequiredService<ILogger<DataExtensionSoapApi>>();
+					var restApiLogger = sp.GetRequiredService<ILogger<DataExtensionRestApi>>();
+					var authRepoFactory = sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>();
+					var authRepository = authRepoFactory(connection);
+					var serializer = sp.GetRequiredService<JsonSerializer>();
+					var deserializer = sp.GetRequiredService<JsonSerializer>();
+					var restClientAsync = sp.GetRequiredService<RestClient>();
+					var sfmcConnectionConfiguration = sp.GetRequiredService<SfmcConnectionConfiguration>();
+					var folderApi = new DataExtensionFolderSoapApi
+					(
+						restClientAsync: restClientAsync,
+						authRepository: authRepository,
+						config: sfmcConnectionConfiguration,
+						logger: folderApiLogger
+					);
+					var objectApi = new DataExtensionSoapApi
+					(
+						restClientAsync: restClientAsync,
+						authRepository: authRepository,
+						config: sfmcConnectionConfiguration,
+						logger: objectApiLogger
+					);
+					var dataExtensionRestApi = new DataExtensionRestApi
+					(
+						restClientAsync: restClientAsync,
+						authRepository: authRepository,
+						config: sfmcConnectionConfiguration,
+						logger: restApiLogger
+					);
+					return new SfmcDataExtensionListPage2
+					(
+						sfmcConnection: connection,
+						logger: viewModelLogger,
+						folderApi: folderApi,
+						objectApi: objectApi,
+						restApi: dataExtensionRestApi
+					);
+				}
+			);
 #if DEBUG
-		builder.Logging.AddDebug();
+			builder.Logging.AddDebug();
 #endif
 
-		return builder.Build();
+			return builder.Build();
+		}
+		catch (Exception ex)
+		{
+        	System.Diagnostics.Debug.WriteLine("Startup crash: " + ex);
+			throw;
+		}
 	}
 }

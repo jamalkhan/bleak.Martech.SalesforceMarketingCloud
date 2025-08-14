@@ -13,37 +13,19 @@ public partial class SfmcInstanceMenuPage : ContentPage
 	public ILogger<SfmcInstanceMenuPage> _logger { get; private set; }
 	public IAuthRepository _authRepository { get; private set; }
 	public static JsonSerializer _serializer = new JsonSerializer();
-	public static IRestManager _restManager = new RestManager(_serializer, _serializer);
-	public static IRestManagerAsync _restManagerAsync
-	{
-		get
-		{
-			if (_restManager is IRestManagerAsync restManagerAsync)
-			{
-				return restManagerAsync;
-			}
-			else
-			{
-				throw new InvalidOperationException("RestManager does not implement IRestManagerAsync");
-			}
-		}
-	}
+	static IRestClientAsync _restClientAsync { get; set; }
 
 	public SfmcInstanceMenuPage(
 		SfmcConnection connection,
+		IRestClientAsync restManagerAsync,
+		IAuthRepository authRepository,
 		ILogger<SfmcInstanceMenuPage> logger
 	)
 	{
 		InitializeComponent();
 		_logger = logger ?? throw new ArgumentNullException(nameof(logger));
-		_authRepository = new MauiAuthRepository(
-			subdomain: connection.Subdomain,
-			clientId: connection.ClientId,
-			clientSecret: connection.ClientSecret,
-			memberId: connection.MemberId,
-			jsonSerializer: _serializer,
-			restManager: _restManagerAsync
-		);
+		_authRepository = authRepository ?? throw new ArgumentNullException(nameof(authRepository));
+		_restClientAsync = restManagerAsync ?? throw new ArgumentNullException(nameof(restManagerAsync));
 		BindingContext = connection;
 	}
 
@@ -51,7 +33,8 @@ public partial class SfmcInstanceMenuPage : ContentPage
 	{
 		await Navigation.PushAsync(new SfmcDataExtensionListPage
 		(
-			_authRepository,
+			restClientAsync: _restClientAsync,
+			authRepository: _authRepository,
 			logger: null
 		));
 	}

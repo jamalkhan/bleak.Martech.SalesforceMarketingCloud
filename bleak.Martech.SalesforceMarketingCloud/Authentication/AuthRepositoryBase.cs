@@ -11,15 +11,17 @@ namespace bleak.Martech.SalesforceMarketingCloud.Authentication
         protected const double Threshold = 600.07;
         private static Lazy<SfmcAuthToken>? _cachedToken;
         public SfmcAuthToken Token => _cachedToken != null ? _cachedToken.Value : throw new InvalidOperationException("_cachedToken is not initialized.");
-        protected readonly JsonSerializer _jsonSerializer;
-        protected readonly RestManager _restManager;
+        protected readonly IRestClientAsync _restClientAsync;
         private static readonly object _lock = new();
 
-        protected AuthRepositoryBase(string subdomain, string clientId, string clientSecret, string memberId)
+        protected AuthRepositoryBase(
+            IRestClientAsync restClientAsync,
+            string subdomain,
+            string clientId,
+            string clientSecret,
+            string memberId)
         {
-            _jsonSerializer = new JsonSerializer();
-            _restManager = new RestManager(_jsonSerializer, _jsonSerializer);
-
+            _restClientAsync = restClientAsync;
             Subdomain = subdomain;
             ClientId = clientId;
             ClientSecret = clientSecret;
@@ -62,7 +64,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Authentication
             Console.WriteLine("Authenticating...");
             string tokenUri = $"https://{Subdomain}.auth.marketingcloudapis.com/v2/token";
 
-            var authResults = await _restManager.ExecuteRestMethodAsync<SfmcAuthToken, string>(
+            var authResults = await _restClientAsync.ExecuteRestMethodAsync<SfmcAuthToken, string>(
                 uri: new Uri(tokenUri),
                 verb: HttpVerbs.POST,
                 payload: new

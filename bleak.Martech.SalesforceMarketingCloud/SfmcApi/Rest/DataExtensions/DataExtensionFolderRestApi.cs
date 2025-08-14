@@ -5,6 +5,7 @@ using bleak.Martech.SalesforceMarketingCloud.Models;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Rest;
 using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions;
 
@@ -19,14 +20,13 @@ public class DataExtensionFolderRestApi
     private HttpVerbs verb = HttpVerbs.GET;
 
     public DataExtensionFolderRestApi(
-        RestManager restManager,
+        IRestClientAsync restClientAsync,
         IAuthRepository authRepository,
         SfmcConnectionConfiguration sfmcConnectionConfiguration,
         ILogger<DataExtensionFolderRestApi> logger
         )
         : base(
-            restManager: new RestManager(new JsonSerializer(), new JsonSerializer()),
-            restManagerAsync: new RestManager(new JsonSerializer(), new JsonSerializer()),
+            restClientAsync: restClientAsync,
             authRepository: authRepository,
             config: sfmcConnectionConfiguration,
             logger: logger
@@ -39,7 +39,7 @@ public class DataExtensionFolderRestApi
         return await Task.Run(() => GetFolderTree());
     }
 
-    public List<FolderObject> GetFolderTree()
+    public async Task<List<FolderObject>> GetFolderTree()
     {
         int page = 1;
         int currentPageSize = 0;
@@ -47,7 +47,7 @@ public class DataExtensionFolderRestApi
         var sfmcFolders = new List<SfmcFolder>();
         do
         {
-            currentPageSize = LoadFolder(page, sfmcFolders);
+            currentPageSize = await LoadFolderAsync(page, sfmcFolders);
             page++;
         }
         while (_sfmcConnectionConfiguration.PageSize == currentPageSize);
@@ -57,7 +57,7 @@ public class DataExtensionFolderRestApi
             return BuildFolderTree(sfmcFolders);
         }
 
-        throw new Exception("Error Loading Folders");
+        throw new Exception("Error Loading Data Extension Folders via Rest");
 
     }
 
@@ -81,60 +81,49 @@ public class DataExtensionFolderRestApi
         return retval;
     }
 
-    private int LoadFolder(int page, List<SfmcFolder> sfmcFolders)
+    private async Task<int> LoadFolderAsync(int page, List<SfmcFolder> sfmcFolders)
     {
-        int currentPageSize;
         try
         {
-            if (_sfmcConnectionConfiguration.Debug) { Console.WriteLine($"Loading Folder Page #{page}"); }
+            _logger.LogInformation($"Loading Folder Page #{page}");
 
-            RestResults<SfmcRestWrapper<SfmcFolder>, string> results;
+
             ///legacy/v1/beta/object/
             string url = $"https://{_authRepository.Subdomain}.rest.marketingcloudapis.com/legacy/v1/beta/object/?$page={page}&$pagesize={_sfmcConnectionConfiguration.PageSize}";
-
-            results = LoadApiWithRetry<SfmcRestWrapper<SfmcFolder>>(
-                loadApiCall: LoadFolderApiCall,
+            var results = await LoadApiWithRetryAsync<SfmcRestWrapper<SfmcFolder>>(
+                loadApiCallAsync: LoadFolderApiCallAsync,
                 url: url,
                 authenticationError: "401",
-                resolveAuthentication: _authRepository.ResolveAuthentication
+                resolveAuthenticationAsync: _authRepository.ResolveAuthenticationAsync
             );
 
-            if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"results.Value = {results?.Results}");
-            if (results?.Error != null) Console.WriteLine($"results.Error = {results.Error}");
+            _logger.LogInformation($"results.Value = {results?.Results}");
+            if (results?.Error != null) _logger.LogError($"results.Error = {results.Error}");
 
-            currentPageSize = results!.Results.items.Count();
+            var currentPageSize = results!.Results.items.Count();
             sfmcFolders.AddRange(results.Results.items);
-            if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {sfmcFolders.Count()} Total Folders Identified.");
+            _logger.LogInformation($"Current Page had {currentPageSize} records. There are now {sfmcFolders.Count()} Total Folders Identified.");
 
-            if (_sfmcConnectionConfiguration.PageSize == currentPageSize)
-            {
-                if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"Running Loop Again");
-            }
-
+            return currentPageSize;
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
-            Console.WriteLine($"{ex.Message}");
+            _logger.LogError($"{ex.Message}");
             throw;
         }
-
-        return currentPageSize;
     }
 
-    private RestResults<SfmcRestWrapper<SfmcFolder>, string> LoadFolderApiCall(
+    private async Task<RestResults<SfmcRestWrapper<SfmcFolder>, string>> LoadFolderApiCallAsync(
         string url
     )
     {
-        if (_sfmcConnectionConfiguration.Debug) { Console.WriteLine($"Attempting to {verb} to {url} with accessToken: {_authRepository.Token.access_token}"); }
+        _logger.LogInformation($"Attempting to {verb} to {url} with accessToken: {_authRepository.Token.access_token}");
 
         SetAuthHeader();
-        var results = _restManager.ExecuteRestMethod<SfmcRestWrapper<SfmcFolder>, string>(
+        return await _restClientAsync.ExecuteRestMethodAsync<SfmcRestWrapper<SfmcFolder>, string>(
             uri: new Uri(url),
             verb: verb,
             headers: _headers
-            );
-
-        return results!;
+        );
     }
-
 }

@@ -11,7 +11,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
         private DateTime _lastWriteTime = DateTime.Now;
 
         protected readonly JsonSerializer _jsonSerializer;
-        protected readonly IRestManagerAsync _restManager;
+        protected readonly IRestClientAsync _restClientAsync;
         protected readonly ILogger<MauiAuthRepository> _logger;
         
         public string Subdomain { get; private set; }
@@ -19,7 +19,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
         public string ClientSecret {get; private set; }
         public string MemberId {get; private set; }
 
-        private static readonly object _lock = new object();
+        private static readonly Lock _lock = new();
         public SfmcAuthToken? _token;
         public SfmcAuthToken Token
         {
@@ -64,33 +64,128 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
         }
 
 
+        public async Task<bool> TestNetworkConnectivityAsync()
+        {
+            try
+            {
+                _logger.LogInformation("Testing network connectivity...");
+                
+                // Add overall timeout to prevent hanging
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                
+                // Try a simpler approach first - just test if we can resolve a DNS name
+                _logger.LogInformation("Testing DNS resolution...");
+                var hostEntry = await System.Net.Dns.GetHostEntryAsync("www.google.com").WaitAsync(cts.Token);
+                _logger.LogInformation($"DNS resolution successful: {hostEntry.HostName}");
+                
+                _logger.LogInformation("Creating HttpClient...");
+                using var httpClient = new HttpClient();
+                httpClient.Timeout = TimeSpan.FromSeconds(10);
+                _logger.LogInformation("HttpClient created with 10 second timeout");
+                
+                _logger.LogInformation("About to make HTTP request to Google...");
+                var response = await httpClient.GetAsync("https://www.google.com", cts.Token);
+                _logger.LogInformation($"Network connectivity test successful: {response.StatusCode}");
+                return response.IsSuccessStatusCode;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogError("Network connectivity test timed out after 15 seconds");
+                return false;
+            }
+            /*catch (TaskCanceledException ex)
+            {
+                _logger.LogError(ex, "Network connectivity test timed out");
+                return false;
+            }
+            */
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "Network connectivity test failed with HttpRequestException");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Network connectivity test failed with unexpected exception");
+                return false;
+            }
+        }
+
         protected async Task<SfmcAuthToken> AuthenticateAsync()
         {
+            _logger.LogInformation("Starting authentication process");
             Console.WriteLine("Authenticating...");
+            
+            // Test network connectivity first (with timeout)
+            try
+            {
+                var networkTest = await TestNetworkConnectivityAsync();
+                if (!networkTest)
+                {
+                    _logger.LogWarning("Network connectivity test failed - proceeding with authentication anyway");
+                    // Don't throw here, just log a warning and continue
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Network connectivity test failed with exception - proceeding with authentication anyway");
+                // Don't throw here, just log a warning and continue
+            }
+            
             string tokenUri = $"https://{Subdomain}.auth.marketingcloudapis.com/v2/token";
+            _logger.LogInformation($"Authentication URL: {tokenUri}");
+            _logger.LogInformation($"Client ID: {ClientId}");
+            _logger.LogInformation($"Member ID: {MemberId}");
 
-            var authResults = await _restManager.ExecuteRestMethodAsync<SfmcAuthToken, string>(
-                uri: new Uri(tokenUri),
-                verb: HttpVerbs.POST,
-                payload: new
+            try
+            {
+                // Add timeout to prevent hanging
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                
+                _logger.LogInformation("About to execute REST authentication call");
+                
+                // Create the payload for logging
+                var payload = new
                 {
                     grant_type = "client_credentials",
                     client_id = ClientId,
                     client_secret = ClientSecret,
                     account_id = MemberId,
-                },
-                headers: new List<Header>
+                };
+                
+                _logger.LogInformation($"Authentication payload created, about to make REST call");
+                
+                var authResults = await _restClientAsync.ExecuteRestMethodAsync<SfmcAuthToken, string>(
+                    uri: new Uri(tokenUri),
+                    verb: HttpVerbs.POST,
+                    payload: payload,
+                    headers:
+                    [
+                        new Header { Name = "Content-Type", Value = "application/json" }
+                    ]
+                ).WaitAsync(cts.Token);
+                
+                _logger.LogInformation("REST authentication call completed");
+
+                if (authResults.Error != null)
                 {
-                    new Header { Name = "Content-Type", Value = "application/json" }
+                    _logger.LogError($"Authentication failed: {authResults.Error}");
+                    throw new Exception($"Authentication failed: {authResults.Error}");
                 }
-            );
 
-            if (authResults.Error != null)
-            {
-                throw new Exception($"Authentication failed: {authResults.Error}");
+                _logger.LogInformation("Authentication completed successfully");
+                return authResults.Results;
             }
-
-            return authResults.Results;
+            catch (OperationCanceledException)
+            {
+                _logger.LogError("Authentication timed out after 30 seconds");
+                throw new TimeoutException("Authentication timed out. Please check your connection and try again.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Authentication process failed");
+                throw;
+            }
         }
 
 
@@ -101,37 +196,50 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
 
         public async Task ResolveAuthenticationAsync()
         {
-            throw new NotImplementedException();
+            _logger.LogInformation("Resolving authentication - clearing current token");
+            _token = null;
+            _lastWriteTime = DateTime.MinValue;
+            
+            try
+            {
+                // Add timeout to prevent hanging
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                
+                // Force a new authentication
+                _token = await AuthenticateAsync().WaitAsync(cts.Token);
+                _lastWriteTime = DateTime.Now;
+                _logger.LogInformation("Authentication resolved successfully");
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogError("Authentication resolution timed out after 30 seconds");
+                throw new TimeoutException("Authentication resolution timed out. Please check your connection and try again.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Authentication resolution failed");
+                throw;
+            }
         }
 
-        public MauiAuthRepository(SfmcConnection connection, ILogger<MauiAuthRepository> logger)
-        : this(
-            connection: connection,
-            logger: logger,
-            restManager: new RestManager(new JsonSerializer(), new JsonSerializer()))
-        {
-        }
-
-        public MauiAuthRepository(SfmcConnection connection, ILogger<MauiAuthRepository> logger, IRestManagerAsync restManager)
-        : this(
-            subdomain: connection.Subdomain,
-            clientId: connection.ClientId,
-            clientSecret: connection.ClientSecret,
-            memberId: connection.MemberId,
-            jsonSerializer: new JsonSerializer(),
-            restManager: restManager)
-        {
-            if (logger == null) throw new ArgumentNullException(nameof(logger));
-            _logger = logger;
-        }
-        public MauiAuthRepository(string subdomain, string clientId, string clientSecret, string memberId, JsonSerializer jsonSerializer, IRestManagerAsync restManager)
+        public MauiAuthRepository
+        (
+            string subdomain,
+            string clientId,
+            string clientSecret,
+            string memberId,
+            JsonSerializer jsonSerializer,
+            IRestClientAsync restClientAsync,
+            ILogger<MauiAuthRepository> logger
+        )
         {
             Subdomain = subdomain;
             ClientId = clientId;
             ClientSecret = clientSecret;
             MemberId = memberId;
-            _jsonSerializer = jsonSerializer ?? throw new ArgumentNullException(nameof(JsonSerializer));
-            _restManager = restManager ?? throw new ArgumentNullException(nameof(restManager));
+            _jsonSerializer = jsonSerializer;
+            _restClientAsync = restClientAsync;
+            _logger = logger;
         }
     }
 }

@@ -18,13 +18,13 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
 
 
         public AssetRestApi(
+            IRestClientAsync restClientAsync,
             IAuthRepository authRepository,
             SfmcConnectionConfiguration config,
             ILogger<AssetRestApi> logger
             ) :
             base(
-                restManager: new RestManager(new JsonSerializer(), new JsonSerializer()),
-                restManagerAsync: new RestManager(new JsonSerializer(), new JsonSerializer()),
+                restClientAsync: restClientAsync,
                 authRepository: authRepository,
                 config: config,
                 logger: logger
@@ -249,7 +249,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
 
             SetAuthHeader();
 
-            var results = await _restManagerAsync.ExecuteRestMethodAsync<SfmcRestWrapper<SfmcAsset>, string>(
+            var results = await _restClientAsync.ExecuteRestMethodAsync<SfmcRestWrapper<SfmcAsset>, string>(
                 uri: new Uri(url),
                 verb: verb,
                 headers: _headers

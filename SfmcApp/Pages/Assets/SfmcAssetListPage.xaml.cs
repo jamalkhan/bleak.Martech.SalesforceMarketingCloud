@@ -19,17 +19,46 @@ public partial class SfmcAssetListPage : ContentPage
 
     public SfmcAssetListPage
     (
-        SfmcConnection sfmcConnection,
-        ILogger<SfmcAssetListViewModel> logger,
-        IAssetFolderRestApi folderApi,
-        IAssetRestApi objectApi
+        SfmcAssetListViewModel viewModel
     )
     {
         InitializeComponent();
-
-        _viewModel = new SfmcAssetListViewModel(sfmcConnection, logger, folderApi, objectApi);
+        _viewModel = viewModel;
         BindingContext = _viewModel;
 
         SearchBarText.SearchButtonPressed += (s, e) => _viewModel.SearchCommand.Execute(null);
+    }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+        try
+        {
+            await _viewModel.LoadFoldersAsync();
+        }
+        catch (TimeoutException ex)
+        {
+            // Log the exception and show a user-friendly message
+            System.Diagnostics.Debug.WriteLine($"Timeout loading folders: {ex.Message}");
+            await DisplayAlert("Connection Timeout", ex.Message, "OK");
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("Authentication failed"))
+        {
+            // Log the exception and show a user-friendly message
+            System.Diagnostics.Debug.WriteLine($"Authentication error: {ex.Message}");
+            await DisplayAlert("Authentication Error", "Failed to authenticate with Salesforce Marketing Cloud. Please check your connection settings.", "OK");
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("Network connectivity test failed"))
+        {
+            // Log the exception and show a user-friendly message
+            System.Diagnostics.Debug.WriteLine($"Network connectivity error: {ex.Message}");
+            await DisplayAlert("Network Error", "Network connectivity test failed. Please check your internet connection and try again.", "OK");
+        }
+        catch (Exception ex)
+        {
+            // Log the exception and show a user-friendly message
+            System.Diagnostics.Debug.WriteLine($"Error loading folders: {ex}");
+            await DisplayAlert("Error", $"Failed to load folders: {ex.Message}", "OK");
+        }
     }
 }

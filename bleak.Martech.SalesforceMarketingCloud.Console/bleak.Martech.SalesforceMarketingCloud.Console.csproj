@@ -5,7 +5,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="bleak.Api.Rest" Version="2.2.19" />
+    <PackageReference Include="bleak.Api.Rest" Version="2.3.21" />
+    <PackageReference Include="NLog" Version="6.0.3" />
+    <PackageReference Include="NLog.Config" Version="4.7.15" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="6.0.3" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -17,6 +20,7 @@
 
    <Target Name="CopyConfigFile" AfterTargets="Build">
     <Copy SourceFiles="config.json.user" DestinationFiles="$(OutDir)config.json" />
+    <Copy SourceFiles="NLog.config" DestinationFiles="$(OutDir)NLog.config" />
   </Target>
 
 </Project>

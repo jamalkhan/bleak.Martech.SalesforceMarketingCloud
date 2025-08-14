@@ -8,31 +8,24 @@ namespace bleak.Martech.SalesforceMarketingCloud.Rest
     public class BaseRestApi<T>
     {
         protected readonly ILogger<T> _logger;
-
-        protected readonly IRestManagerAsync _restManagerAsync;
-        protected readonly IRestManager _restManager;
+        protected readonly IRestClientAsync _restClientAsync;
         protected readonly IAuthRepository _authRepository;
         protected readonly SfmcConnectionConfiguration _sfmcConnectionConfiguration;
 
-
-
         protected List<Header> _headers = new List<Header>
         {
-            new Header() { Name = "Content-Type", Value = "application/json" },
+            new() { Name = "Content-Type", Value = "application/json" },
         };
 
-
         public BaseRestApi(
-            IRestManager restManager,
-            IRestManagerAsync restManagerAsync,
+            IRestClientAsync restClientAsync,
             IAuthRepository authRepository,
             SfmcConnectionConfiguration config,
             ILogger<T> logger
             )
         {
             _logger = logger;
-            _restManager = restManager;
-            _restManagerAsync = restManagerAsync;
+            _restClientAsync = restClientAsync;
             _authRepository = authRepository;
             _sfmcConnectionConfiguration = config;
         }
@@ -55,29 +48,26 @@ namespace bleak.Martech.SalesforceMarketingCloud.Rest
             );
         }
         
-        protected RestResults<T2, string> LoadApiWithRetry<T2>(
-            Func<string, RestResults<T2, string>> loadApiCall,
+        protected async Task<RestResults<T2, string>> LoadApiWithRetryAsync<T2>(
+            Func<string, Task<RestResults<T2, string>>> loadApiCallAsync,
             string url,
             string authenticationError,
-            Action resolveAuthentication
+            Func<Task> resolveAuthenticationAsync
             )
         {
-            var results = loadApiCall(url);
+            var results = await loadApiCallAsync(url);
 
             // Check if an error occurred and it matches the specified errorText
             if (results != null && results.UnhandledError != null && results.UnhandledError.Contains(authenticationError))
             {
-                Console.WriteLine($"Unauthenticated: {results.UnhandledError}");
+            _logger.LogWarning($"Unauthenticated: {results.UnhandledError}");
 
-                // Resolve authentication
-                resolveAuthentication();
-                Console.WriteLine("Authentication Header has been reset");
+            // Resolve authentication
+            await resolveAuthenticationAsync();
+            _logger.LogInformation("Authentication Header has been reset");
 
-                // Retry the REST method
-                results = loadApiCall(url);
-
-                Console.WriteLine("Press Enter to Continue");
-                Console.ReadLine();
+            // Retry the REST method
+            results = await loadApiCallAsync(url);
             }
 
             return results!;

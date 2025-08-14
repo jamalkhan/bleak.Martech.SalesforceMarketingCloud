@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:local="clr-namespace:SfmcApp.Pages.Assets"
+             xmlns:viewmodels="clr-namespace:SfmcApp.Models.ViewModels"
              xmlns:converters="clr-namespace:SfmcApp.Converters"
              x:Class="SfmcApp.Pages.Assets.SfmcAssetListPage"
              Title="{Binding Title}">
@@ -194,7 +195,7 @@
                     <LinearItemsLayout Orientation="Vertical" ItemSpacing="20" />
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
-                    <DataTemplate>
+                    <DataTemplate x:DataType="viewmodels:AssetViewModel">
                         <Border 
                             Stroke="LightGray" 
                             StrokeThickness="1" 
@@ -240,8 +241,8 @@
                                         <Label Text="Type: " Grid.Row="1" Grid.Column="0" />
                                         <Label Text="{Binding AssetType.Name}" Grid.Row="1" Grid.Column="1" />
 
-                                        <Label Text="ContentType: " Grid.Row="1" Grid.Column="2" IsVisible="{Binding ContentTypeVisible}" />
-                                        <Label Text="{Binding ContentType}" Grid.Row="1" Grid.Column="3" />
+                                        <!--<Label Text="ContentType: " Grid.Row="1" Grid.Column="2" IsVisible="{Binding ContentTypeVisible}" />
+                                        <Label Text="{Binding ContentType}" Grid.Row="1" Grid.Column="3" />-->
                                     </Grid>
                                 </HorizontalStackLayout>
 
@@ -280,7 +281,6 @@
                             </Grid>
                         </Border>
                     </DataTemplate>
-
                 </CollectionView.ItemTemplate>
             </CollectionView>
         </Border>

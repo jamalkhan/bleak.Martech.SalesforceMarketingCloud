@@ -149,8 +149,8 @@ public class AssetHelpersTest
         var asset = new SfmcAsset
         {
             assetType = new(),
-            views = null,
-            fileProperties = null
+            views = new SfmcViews() { },
+            fileProperties = new SfmcFileProperties() { }
         };
 
         // Act
@@ -167,7 +167,7 @@ public class AssetHelpersTest
     {
         // Arrange
         var input = string.Empty;
-        AssetPoco asset = new AssetPoco
+        AssetPoco asset = new()
         {
             Content = input
         };

@@ -13,21 +13,21 @@ public abstract partial class BasePage : ContentPage, INotifyPropertyChanged
         _authRepository = authRepository;
     }
 
-        protected override void OnAppearing()
-        {
-            base.OnAppearing();
-            // Add common logic for all pages when they appear
-        }
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        // Add common logic for all pages when they appear
+    }
 
-        protected override void OnDisappearing()
-        {
-            base.OnDisappearing();
-            // Add common cleanup logic here
-        }
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        // Add common cleanup logic here
+    }
 
-        // You can also expose common methods for derived pages
-        protected async void ShowError(string message)
-        {
-            DisplayAlert("Error", message, "OK");
-        }
+    // You can also expose common methods for derived pages
+    protected void ShowError(string message)
+    {
+        DisplayAlert("Error", message, "OK");
+    }
 }

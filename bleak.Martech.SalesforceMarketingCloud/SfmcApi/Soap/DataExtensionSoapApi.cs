@@ -5,6 +5,7 @@ using System.Text;
 using bleak.Martech.SalesforceMarketingCloud.Api;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Api.Soap;
 
@@ -17,12 +18,14 @@ public partial class DataExtensionSoapApi
 {
     public DataExtensionSoapApi
     (
+        IRestClientAsync restClientAsync,
         IAuthRepository authRepository,
         SfmcConnectionConfiguration config,
         ILogger<DataExtensionSoapApi> logger
     )
     : base
     (
+        restClientAsync: restClientAsync,
         authRepository: authRepository,
         sfmcConnectionConfiguration: config,
         logger: logger
@@ -31,58 +34,37 @@ public partial class DataExtensionSoapApi
     }
 
 
-    public Task<List<DataExtensionPoco>> GetDataExtensionsByFolderAsync(int folderId)
-    {
-        return Task.Run(() => GetDataExtensionsByFolder(folderId));
-    }
-    private List<DataExtensionPoco> GetDataExtensionsByFolder(int folderId)
+    public async Task<List<DataExtensionPoco>> GetDataExtensionsByFolderAsync(int folderId)
     {
         var requestPayload = BuildRequest(folderId: folderId);
-        return IterateAPICallsForRequest(requestPayload: requestPayload);
+        return await IterateAPICallsForRequestAsync(requestPayload: requestPayload);
     }
 
-
-    public Task<List<DataExtensionPoco>> GetDataExtensionsNameLikeAsync(string nameLike)
-    {
-        return Task.Run(() => GetDataExtensionsNameLike(nameLike));
-    }
-    private List<DataExtensionPoco> GetDataExtensionsNameLike(string nameLike)
+    public async Task<List<DataExtensionPoco>> GetDataExtensionsNameLikeAsync(string nameLike)
     {
         var requestPayload = BuildRequest(nameLike: nameLike);
-        return IterateAPICallsForRequest(requestPayload: requestPayload);
+        return await IterateAPICallsForRequestAsync(requestPayload: requestPayload);
     }
 
-    public Task<List<DataExtensionPoco>> GetDataExtensionsNameStartsWithAsync(string nameStartsWith)
-    {
-        return Task.Run(() => GetDataExtensionsNameStartsWith(nameStartsWith));
-    }
-    private List<DataExtensionPoco> GetDataExtensionsNameStartsWith(string nameStartsWith)
+    public async Task<List<DataExtensionPoco>> GetDataExtensionsNameStartsWithAsync(string nameStartsWith)
     {
         var requestPayload = BuildRequest(nameStartsWith: nameStartsWith);
-        return IterateAPICallsForRequest(requestPayload: requestPayload);
+        return await IterateAPICallsForRequestAsync(requestPayload: requestPayload);
     }
 
-    public Task<List<DataExtensionPoco>> GetDataExtensionsNameEndsWithAsync(string nameEndsWith)
-    {
-        return Task.Run(() => GetDataExtensionsNameEndsWith(nameEndsWith));
-    }
-    private List<DataExtensionPoco> GetDataExtensionsNameEndsWith(string nameEndsWith)
+    public async Task<List<DataExtensionPoco>> GetDataExtensionsNameEndsWithAsync(string nameEndsWith)
     {
         var requestPayload = BuildRequest(nameEndsWith: nameEndsWith);
-        return IterateAPICallsForRequest(requestPayload: requestPayload);
+        return await IterateAPICallsForRequestAsync(requestPayload: requestPayload);
     }
 
-    public Task<List<DataExtensionPoco>> GetAllDataExtensionsAsync()
-    {
-        return Task.Run(() => GetAllDataExtensions());
-    }
-    public List<DataExtensionPoco> GetAllDataExtensions()
+    public async Task<List<DataExtensionPoco>> GetAllDataExtensionsAsync()
     {
         var requestPayload = BuildRequest();
-        return IterateAPICallsForRequest(requestPayload: requestPayload);
+        return await IterateAPICallsForRequestAsync(requestPayload: requestPayload);
     }
 
-    private List<DataExtensionPoco> IterateAPICallsForRequest(string requestPayload)
+    private async Task<List<DataExtensionPoco>> IterateAPICallsForRequestAsync(string requestPayload)
     {
         int page = 1;
         int currentPageSize = 0;
@@ -92,7 +74,7 @@ public partial class DataExtensionSoapApi
         do
         {
             if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"Loading Data Extension {page}");
-            requestId = MakeApiCall(wsdlDataExtensions, requestPayload);
+            requestId = await MakeApiCallAsync(wsdlDataExtensions, requestPayload);
             page++;
         }
         while (_sfmcConnectionConfiguration.PageSize == currentPageSize);
@@ -110,13 +92,13 @@ public partial class DataExtensionSoapApi
         throw new Exception("Error Loading Folders");
     }
 
-    private string MakeApiCall(List<Wsdl.DataExtension> wsdlDataExtensions, string requestPayload)
+    private async Task<string> MakeApiCallAsync(List<Wsdl.DataExtension> wsdlDataExtensions, string requestPayload)
     {
         try
         {
             if (_sfmcConnectionConfiguration.Debug) { Console.WriteLine($"Invoking SOAP Call. URL: {url}"); }
 
-            var results = _restManager.ExecuteRestMethod<SoapEnvelope<Wsdl.DataExtension>, string>(
+            var results = await _restClientAsync.ExecuteRestMethodAsync<SoapEnvelope<Wsdl.DataExtension>, string>(
                 uri: new Uri(url),
                 verb: HttpVerbs.POST,
                 serializedPayload: requestPayload,
@@ -140,7 +122,7 @@ public partial class DataExtensionSoapApi
             {
                 Console.WriteLine($"More DataExtensions Available. Request ID: {results.Results.Body.RetrieveResponse.RequestID}");
                 var moreDataRequestPayload = BuildRequest(requestId: results.Results.Body.RetrieveResponse.RequestID).ToString();
-                var retval = MakeApiCall(wsdlDataExtensions, moreDataRequestPayload);
+                var retval = await MakeApiCallAsync(wsdlDataExtensions, moreDataRequestPayload);
                 return retval;
 
             }
