@@ -27,6 +27,13 @@
                 SemanticProperties.Hint="Show Assets"
                 Clicked="OnShowAssetClicked"
                 HorizontalOptions="Fill" />
+
+            <Button
+                x:Name="TestNetworkBtn"
+                Text="Test Network Connectivity" 
+                SemanticProperties.Hint="Test Network Connectivity"
+                Clicked="OnNetworkTestClicked"
+                HorizontalOptions="Fill" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
