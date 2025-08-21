@@ -74,27 +74,28 @@ public partial class SfmcInstanceMenuPage : ContentPage
 		}
 	}
 
+
 	public async void OnNetworkTestClicked(object sender, EventArgs e)
 	{
 		try
-        {
-            _logger.LogInformation("Executing TestNetworkCommand...");
-            bool isConnected = await ((MauiAuthRepository)_authRepository).TestNetworkConnectivityAsync();
-            _logger.LogInformation($"Network test result: {isConnected}");
-            // Update UI on main thread
-            MainThread.BeginInvokeOnMainThread(() =>
+		{
+			_logger.LogInformation("Executing TestNetworkCommand...");
+			//bool isConnected = await ((MauiAuthRepository)_authRepository).TestNetworkConnectivityAsync();
+			//_logger.LogInformation($"Network test result: {isConnected}");
+			// Update UI on main thread
+			MainThread.BeginInvokeOnMainThread(() =>
 			{
 				// Update UI-bound properties here, e.g., ObservableProperty
 				DisplayAlert("Success", $"Networking TEST A-OK", "OK");
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Network command failed: {Message}\n{StackTrace}", ex.Message, ex.StackTrace);
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                DisplayAlert("Error", $"Network command failed: {ex.Message}", "OK");
-            });
-        }
+			});
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Network command failed: {Message}\n{StackTrace}", ex.Message, ex.StackTrace);
+			MainThread.BeginInvokeOnMainThread(() =>
+			{
+				DisplayAlert("Error", $"Network command failed: {ex.Message}", "OK");
+			});
+		}
 	}
 }

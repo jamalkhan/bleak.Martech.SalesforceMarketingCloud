@@ -13,6 +13,30 @@ namespace bleak.Martech.SalesforceMarketingCloud.Authentication
         public SfmcAuthToken Token => _cachedToken != null ? _cachedToken.Value : throw new InvalidOperationException("_cachedToken is not initialized.");
         protected readonly IRestClientAsync _restClientAsync;
         private static readonly object _lock = new();
+        public async Task<SfmcAuthToken> GetTokenAsync()
+        {
+            throw new NotImplementedException();
+            /*
+            if (!IsTokenValid())
+            {
+                await _semaphore.WaitAsync();
+                try
+                {
+                    if (!IsTokenValid())
+                    {
+                        _token = await AuthenticateAsync().ConfigureAwait(false);
+                        _lastWriteTime = DateTime.Now;
+                    }
+                }
+                finally
+                {
+                    _semaphore.Release();
+                }
+            }
+
+            return _token ?? throw new InvalidOperationException("Authentication failed.");*/
+        }
+
 
         protected AuthRepositoryBase(
             IRestClientAsync restClientAsync,

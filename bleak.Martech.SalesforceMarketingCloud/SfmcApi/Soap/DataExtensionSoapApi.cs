@@ -36,31 +36,31 @@ public partial class DataExtensionSoapApi
 
     public async Task<List<DataExtensionPoco>> GetDataExtensionsByFolderAsync(int folderId)
     {
-        var requestPayload = BuildRequest(folderId: folderId);
+        var requestPayload = await BuildRequestAsync(folderId: folderId);
         return await IterateAPICallsForRequestAsync(requestPayload: requestPayload);
     }
 
     public async Task<List<DataExtensionPoco>> GetDataExtensionsNameLikeAsync(string nameLike)
     {
-        var requestPayload = BuildRequest(nameLike: nameLike);
+        var requestPayload = await BuildRequestAsync(nameLike: nameLike);
         return await IterateAPICallsForRequestAsync(requestPayload: requestPayload);
     }
 
     public async Task<List<DataExtensionPoco>> GetDataExtensionsNameStartsWithAsync(string nameStartsWith)
     {
-        var requestPayload = BuildRequest(nameStartsWith: nameStartsWith);
+        var requestPayload = await BuildRequestAsync(nameStartsWith: nameStartsWith);
         return await IterateAPICallsForRequestAsync(requestPayload: requestPayload);
     }
 
     public async Task<List<DataExtensionPoco>> GetDataExtensionsNameEndsWithAsync(string nameEndsWith)
     {
-        var requestPayload = BuildRequest(nameEndsWith: nameEndsWith);
+        var requestPayload = await BuildRequestAsync(nameEndsWith: nameEndsWith);
         return await IterateAPICallsForRequestAsync(requestPayload: requestPayload);
     }
 
     public async Task<List<DataExtensionPoco>> GetAllDataExtensionsAsync()
     {
-        var requestPayload = BuildRequest();
+        var requestPayload = await BuildRequestAsync();
         return await IterateAPICallsForRequestAsync(requestPayload: requestPayload);
     }
 
@@ -121,8 +121,8 @@ public partial class DataExtensionSoapApi
             if (results.Results.Body.RetrieveResponse.OverallStatus == "MoreDataAvailable")
             {
                 Console.WriteLine($"More DataExtensions Available. Request ID: {results.Results.Body.RetrieveResponse.RequestID}");
-                var moreDataRequestPayload = BuildRequest(requestId: results.Results.Body.RetrieveResponse.RequestID).ToString();
-                var retval = await MakeApiCallAsync(wsdlDataExtensions, moreDataRequestPayload);
+                var moreDataRequestPayload = await BuildRequestAsync(requestId: results.Results.Body.RetrieveResponse.RequestID);
+                var retval = await MakeApiCallAsync(wsdlDataExtensions, moreDataRequestPayload.ToString());
                 return retval;
 
             }
@@ -136,7 +136,7 @@ public partial class DataExtensionSoapApi
     }
 
 
-    private string BuildRequest(
+    private async Task<string> BuildRequestAsync(
         string? requestId = null,
         int? folderId = null,
         string? nameEndsWith = null,
@@ -161,13 +161,14 @@ public partial class DataExtensionSoapApi
         }
         */
 
+        var token = await _authRepository.GetTokenAsync();
         var sb = new StringBuilder();
         sb.AppendLine($"<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         sb.AppendLine($"<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:a=\"http://schemas.xmlsoap.org/ws/2004/08/addressing\" xmlns:u=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd\">");
         sb.AppendLine($"    <s:Header>");
         sb.AppendLine($"        <a:Action s:mustUnderstand=\"1\">Retrieve</a:Action>");
         sb.AppendLine($"        <a:To s:mustUnderstand=\"1\">https://{_authRepository.Subdomain}.soap.marketingcloudapis.com/Service.asmx</a:To>");
-        sb.AppendLine($"        <fueloauth xmlns=\"http://exacttarget.com\">{_authRepository.Token.access_token}</fueloauth>");
+        sb.AppendLine($"        <fueloauth xmlns=\"http://exacttarget.com\">{token?.access_token}</fueloauth>");
         sb.AppendLine($"    </s:Header>");
         sb.AppendLine($"    <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">");
         sb.AppendLine($"        <RetrieveRequestMsg xmlns=\"http://exacttarget.com/wsdl/partnerAPI\">");

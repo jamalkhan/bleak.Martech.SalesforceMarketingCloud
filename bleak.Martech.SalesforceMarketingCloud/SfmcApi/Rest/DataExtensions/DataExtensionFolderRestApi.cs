@@ -117,9 +117,8 @@ public class DataExtensionFolderRestApi
         string url
     )
     {
-        _logger.LogInformation($"Attempting to {verb} to {url} with accessToken: {_authRepository.Token.access_token}");
-
-        SetAuthHeader();
+        _logger.LogInformation($"Attempting to {verb} to {url}");
+        await SetAuthHeaderAsync();
         return await _restClientAsync.ExecuteRestMethodAsync<SfmcRestWrapper<SfmcFolder>, string>(
             uri: new Uri(url),
             verb: verb,

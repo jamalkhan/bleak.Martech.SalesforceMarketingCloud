@@ -108,9 +108,9 @@ public class DataExtensionRestApi
         string url
     )
     {
-        _logger.LogInformation($"Attempting to {verb} to {url} with accessToken: {_authRepository.Token.access_token}");
+        _logger.LogInformation($"Attempting to {verb} to {url}");
 
-        SetAuthHeader();
+        await SetAuthHeaderAsync();
         return await _restClientAsync.ExecuteRestMethodAsync<DataExtensionDataDto, string>(
             uri: new Uri(url),
             verb: verb,

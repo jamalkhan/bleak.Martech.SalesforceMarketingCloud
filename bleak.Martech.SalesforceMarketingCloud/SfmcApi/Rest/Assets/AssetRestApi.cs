@@ -245,9 +245,9 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
 
         private async Task<RestResults<SfmcRestWrapper<SfmcAsset>, string>> LoadFolderApiCallAsync(string url)
         {
-            _logger.LogTrace($"Attempting to {verb} to {url} with accessToken: {_authRepository.Token.access_token}");
+            _logger.LogTrace($"Attempting to {verb} to {url}");
 
-            SetAuthHeader();
+            await SetAuthHeaderAsync();
 
             var results = await _restClientAsync.ExecuteRestMethodAsync<SfmcRestWrapper<SfmcAsset>, string>(
                 uri: new Uri(url),

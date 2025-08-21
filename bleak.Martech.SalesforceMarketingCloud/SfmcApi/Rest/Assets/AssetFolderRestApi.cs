@@ -167,10 +167,8 @@ public class AssetFolderRestApi
     )
     {
         _logger.LogInformation($"Starting LoadFolderApiCallAsync for URL: {url}");
-        _logger.LogInformation($"Access token available: {!string.IsNullOrEmpty(_authRepository.Token.access_token)}");
-
-        SetAuthHeader();
-        _logger.LogInformation("Auth header set, about to execute REST call");
+        
+        await SetAuthHeaderAsync();
         
         try
         {

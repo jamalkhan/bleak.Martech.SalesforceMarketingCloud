@@ -29,9 +29,9 @@ public partial class SfmcAssetListPage : ContentPage
         SearchBarText.SearchButtonPressed += (s, e) => _viewModel.SearchCommand.Execute(null);
     }
 
-    protected override async void OnAppearing()
+    protected async override void OnNavigatedTo(NavigatedToEventArgs args)
     {
-        base.OnAppearing();
+        base.OnNavigatedTo(args);
         try
         {
             await _viewModel.LoadFoldersAsync();
