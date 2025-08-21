@@ -197,7 +197,7 @@ public static class MauiProgram
 				);
 				var dataExtensionRestApi = new DataExtensionRestApi
 				(
-					restClientAsync: restClient,
+					restClientAsync: sp.GetRequiredService<RestClient>(),
 					authRepository: sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>()(connection),
 					config: sp.GetRequiredService<SfmcConnectionConfiguration>(),
 					logger: restApiLogger
