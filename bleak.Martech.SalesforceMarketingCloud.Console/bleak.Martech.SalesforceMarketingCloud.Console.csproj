@@ -5,7 +5,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="bleak.Api.Rest" Version="2.3.21" />
+    <PackageReference Include="bleak.Api.Rest" Version="2.3.22" />
     <PackageReference Include="NLog" Version="6.0.3" />
     <PackageReference Include="NLog.Config" Version="4.7.15" />
     <PackageReference Include="NLog.Extensions.Logging" Version="6.0.3" />

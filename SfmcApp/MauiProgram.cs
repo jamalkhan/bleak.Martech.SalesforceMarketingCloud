@@ -3,6 +3,7 @@ using bleak.Martech.SalesforceMarketingCloud.Api;
 using bleak.Martech.SalesforceMarketingCloud.Api.Soap;
 using bleak.Martech.SalesforceMarketingCloud.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
+using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Models;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions;
@@ -162,15 +163,26 @@ public static class MauiProgram
 			// Data Extension View Model
 			builder.Services.AddTransient<Func<SfmcConnection, SfmcDataExtensionListViewModel>>(sp => connection =>
 			{
+				var serializer = new SoapSerializer();
+
 				var logger = sp.GetRequiredService<ILogger<SfmcDataExtensionListViewModel>>();
 				var folderApiLogger = sp.GetRequiredService<ILogger<DataExtensionFolderSoapApi>>();
 				var objectApiLogger = sp.GetRequiredService<ILogger<DataExtensionSoapApi>>();
 				var restApiLogger = sp.GetRequiredService<ILogger<DataExtensionRestApi>>();
+
 				var sfmcConnectionConfiguration = sp.GetRequiredService<SfmcConnectionConfiguration>();
+
+    			// Get the RestClient once, pass in the SoapSerializer
+    			var restClient = new RestClient
+				(
+					serializer: serializer,
+					deserializer: serializer
+				);
+
 
 				var folderApi = new DataExtensionFolderSoapApi
 				(
-					restClientAsync: sp.GetRequiredService<RestClient>(),
+					restClientAsync: restClient,
 					authRepository: sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>()(connection),
 					config: sp.GetRequiredService<SfmcConnectionConfiguration>(),
 					logger: folderApiLogger
@@ -178,14 +190,14 @@ public static class MauiProgram
 
 				var objectApi = new DataExtensionSoapApi
 				(
-					restClientAsync: sp.GetRequiredService<RestClient>(),
+					restClientAsync: restClient,
 					authRepository: sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>()(connection),
 					config: sp.GetRequiredService<SfmcConnectionConfiguration>(),
 					logger: objectApiLogger
 				);
 				var dataExtensionRestApi = new DataExtensionRestApi
 				(
-					restClientAsync: sp.GetRequiredService<RestClient>(),
+					restClientAsync: restClient,
 					authRepository: sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>()(connection),
 					config: sp.GetRequiredService<SfmcConnectionConfiguration>(),
 					logger: restApiLogger

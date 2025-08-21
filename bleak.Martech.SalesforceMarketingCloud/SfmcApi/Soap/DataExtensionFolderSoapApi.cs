@@ -71,17 +71,18 @@ public partial class DataExtensionFolderSoapApi
                 headers: BuildHeaders()
             );
 
-            if (_sfmcConnectionConfiguration.Debug) _logger.LogInformation($"results.Value = {results?.Results}");
             if (results?.Error != null) _logger.LogError($"results.Error = {results.Error}");
 
             // Process Results
             //_logger.LogInformation($"Overall Status: {results!.Results.Body.RetrieveResponse.OverallStatus}");
-            _logger.LogTrace($"results: {results}");
-            _logger.LogTrace($"results.Results: {results?.Results}");
-            _logger.LogTrace($"Body: {results?.Results?.Body}");
-            _logger.LogTrace($"RetrieveResponse: {results?.Results?.Body?.RetrieveResponse}");
-            _logger.LogTrace($"Overall Results: {results?.Results?.Body?.RetrieveResponse?.Results.Count()}");
-            _logger.LogTrace($"Overall Status: {results?.Results?.Body?.RetrieveResponse?.OverallStatus}");
+            _logger.LogInformation($"results: {results}");
+            _logger.LogInformation($"results.Value = {results?.Results}");
+            _logger.LogInformation($"results.SerializedResponse = {results?.SerializedResponse}");
+            _logger.LogInformation($"results.Results: {results?.Results}");
+            _logger.LogInformation($"Body: {results?.Results?.Body}");
+            _logger.LogInformation($"RetrieveResponse: {results?.Results?.Body?.RetrieveResponse}");
+            _logger.LogInformation($"Overall Results: {results?.Results?.Body?.RetrieveResponse?.Results.Count()}");
+            _logger.LogInformation($"Overall Status: {results?.Results?.Body?.RetrieveResponse?.OverallStatus}");
             int currentPageSize = 0;
             foreach (var result in results?.Results?.Body?.RetrieveResponse?.Results ?? Enumerable.Empty<Wsdl.DataFolder>())
             {
