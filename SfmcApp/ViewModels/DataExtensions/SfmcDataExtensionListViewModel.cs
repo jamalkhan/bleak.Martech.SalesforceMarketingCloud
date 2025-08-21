@@ -51,10 +51,9 @@ public partial class SfmcDataExtensionListViewModel
         FolderTappedCommand = new Command<FolderViewModel>(folder => SelectedFolder = folder);
         SearchCommand = new Command(OnSearchButtonClicked);
         OpenDownloadDirectoryCommand = new Command(OpenDownloadDirectory);
-
-        LoadFoldersAsync();
     }
 
+/*
     public async Task LoadFoldersAsync()
     {
         try
@@ -85,14 +84,7 @@ public partial class SfmcDataExtensionListViewModel
             _logger.LogError($"View Model: Error loading Data Extension folders. {Environment.NewLine}Stack Trace ----------{Environment.NewLine} {ex.StackTrace}");
         }
     }
-
-    // TODO: NOt currently used. Async bug in RestManager
-    public override async Task<IEnumerable<FolderViewModel>> GetFolderTreeAsync()
-    {
-        var folders = await FolderApi.GetFolderTreeAsync();
-        return folders.ToViewModel();
-    }
-    
+    */
     
     #region Search
 
@@ -186,6 +178,33 @@ public partial class SfmcDataExtensionListViewModel
         catch (Exception ex)
         {
             _logger.LogError($"Failed to load assets. {ex.Message}");
+        }
+    }
+
+    public async override Task<IEnumerable<FolderViewModel>> GetFolderTreeAsync()
+    {
+         try
+        {
+            _logger.LogInformation("Calling FolderApi.GetFolderTreeAsync()");
+            
+            // Add timeout to prevent infinite waiting
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            var folders = await FolderApi.GetFolderTreeAsync().WaitAsync(cts.Token);
+            
+            _logger.LogInformation($"Received {folders?.Count() ?? 0} folders from API");
+            var viewModels = folders?.ToViewModel();
+            _logger.LogInformation($"Converted to {viewModels?.Count() ?? 0} view models");
+            return viewModels ?? Enumerable.Empty<FolderViewModel>();
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogError("API call timed out after 30 seconds");
+            throw new TimeoutException("API call timed out. Please check your connection and try again.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting folder tree from API");
+            throw;
         }
     }
 }

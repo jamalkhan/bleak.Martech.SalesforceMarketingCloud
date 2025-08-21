@@ -157,15 +157,15 @@ public abstract class BaseSfmcFolderAndListViewModel
             IsFoldersLoaded = false;
             IsFoldersLoading = true;
             _logger.LogInformation("Set Booleans");
-            
+
             // Add timeout to prevent infinite waiting
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             var folderTree = await GetFolderTreeAsync().WaitAsync(cts.Token);
             _logger.LogInformation($"Retrieved {folderTree?.Count() ?? 0} folders from API");
-            
+
             Folders.Clear();
             _logger.LogInformation("Cleared Folders collection.");
-            
+
             if (folderTree != null)
             {
                 foreach (var folder in folderTree)
@@ -173,7 +173,7 @@ public abstract class BaseSfmcFolderAndListViewModel
                     Folders.Add(folder);
                 }
             }
-            
+
             IsFoldersLoaded = true;
             IsFoldersLoading = false;
             _logger.LogInformation("Folder loading completed successfully");
@@ -195,4 +195,5 @@ public abstract class BaseSfmcFolderAndListViewModel
     }
 
     public abstract Task<IEnumerable<TFolderViewModel>> GetFolderTreeAsync();
+
 }

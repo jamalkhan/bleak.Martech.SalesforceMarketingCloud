@@ -262,17 +262,16 @@
                                     HeightRequest="30"
                                     VerticalOptions="Center"
                                     HorizontalOptions="End"
-                                    IsVisible="false"
+                                    IsVisible="{Binding IsSendable}"
                                     SemanticProperties.Description="Is Sendable = true" />
 
-                                <!--<Image Grid.Column="3"
+                                <Image Grid.Column="3"
                                     Grid.RowSpan="4"
                                     Source="download.png"
                                     WidthRequest="30"
                                     HeightRequest="30"
                                     VerticalOptions="Center"
                                     HorizontalOptions="End"
-                                    IsVisible="{Binding IsDownloadableImage}"
                                     SemanticProperties.Description="Download Image">
                                     <Image.GestureRecognizers>
                                         <TapGestureRecognizer
@@ -280,7 +279,6 @@
                                             CommandParameter="{Binding .}" />
                                     </Image.GestureRecognizers>
                                 </Image>
-                            -->
                             </Grid>
                         </Border>
                     </DataTemplate>

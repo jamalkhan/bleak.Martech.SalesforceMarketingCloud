@@ -46,9 +46,6 @@ public partial class SfmcAssetListViewModel
         FolderTappedCommand = new Command<FolderViewModel>(folder => SelectedFolder = folder);
         SearchCommand = new Command(() => OnSearchButtonClicked());
         OpenDownloadDirectoryCommand = new Command(OpenDownloadDirectory);
-
-        // Remove the async call from constructor to prevent blocking
-        // LoadFoldersAsync();
     }
 
     public override async Task<IEnumerable<FolderViewModel>> GetFolderTreeAsync()
@@ -62,9 +59,9 @@ public partial class SfmcAssetListViewModel
             var folders = await FolderApi.GetFolderTreeAsync().WaitAsync(cts.Token);
             
             _logger.LogInformation($"Received {folders?.Count() ?? 0} folders from API");
-            var viewModels = folders.ToViewModel();
+            var viewModels = folders?.ToViewModel();
             _logger.LogInformation($"Converted to {viewModels?.Count() ?? 0} view models");
-            return viewModels;
+            return viewModels ?? Enumerable.Empty<FolderViewModel>();
         }
         catch (OperationCanceledException)
         {
