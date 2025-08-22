@@ -49,7 +49,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Rest
             _headers.Add(
                 new Header() { Name = "Authorization", Value = $"Bearer {token?.access_token}" }
             );
-            _logger.LogInformation("Auth header set, about to execute REST call");
+            _logger.LogTrace("Auth header set, about to execute REST call");
         }
         
         protected async Task<RestResults<T2, string>> LoadApiWithRetryAsync<T2>(

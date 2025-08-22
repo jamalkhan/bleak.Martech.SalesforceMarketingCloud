@@ -6,6 +6,7 @@ using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Rest;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
+using bleak.Martech.SalesforceMarketingCloud.Api;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
 

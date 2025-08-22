@@ -97,12 +97,6 @@ public partial class SfmcAssetListViewModel
     }
     #endregion Search
 
-   
-
-    
-
-
-
     public override async Task LoadContentResourcesForSelectedFolderAsync()
     {
         if (SelectedFolder == null) return;
@@ -136,7 +130,7 @@ public partial class SfmcAssetListViewModel
         }
     }
 
-    private void OnSearchButtonClicked()
+    private async void OnSearchButtonClicked()
     {
         try
         {
@@ -149,7 +143,6 @@ public partial class SfmcAssetListViewModel
         }
     }
 
-    
     private async Task<List<AssetViewModel>> PerformSearchAsync()
     {
         SelectedFolder = new FolderViewModel() { Name = $"Search for %{SearchText}% | No Folder Selected" };
@@ -163,10 +156,13 @@ public partial class SfmcAssetListViewModel
         }
 
         var contentResources = new List<AssetPoco>();
+        throw new NotImplementedException($"Search type '{searchType}' is not implemented.");
+        /*
         switch (searchType)
         {
+            
             case "Starts With":
-                contentResources = await ContentResourceApi.GetAssetsStartsWithAsync(SearchText);
+                contentResources = await ContentResourceApi.GetAssetsLikeAsync(SearchText);
                 break;
             case "Like":
                 contentResources = await ContentResourceApi.GetDataExtensionsNameLikeAsync(SearchText);
@@ -178,7 +174,7 @@ public partial class SfmcAssetListViewModel
                 contentResources = await ContentResourceApi.GetDataExtensionsNameLikeAsync(SearchText);
                 break;
         }
-
+        */
         return contentResources.ToViewModel();
     }
 

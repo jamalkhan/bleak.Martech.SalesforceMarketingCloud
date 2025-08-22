@@ -3,6 +3,7 @@ using bleak.Martech.SalesforceMarketingCloud.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Rest;
+using bleak.Martech.SalesforceMarketingCloud.Api;
 using bleak.Martech.SalesforceMarketingCloud.Fileops;
 using bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
 using Microsoft.Extensions.Logging;
@@ -90,7 +91,7 @@ public class DataExtensionRestApi
                     break;
                 }
 
-                _logger.LogInformation($"Running Loop Again");
+                _logger.LogTrace($"Running Loop Again");
                 url = $"{baseUrl}{results.Results.links.next}";
             } while (true);
         }

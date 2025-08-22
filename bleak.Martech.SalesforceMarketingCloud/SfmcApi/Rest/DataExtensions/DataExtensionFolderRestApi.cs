@@ -4,6 +4,7 @@ using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.Models;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Rest;
+using bleak.Martech.SalesforceMarketingCloud.Api;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 
