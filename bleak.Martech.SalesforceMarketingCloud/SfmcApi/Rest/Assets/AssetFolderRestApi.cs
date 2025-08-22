@@ -54,7 +54,7 @@ public class AssetFolderRestApi
         }
         while (_sfmcConnectionConfiguration.PageSize == currentPageSize);
 
-        _logger.LogInformation($"LoadFolderAsync() loaded {sfmcFolders.Count()} Folders");
+        _logger.LogTrace($"LoadFolderAsync() loaded {sfmcFolders.Count()} Folders");
         if (sfmcFolders.Any())
         {
             return await BuildFolderTreeAsync(sfmcFolders);
@@ -126,27 +126,27 @@ public class AssetFolderRestApi
         int currentPageSize;
         try
         {
-            _logger.LogInformation($"Starting LoadFolderAsync for page {page}");
+            _logger.LogTrace($"Starting LoadFolderAsync for page {page}");
             RestResults<SfmcRestWrapper<SfmcFolder>, string> results;
             //asset/v1/content/categories
             string url = $"https://{_authRepository.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/categories/?$page={page}&$pagesize={_sfmcConnectionConfiguration.PageSize}";
-            _logger.LogInformation($"Loading Folder Page #{page} with URL: {url}");
+            _logger.LogTrace($"Loading Folder Page #{page} with URL: {url}");
             
-            _logger.LogInformation("About to call ExecuteRestMethodAsyncWithRetry");
+            _logger.LogTrace("About to call ExecuteRestMethodAsyncWithRetry");
             results = await ExecuteRestMethodAsyncWithRetry(
                 loadFolderApiCallAsync: LoadFolderApiCallAsync,
                 url: url,
                 authenticationError: "401",
                 resolveAuthenticationAsync: _authRepository.ResolveAuthenticationAsync
             );
-            _logger.LogInformation("ExecuteRestMethodAsyncWithRetry completed");
+            _logger.LogTrace("ExecuteRestMethodAsyncWithRetry completed");
 
             _logger.LogTrace($"results.Value = {results?.Results}");
             if (results?.Error != null) _logger.LogError($"results.Error = {results?.Error}");
 
             currentPageSize = results!.Results.items.Count();
             sfmcFolders.AddRange(results.Results.items);
-            _logger.LogInformation($"Current Page had {currentPageSize} records. There are now {sfmcFolders.Count()} Total Folders Identified.");
+            _logger.LogTrace($"Current Page had {currentPageSize} records. There are now {sfmcFolders.Count()} Total Folders Identified.");
 
             if (_sfmcConnectionConfiguration.PageSize == currentPageSize)
             {
@@ -167,7 +167,7 @@ public class AssetFolderRestApi
         string url
     )
     {
-        _logger.LogInformation($"Starting LoadFolderApiCallAsync for URL: {url}");
+        _logger.LogTrace($"Starting LoadFolderApiCallAsync for URL: {url}");
         
         await SetAuthHeaderAsync();
         
@@ -182,7 +182,7 @@ public class AssetFolderRestApi
                 headers: _headers
                 ).WaitAsync(cts.Token);
             
-            _logger.LogInformation("REST call completed");
+            _logger.LogTrace("REST call completed");
             return results!;
         }
         catch (OperationCanceledException)
@@ -204,25 +204,25 @@ public class AssetFolderRestApi
         Func<Task> resolveAuthenticationAsync
         )
     {
-        _logger.LogInformation("Starting ExecuteRestMethodAsyncWithRetry");
+        _logger.LogTrace("Starting ExecuteRestMethodAsyncWithRetry");
         var results = await loadFolderApiCallAsync(url);
-        _logger.LogInformation("First API call completed");
+        _logger.LogTrace("First API call completed");
 
         // Check if an error occurred and it matches the specified errorText
         if (results != null && results.UnhandledError != null && results.UnhandledError.Contains(authenticationError))
         {
-            _logger.LogInformation($"Authentication error detected: {results.UnhandledError}");
+            _logger.LogTrace($"Authentication error detected: {results.UnhandledError}");
 
             // Resolve authentication
             await resolveAuthenticationAsync();
-            _logger.LogInformation("Authentication resolved, retrying API call");
+            _logger.LogTrace("Authentication resolved, retrying API call");
 
             // Retry the REST method
             results = await loadFolderApiCallAsync(url);
-            _logger.LogInformation("Retry API call completed");
+            _logger.LogTrace("Retry API call completed");
         }
 
-        _logger.LogInformation("ExecuteRestMethodAsyncWithRetry completed");
+        _logger.LogTrace("ExecuteRestMethodAsyncWithRetry completed");
         return results!;
     }
 }

@@ -130,7 +130,7 @@ public abstract class BaseSfmcFolderAndListViewModel
             try
             {
                 ContentResources.Add(contentResource);
-                _logger.LogInformation($"Added Data Extension: {contentResource?.ToString()} Count {ContentResources.Count}");
+                _logger.LogTrace($"Added ContentResource: {contentResource?.ToString()} Count {ContentResources.Count}");
             }
             catch (Exception ex)
             {
@@ -153,18 +153,18 @@ public abstract class BaseSfmcFolderAndListViewModel
     {
         try
         {
-            _logger.LogInformation("Loading Base folders...");
+            _logger.LogTrace("Loading Base folders...");
             IsFoldersLoaded = false;
             IsFoldersLoading = true;
-            _logger.LogInformation("Set Booleans");
+            _logger.LogTrace("Set Booleans");
 
             // Add timeout to prevent infinite waiting
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             var folderTree = await GetFolderTreeAsync().WaitAsync(cts.Token);
-            _logger.LogInformation($"Retrieved {folderTree?.Count() ?? 0} folders from API");
+            _logger.LogTrace($"Retrieved {folderTree?.Count() ?? 0} folders from API");
 
             Folders.Clear();
-            _logger.LogInformation("Cleared Folders collection.");
+            _logger.LogTrace("Cleared Folders collection.");
 
             if (folderTree != null)
             {
@@ -176,7 +176,7 @@ public abstract class BaseSfmcFolderAndListViewModel
 
             IsFoldersLoaded = true;
             IsFoldersLoading = false;
-            _logger.LogInformation("Folder loading completed successfully");
+            _logger.LogTrace("Folder loading completed successfully");
         }
         catch (OperationCanceledException)
         {

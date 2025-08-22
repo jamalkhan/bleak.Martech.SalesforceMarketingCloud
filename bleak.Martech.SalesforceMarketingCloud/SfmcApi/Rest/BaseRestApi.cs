@@ -33,7 +33,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Rest
         protected async Task SetAuthHeaderAsync()
         {
             var token = await _authRepository.GetTokenAsync();
-            _logger.LogInformation($"Access token available: {!string.IsNullOrEmpty(token?.access_token)}");
+            _logger.LogTrace($"Access token available: {!string.IsNullOrEmpty(token?.access_token)}");
 
             if (_headers == null)
             {
@@ -68,7 +68,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Rest
 
             // Resolve authentication
             await resolveAuthenticationAsync();
-            _logger.LogInformation("Authentication Header has been reset");
+            _logger.LogTrace("Authentication Header has been reset");
 
             // Retry the REST method
             results = await loadApiCallAsync(url);

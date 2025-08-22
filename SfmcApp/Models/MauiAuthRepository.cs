@@ -83,18 +83,18 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
 
         private async Task<SfmcAuthToken> AuthenticateAsync()
         {
-            _logger.LogInformation("Starting authentication process");
+            _logger.LogTrace("Starting authentication process");
 
             string tokenUri = $"https://{Subdomain}.auth.marketingcloudapis.com/v2/token";
-            _logger.LogInformation($"Authentication URL: {tokenUri}");
-            _logger.LogInformation($"Client ID: {ClientId}");
-            _logger.LogInformation($"Member ID: {MemberId}");
+            _logger.LogTrace($"Authentication URL: {tokenUri}");
+            _logger.LogTrace($"Client ID: {ClientId}");
+            _logger.LogTrace($"Member ID: {MemberId}");
 
             try
             {
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
-                _logger.LogInformation("About to execute REST authentication call");
+                _logger.LogTrace("About to execute REST authentication call");
 
                 var payload = new
                 {
@@ -104,7 +104,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
                     account_id = MemberId,
                 };
 
-                _logger.LogInformation("Authentication payload created, about to make REST call");
+                _logger.LogTrace("Authentication payload created, about to make REST call");
 
                 var authResults = await _restClientAsync.ExecuteRestMethodAsync<SfmcAuthToken, string>(
                     uri: new Uri(tokenUri),
@@ -117,7 +117,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
                     cancellationToken: cts.Token
                 ).ConfigureAwait(false);
 
-                _logger.LogInformation("REST authentication call completed");
+                _logger.LogTrace("REST authentication call completed");
 
                 if (authResults.Error != null)
                 {
@@ -125,7 +125,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
                     throw new Exception($"Authentication failed: {authResults.Error}");
                 }
 
-                _logger.LogInformation("Authentication completed successfully");
+                _logger.LogTrace("Authentication completed successfully");
                 return authResults.Results;
             }
             catch (OperationCanceledException)
@@ -145,7 +145,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
         /// </summary>
         public async Task ResolveAuthenticationAsync()
         {
-            _logger.LogInformation("Resolving authentication - clearing current token");
+            _logger.LogTrace("Resolving authentication - clearing current token");
             _token = null;
             _lastWriteTime = DateTime.MinValue;
 
@@ -155,7 +155,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
                 _token = await AuthenticateAsync().ConfigureAwait(false);
                 _lastWriteTime = DateTime.Now;
-                _logger.LogInformation("Authentication resolved successfully");
+                _logger.LogTrace("Authentication resolved successfully");
             }
             finally
             {

@@ -52,15 +52,15 @@ public partial class SfmcAssetListViewModel
     {
         try
         {
-            _logger.LogInformation("Calling FolderApi.GetFolderTreeAsync()");
+            _logger.LogTrace("Calling FolderApi.GetFolderTreeAsync()");
             
             // Add timeout to prevent infinite waiting
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             var folders = await FolderApi.GetFolderTreeAsync().WaitAsync(cts.Token);
             
-            _logger.LogInformation($"Received {folders?.Count() ?? 0} folders from API");
+            _logger.LogTrace($"Received {folders?.Count() ?? 0} folders from API");
             var viewModels = folders?.ToViewModel();
-            _logger.LogInformation($"Converted to {viewModels?.Count() ?? 0} view models");
+            _logger.LogTrace($"Converted to {viewModels?.Count() ?? 0} view models");
             return viewModels ?? Enumerable.Empty<FolderViewModel>();
         }
         catch (OperationCanceledException)
@@ -156,7 +156,10 @@ public partial class SfmcAssetListViewModel
         }
 
         var contentResources = new List<AssetPoco>();
-        throw new NotImplementedException($"Search type '{searchType}' is not implemented.");
+        contentResources.AddRange(await ContentResourceApi.SearchAssetsAsync(SearchText));
+        _logger.LogInformation($"Search %{SearchText}% returned {contentResources.Count} assets.");
+        //throw new NotImplementedException($"Search type '{searchType}' is not implemented.");
+
         /*
         switch (searchType)
         {
@@ -226,11 +229,11 @@ public partial class SfmcAssetListViewModel
         {
             var expandedContent = await GetExpandedContentAsync(asset);
             //var expandedContent = await asset.GetExpandedContentAsync();
-            _logger.LogInformation($"Expanding Ampscript for asset: {asset.Name}");
+            _logger.LogTrace($"Expanding Ampscript for asset: {asset.Name}");
 
             // Write the expanded content to a file
             await File.WriteAllTextAsync(outputFileName, expandedContent);
-            _logger.LogInformation($"Asset with Expanded content written to File System: {outputFileName}");
+            _logger.LogTrace($"Asset with Expanded content written to File System: {outputFileName}");
         }
         else
         {
@@ -245,12 +248,12 @@ public partial class SfmcAssetListViewModel
                 content = asset.Views.Html.Content;
             }
             
-            _logger.LogInformation($"Content: {content}");
-            _logger.LogInformation($"Views: {asset.Views}");
-            _logger.LogInformation($"Html: {asset.Views?.Html}");
-            _logger.LogInformation($"Html.Content: {asset.Views?.Html?.Content}");
+            _logger.LogTrace($"Content: {content}");
+            _logger.LogTrace($"Views: {asset.Views}");
+            _logger.LogTrace($"Html: {asset.Views?.Html}");
+            _logger.LogTrace($"Html.Content: {asset.Views?.Html?.Content}");
             await File.WriteAllTextAsync(outputFileName, content);
-            _logger.LogInformation($"Asset written to File System: {outputFileName}");
+            _logger.LogTrace($"Asset written to File System: {outputFileName}");
         }
     }
 

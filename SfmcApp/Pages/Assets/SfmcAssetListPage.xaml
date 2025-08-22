@@ -59,6 +59,7 @@
                     VerticalOptions="Center"
                     BackgroundColor="White"
                     TextColor="Black"
+                    Text="{Binding SearchText}"
                     PlaceholderColor="Gray"
                     HeightRequest="40" />
                 
@@ -270,7 +271,6 @@
                                     HeightRequest="30"
                                     VerticalOptions="Center"
                                     HorizontalOptions="End"
-                                    IsVisible="{Binding IsDownloadableImage}"
                                     SemanticProperties.Description="Download Image">
                                     <Image.GestureRecognizers>
                                         <TapGestureRecognizer

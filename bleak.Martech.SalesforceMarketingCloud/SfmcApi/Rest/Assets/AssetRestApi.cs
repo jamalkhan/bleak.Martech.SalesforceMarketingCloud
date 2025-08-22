@@ -7,6 +7,8 @@ using bleak.Martech.SalesforceMarketingCloud.Rest;
 using Microsoft.Extensions.Logging;
 using bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
 using bleak.Martech.SalesforceMarketingCloud.Api;
+using System.Text;
+using System.Linq;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
 {
@@ -15,7 +17,6 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
     , IAssetRestApi
     {
         private HttpVerbs verb = HttpVerbs.GET;
-
 
         public AssetRestApi(
             IRestClientAsync restClientAsync,
@@ -40,7 +41,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
 
         string _baseUrl => $"https://{_authRepository.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/assets";
 
-        public async Task<List<AssetPoco>> GetAssetsAsync(int folderId)
+        public async Task<IEnumerable<AssetPoco>> GetAssetsAsync(int folderId)
         {
             _logger.LogTrace("GetAssetsAsync() invoked");
             int page = 1;
@@ -62,12 +63,12 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
 
                 if (_sfmcConnectionConfiguration.PageSize == currentPageSize)
                 {
-                    _logger.LogInformation($"LoadAssetsAsync() returned currentPageSize: {loadedAssets.Count}. So far {assets.Count} assets have been loaded. Moving onto page {page + 1}.");
+                    _logger.LogTrace($"LoadAssetsAsync() returned currentPageSize: {loadedAssets.Count}. So far {assets.Count} assets have been loaded. Moving onto page {page + 1}.");
                     page++;
                 }
                 else
                 {
-                    _logger.LogInformation($"LoadAssetsAsync() returned currentPageSize: {loadedAssets.Count}. Loaded {assets.Count} assets total. No more pages to load.");
+                    _logger.LogTrace($"LoadAssetsAsync() returned currentPageSize: {loadedAssets.Count}. Loaded {assets.Count} assets total. No more pages to load.");
                     break; // exit loop if current page size < page size
                 }
             }
@@ -76,16 +77,57 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
             return assets;
         }
 
-        public List<AssetPoco> GetAssets(int folderId)
+
+
+        public async Task<IEnumerable<AssetPoco>> SearchAssetsAsync
+        (
+            string searchTerm, 
+            int? folderId = null
+        )
         {
-            try
+            
+
+            _logger.LogTrace("SearchAssetsAsync() invoked");
+
+            var assets = new List<AssetPoco>();
+            assets.AddRange(await SearchByAsync("name", searchTerm));
+            assets.AddRange(await SearchByAsync("customerKey", searchTerm));
+            return assets.OrderBy(a => a.Name);
+        }
+
+        private async Task<List<AssetPoco>> SearchByAsync(string key, string searchTerm)
+        {
+            var assets = new List<AssetPoco>();
+            int page = 1;
+            int currentPageSize = 0;
+            do
             {
-                return GetAssetsAsync(folderId).GetAwaiter().GetResult();
+                _logger.LogTrace($"Executing SearchAssetsAsync() page: {page}");
+                var url = $"{_baseUrl}?$page={page}&$pagesize={_sfmcConnectionConfiguration.PageSize}&$filter={key} like '%{searchTerm}%'";
+
+                //sbUrl.Append("%' or customerKey like '%");
+
+                var namedAssets = (await LoadAssetsAsync(
+                    url: url,
+                    page: page))
+                    .ToPocoList();
+
+                assets.AddRange(namedAssets);
+                currentPageSize = namedAssets.Count;
+
+                if (_sfmcConnectionConfiguration.PageSize == currentPageSize)
+                {
+                    _logger.LogTrace($"LoadAssetsAsync() returned currentPageSize: {namedAssets.Count}. So far {assets.Count} assets have been loaded. Moving onto page {page + 1}.");
+                    page++;
+                }
+                else
+                {
+                    _logger.LogTrace($"LoadAssetsAsync() returned currentPageSize: {namedAssets.Count}. Loaded {assets.Count} assets total. No more pages to load.");
+                    break; // exit loop if current page size < page size
+                }
             }
-            catch (AggregateException ae)
-            {
-                throw ae.InnerException ?? ae;
-            }
+            while (true);
+            return assets;
         }
 
         public async Task<AssetPoco> GetAssetAsync
@@ -120,7 +162,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
                     _logger.LogTrace($"GetAssetAsync() called with a single parameter. assetId={assetId}, customerKey={customerKey}, name={name}.");
                     break;
                 case > 1:
-                    _logger.LogInformation($"GetAssetAsync() requires only one of assetId {assetId}, customerKey {customerKey}, or name {name} to be provided, but multiple were specified. Preferred Id, Key, Name, in that order.");
+                    _logger.LogTrace($"GetAssetAsync() requires only one of assetId {assetId}, customerKey {customerKey}, or name {name} to be provided, but multiple were specified. Preferred Id, Key, Name, in that order.");
                     break;
             }
 
@@ -160,26 +202,13 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
                     _logger.LogTrace($"GetAssetAsync by assetId={assetId} returned exactly 1.");
                     break;
                 default:
-                    _logger.LogInformation($"GetAssetAsync by assetId={assetId} unexpectedly returned {loadedAssets.Count}. Only the first one will be returned.");
+                    _logger.LogTrace($"GetAssetAsync by assetId={assetId} unexpectedly returned {loadedAssets.Count}. Only the first one will be returned.");
                     break;
             }
 
             var asset = loadedAssets.FirstOrDefault();
             return asset ?? throw new Exception($"Asset with ID {assetId} not found");
         }
-
-        public AssetPoco GetAsset(int? assetId = null, string? customerKey = null, string? name = null)
-        {
-            try
-            {
-                return GetAssetAsync(assetId, customerKey, name).GetAwaiter().GetResult();
-            }
-            catch (AggregateException ae)
-            {
-                throw ae.InnerException ?? ae;
-            }
-        }
-
 
         private List<SfmcAsset> LoadAssets(string url, int page)
         {
@@ -195,12 +224,12 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
 
         private async Task<List<SfmcAsset>> LoadAssetsAsync(string url, int page)
         {
-            _logger.LogInformation($"LoadAsset({url}, {page}) invoked");
+            _logger.LogTrace($"LoadAsset({url}, {page}) invoked");
             var retval = new List<SfmcAsset>();
 
             try
             {
-                _logger.LogInformation($"Loading Asset Page #{page} with URL: {url}");
+                _logger.LogTrace($"Loading Asset Page #{page} with URL: {url}");
 
                 var results = await ExecuteRestMethodWithRetryAsync(
                     apiCallAsync: LoadFolderApiCallAsync,
@@ -209,7 +238,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
                     resolveAuthenticationAsync: _authRepository.ResolveAuthenticationAsync
                 );
 
-                _logger.LogInformation($"results.Value = {results?.Results}");
+                _logger.LogTrace($"results.Value = {results?.Results}");
 
                 if (results?.Error != null)
                 {
@@ -221,7 +250,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
                     retval.AddRange(results.Results.items);
                 }
 
-                _logger.LogInformation($"Current Page had {retval.Count} records in page {page}");
+                _logger.LogTrace($"Current Page had {retval.Count} records in page {page}");
                 return retval;
             }
             catch (Exception ex)
@@ -301,11 +330,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
             // Check if an error occurred and it matches the specified errorText
             if (results != null && results.UnhandledError != null && results.UnhandledError.Contains(authenticationError))
             {
-                _logger.LogInformation($"Unauthenticated: {results.UnhandledError}");
+                _logger.LogTrace($"Unauthenticated: {results.UnhandledError}");
 
                 // Resolve authentication
                 await resolveAuthenticationAsync();
-                _logger.LogInformation($"Authentication Header has been reset");
+                _logger.LogTrace($"Authentication Header has been reset");
 
                 // Retry the REST method
                 results = await apiCallAsync(url);

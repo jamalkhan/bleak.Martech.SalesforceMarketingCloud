@@ -10,7 +10,7 @@ public partial class SfmcAssetListViewModel
     #region TODO: Move out... content block expansion logic
     private async Task<string> GetExpandedContentAsync(AssetViewModel asset)
     {
-        _logger.LogInformation("Expanding content for asset: {AssetName}", asset.Name);
+        _logger.LogTrace("Expanding content for asset: {AssetName}", asset.Name);
         string content = string.Empty;
         if (!string.IsNullOrEmpty(asset.Content))
         {
@@ -55,7 +55,7 @@ public partial class SfmcAssetListViewModel
             }
         }
 
-        _logger.LogInformation("Expanded content for asset: {AssetName} completed.", asset.Name);
+        _logger.LogTrace("Expanded content for asset: {AssetName} completed.", asset.Name);
         return content;
     }
 
@@ -65,7 +65,7 @@ public partial class SfmcAssetListViewModel
             .Concat(GetContentBlocksFromInputAsync(input, ContentBlockType.Name))
             .Concat(GetContentBlocksFromInputAsync(input, ContentBlockType.Id))
             .ToList();
-        _logger.LogInformation("Found {Count} content blocks in input.", retval.Count);
+        _logger.LogTrace("Found {Count} content blocks in input.", retval.Count);
         return retval;
     }
     const string RegexKeyStart = @"%%=\s*ContentBlockByKey\s*\(\s*""";
@@ -120,21 +120,21 @@ public partial class SfmcAssetListViewModel
             string input
             )
     {
-        _logger.LogInformation("Performing regex replacement for ContentBlock: {ContentBlock}", subContentBlock);
+        _logger.LogTrace("Performing regex replacement for ContentBlock: {ContentBlock}", subContentBlock);
         bleak.Martech.SalesforceMarketingCloud.Models.Pocos.AssetPoco? subAsset = null;
         if (subContentBlock.Id != null)
         {
-            _logger.LogInformation($"Performing regex replacement for Id: {subContentBlock.Id.Value}");
+            _logger.LogTrace($"Performing regex replacement for Id: {subContentBlock.Id.Value}");
             subAsset = await ContentResourceApi.GetAssetAsync(assetId: subContentBlock.Id.Value);
         }
         else if (!string.IsNullOrEmpty(subContentBlock.Key))
         {
-            _logger.LogInformation($"Performing regex replacement for Key: {subContentBlock.Key}");
+            _logger.LogTrace($"Performing regex replacement for Key: {subContentBlock.Key}");
             subAsset = await ContentResourceApi.GetAssetAsync(customerKey: subContentBlock.Key);
         }
         else if (!string.IsNullOrEmpty(subContentBlock.Name))
         {
-            _logger.LogInformation($"Performing regex replacement for Name: {subContentBlock.Name}");
+            _logger.LogTrace($"Performing regex replacement for Name: {subContentBlock.Name}");
             subAsset = await ContentResourceApi.GetAssetAsync(name: subContentBlock.Name);
         }
         if (subAsset == null)
@@ -142,25 +142,25 @@ public partial class SfmcAssetListViewModel
             _logger.LogWarning($"Sub asset not found for ContentBlock: {subContentBlock}");
             return input; // No replacement if sub asset is not found
         }
-        _logger.LogInformation($"Sub asset found: {subAsset.Name} (ID: {subAsset.Id})");
+        _logger.LogTrace($"Sub asset found: {subAsset.Name} (ID: {subAsset.Id})");
 
         string subContent = string.Empty;
         if (!string.IsNullOrEmpty(subAsset.Content))
         {
             subContent = subAsset.Content;
-            _logger.LogInformation($"Using Content from sub asset: {subAsset.Name}. Content: {subAsset.Content}");
+            _logger.LogTrace($"Using Content from sub asset: {subAsset.Name}. Content: {subAsset.Content}");
         }
         else if (subAsset != null && subAsset.Views != null && subAsset.Views.Html != null && !string.IsNullOrEmpty(subAsset.Views.Html.Content))
         {
             subContent = subAsset.Views.Html.Content;
-            _logger.LogInformation($"Using Views.Html.Content from sub asset: {subAsset.Name}. Views.Html.Content: {subAsset.Views.Html.Content}");
+            _logger.LogTrace($"Using Views.Html.Content from sub asset: {subAsset.Name}. Views.Html.Content: {subAsset.Views.Html.Content}");
         }
 
-        _logger.LogInformation("----------********************----------");
-        _logger.LogInformation($"input: {input}");
-        _logger.LogInformation($"pattern: {subContentBlock.ContentRegex}");
-        _logger.LogInformation($"replacement: {subContent}");
-        _logger.LogInformation("----------********************----------");
+        _logger.LogTrace("----------********************----------");
+        _logger.LogTrace($"input: {input}");
+        _logger.LogTrace($"pattern: {subContentBlock.ContentRegex}");
+        _logger.LogTrace($"replacement: {subContent}");
+        _logger.LogTrace("----------********************----------");
 
         var results = Regex.Replace
                 (
@@ -169,7 +169,7 @@ public partial class SfmcAssetListViewModel
                     replacement: subContent,
                     options: RegexOptions.IgnoreCase | RegexOptions.Singleline
                 );
-        _logger.LogInformation($"Replaced content for ContentBlock: {subContentBlock}. Result: {results}");
+        _logger.LogTrace($"Replaced content for ContentBlock: {subContentBlock}. Result: {results}");
         return results;
 
     }

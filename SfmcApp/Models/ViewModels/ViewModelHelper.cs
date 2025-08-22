@@ -16,7 +16,7 @@ namespace SfmcApp.Models.ViewModels
         /// </summary>
         /// <param name="assets">List of AssetPoco.</param>
         /// <returns>List of AssetViewModel.</returns>
-        public static List<AssetViewModel> ToViewModel(this List<AssetPoco> assets)
+        public static List<AssetViewModel> ToViewModel(this IEnumerable<AssetPoco> assets)
         {
             return assets.Select(
                 asset => asset.ToViewModel()
@@ -64,7 +64,7 @@ namespace SfmcApp.Models.ViewModels
                 SubFolders = folder.SubFolders?.Select(f => f.ToViewModel()).ToList() ?? new List<FolderViewModel>()
             };
         }
-        public static List<FolderViewModel> ToViewModel(this List<FolderObject> folders)
+        public static List<FolderViewModel> ToViewModel(this IEnumerable<FolderObject> folders)
         {
             return folders.Select(
                 folder => folder.ToViewModel())
