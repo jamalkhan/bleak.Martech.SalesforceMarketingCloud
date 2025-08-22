@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SfmcApp.Models;
+using SfmcApp.ViewModels.Services;
 
 namespace SfmcApp.ViewModels;
 
@@ -51,12 +52,14 @@ public abstract class BaseSfmcViewModel<T> : BaseViewModel<T>
 
     public BaseSfmcViewModel
     (
+        INavigationService navigationService,
         ILogger<T> logger,
         SfmcConnection sfmcConnection,
         string resourceType
     )
         : base
         (
+            navigationService: navigationService,
             logger: logger
         )
     {

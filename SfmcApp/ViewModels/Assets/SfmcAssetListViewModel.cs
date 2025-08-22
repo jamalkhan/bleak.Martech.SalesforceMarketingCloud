@@ -8,6 +8,7 @@ using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
 using Microsoft.Extensions.Logging;
 using SfmcApp.Models;
 using SfmcApp.Models.ViewModels;
+using SfmcApp.ViewModels.Services;
 
 namespace SfmcApp.ViewModels;
 
@@ -28,17 +29,19 @@ public partial class SfmcAssetListViewModel
 
      public SfmcAssetListViewModel
     (
+        INavigationService navigationService,
         SfmcConnection sfmcConnection,
         ILogger<SfmcAssetListViewModel> logger,
         IAssetFolderRestApi folderApi,
-        IAssetRestApi assetApi
+        IAssetRestApi contentResourceApi
     )
         : base
         (
+            navigationService: navigationService,
             logger: logger,
             sfmcConnection: sfmcConnection,
             folderApi: folderApi,
-            contentResourceApi: assetApi,
+            contentResourceApi: contentResourceApi,
             resourceType: "Assets"
 
         )

@@ -6,23 +6,21 @@ using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions;
 using Microsoft.Maui.Controls;
 using System;
 using System.Linq;
+using SfmcApp.ViewModels.Services;
+
 
 #if MACCATALYST
 using UIKit;
 using Foundation;
 using CoreGraphics;
 using UniformTypeIdentifiers;
-#endif
-
-#if WINDOWS
+#elif WINDOWS
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
-#elif IOS || MACCATALYST
+#elif IOS
 using UIKit;
 using Foundation;
 #endif
-
-
 
 
 namespace SfmcApp.Pages.DataExtensions;
@@ -33,7 +31,8 @@ public partial class SfmcDataExtensionListPage : ContentPage
 
     public SfmcDataExtensionListPage
     (
-        SfmcDataExtensionListViewModel viewModel
+        SfmcDataExtensionListViewModel viewModel,
+        INavigationService navigationService
     )
     {
         InitializeComponent();

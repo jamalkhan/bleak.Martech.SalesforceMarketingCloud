@@ -9,6 +9,7 @@ using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions;
 using Microsoft.Extensions.Logging;
 using SfmcApp.Models;
 using SfmcApp.Models.ViewModels;
+using SfmcApp.ViewModels.Services;
 
 namespace SfmcApp.ViewModels;
 
@@ -31,6 +32,7 @@ public partial class SfmcDataExtensionListViewModel
 
     public SfmcDataExtensionListViewModel
     (
+        INavigationService navigationService,
         SfmcConnection sfmcConnection,
         ILogger<SfmcDataExtensionListViewModel> logger,
         IDataExtensionFolderApi folderApi,
@@ -39,6 +41,7 @@ public partial class SfmcDataExtensionListViewModel
     )
        : base
        (
+           navigationService: navigationService,
            logger: logger,
            sfmcConnection: sfmcConnection,
            folderApi: folderApi,

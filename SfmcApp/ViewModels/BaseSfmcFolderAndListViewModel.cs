@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using Microsoft.Extensions.Logging;
 using SfmcApp.Models;
 using SfmcApp.Models.ViewModels;
+using SfmcApp.ViewModels.Services;
 
 namespace SfmcApp.ViewModels;
 
@@ -18,6 +19,7 @@ public abstract class BaseSfmcFolderAndListViewModel
 {
     public BaseSfmcFolderAndListViewModel
     (
+        INavigationService navigationService,
         ILogger<T> logger,
         SfmcConnection sfmcConnection,
         TFolderApi folderApi,
@@ -26,6 +28,7 @@ public abstract class BaseSfmcFolderAndListViewModel
     )
         : base
         (
+            navigationService: navigationService,
             logger: logger,
             sfmcConnection: sfmcConnection,
             resourceType: resourceType

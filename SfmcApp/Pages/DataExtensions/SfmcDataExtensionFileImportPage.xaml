@@ -1,0 +1,54 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:local="clr-namespace:SfmcApp.Pages.DataExtensions"
+             xmlns:converters="clr-namespace:SfmcApp.Converters"
+             xmlns:viewmodels="clr-namespace:SfmcApp.Models.ViewModels"
+             x:Class="SfmcApp.Pages.DataExtensions.SfmcDataExtensionFileImportPage"
+             Title="{Binding Title}">
+     <VerticalStackLayout Padding="20" Spacing="10">
+
+        <!-- File info -->
+        <Label Text="File Name:" FontAttributes="Bold"/>
+        <Label Text="{Binding FileName}" />
+
+        <Label Text="Data Extension Name:" FontAttributes="Bold"/>
+        <Entry Text="{Binding DataExtensionName}" Placeholder="Enter data extension name" />
+
+        <Label Text="Customer Key:" FontAttributes="Bold"/>
+        <Entry Text="{Binding CustomerKey}" Placeholder="Enter customer key" />
+
+        <Label Text="Columns:" FontAttributes="Bold" Margin="0,20,0,0"/>
+
+        <CollectionView ItemsSource="{Binding Columns}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Padding="5" ColumnDefinitions="2*,2*,1*,3*">
+
+                        <!-- Column name -->
+                        <Entry Grid.Column="0" Text="{Binding Name}" />
+
+                        <!-- Data type dropdown -->
+                        <Picker Grid.Column="1" SelectedItem="{Binding DataType}">
+                            <Picker.ItemsSource>
+                                <x:Array Type="{x:Type x:String}">
+                                    <x:String>string</x:String>
+                                    <x:String>int</x:String>
+                                    <x:String>float</x:String>
+                                    <x:String>datetime</x:String>
+                                </x:Array>
+                            </Picker.ItemsSource>
+                        </Picker>
+
+                        <!-- Nullable checkbox -->
+                        <CheckBox Grid.Column="2" IsChecked="{Binding IsNullable}" />
+
+                        <!-- Sample values -->
+                        <Entry Grid.Column="3" Text="{Binding SampleValues}" IsReadOnly="True"/>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+    </VerticalStackLayout>
+</ContentPage>

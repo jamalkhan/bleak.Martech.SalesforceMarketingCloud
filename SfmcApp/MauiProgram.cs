@@ -14,6 +14,7 @@ using SfmcApp.Models;
 using SfmcApp.Pages.Assets;
 using SfmcApp.Pages.DataExtensions;
 using SfmcApp.ViewModels;
+using SfmcApp.ViewModels.Services;
 
 namespace SfmcApp;
 
@@ -39,6 +40,8 @@ public static class MauiProgram
 			builder.Logging.AddProvider(new FileLoggerProvider(logPath));
 			builder.Logging.SetMinimumLevel(LogLevel.Debug); // Or whatever level you want
 
+			// Services
+			builder.Services.AddSingleton<INavigationService, NavigationService>();
 
 			// Sfmc Connection Configuration
 			builder.Services.AddSingleton<SfmcConnectionConfiguration>();
@@ -64,7 +67,7 @@ public static class MauiProgram
 			{
 				var logger = sp.GetRequiredService<ILogger<SfmcAssetListViewModel>>();
 				var folderApiLogger = sp.GetRequiredService<ILogger<AssetFolderRestApi>>();
-				var objectApiLogger = sp.GetRequiredService<ILogger<AssetRestApi>>();
+				var contentResourceApiLogger = sp.GetRequiredService<ILogger<AssetRestApi>>();
 				var sfmcConnectionConfiguration = sp.GetRequiredService<SfmcConnectionConfiguration>();
 				
 				var folderApi = new AssetFolderRestApi
@@ -75,15 +78,22 @@ public static class MauiProgram
 					logger: folderApiLogger
 				);
 				
-				var objectApi = new AssetRestApi
+				var contentResourceApi = new AssetRestApi
 				(
 					restClientAsync: sp.GetRequiredService<RestClient>(),
 					authRepository: sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>()(connection),
 					config: sfmcConnectionConfiguration,
-					logger: objectApiLogger
+					logger: contentResourceApiLogger
 				);
 				
-				return new SfmcAssetListViewModel(connection, logger, folderApi, objectApi);
+				return new SfmcAssetListViewModel
+				(
+					navigationService: sp.GetRequiredService<INavigationService>(),
+					sfmcConnection: connection,
+					logger: logger,
+					folderApi: folderApi,
+					contentResourceApi: contentResourceApi
+				);
 			});
 
 			// RestManager
@@ -156,62 +166,143 @@ public static class MauiProgram
 				{
 					var viewModelFactory = sp.GetRequiredService<Func<SfmcConnection, SfmcDataExtensionListViewModel>>();
 					var viewModel = viewModelFactory(connection);
-					return new SfmcDataExtensionListPage(viewModel);
+					return new SfmcDataExtensionListPage
+					(
+						viewModel: viewModel,
+						navigationService: sp.GetRequiredService<INavigationService>()
+					);
 				}
 			);
 
+
+
 			// Data Extension View Model
-			builder.Services.AddTransient<Func<SfmcConnection, SfmcDataExtensionListViewModel>>(sp => connection =>
-			{
-				var serializer = new SoapSerializer();
+			builder.Services.AddTransient<Func<SfmcConnection, SfmcDataExtensionListViewModel>>
+			(
+				sp => connection =>
+				{
+					var serializer = new SoapSerializer();
 
-				var logger = sp.GetRequiredService<ILogger<SfmcDataExtensionListViewModel>>();
-				var folderApiLogger = sp.GetRequiredService<ILogger<DataExtensionFolderSoapApi>>();
-				var objectApiLogger = sp.GetRequiredService<ILogger<DataExtensionSoapApi>>();
-				var restApiLogger = sp.GetRequiredService<ILogger<DataExtensionRestApi>>();
+					var logger = sp.GetRequiredService<ILogger<SfmcDataExtensionListViewModel>>();
+					var folderApiLogger = sp.GetRequiredService<ILogger<DataExtensionFolderSoapApi>>();
+					var objectApiLogger = sp.GetRequiredService<ILogger<DataExtensionSoapApi>>();
+					var restApiLogger = sp.GetRequiredService<ILogger<DataExtensionRestApi>>();
 
-				var sfmcConnectionConfiguration = sp.GetRequiredService<SfmcConnectionConfiguration>();
+					var sfmcConnectionConfiguration = sp.GetRequiredService<SfmcConnectionConfiguration>();
 
-    			// Get the RestClient once, pass in the SoapSerializer
-    			var restClient = new RestClient
-				(
-					serializer: serializer,
-					deserializer: serializer
-				);
+					// Get the RestClient once, pass in the SoapSerializer
+					var restClient = new RestClient
+					(
+						serializer: serializer,
+						deserializer: serializer
+					);
 
 
-				var folderApi = new DataExtensionFolderSoapApi
-				(
-					restClientAsync: restClient,
-					authRepository: sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>()(connection),
-					config: sp.GetRequiredService<SfmcConnectionConfiguration>(),
-					logger: folderApiLogger
-				);
+					var folderApi = new DataExtensionFolderSoapApi
+					(
+						restClientAsync: restClient,
+						authRepository: sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>()(connection),
+						config: sp.GetRequiredService<SfmcConnectionConfiguration>(),
+						logger: folderApiLogger
+					);
 
-				var objectApi = new DataExtensionSoapApi
-				(
-					restClientAsync: restClient,
-					authRepository: sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>()(connection),
-					config: sp.GetRequiredService<SfmcConnectionConfiguration>(),
-					logger: objectApiLogger
-				);
-				var dataExtensionRestApi = new DataExtensionRestApi
-				(
-					restClientAsync: sp.GetRequiredService<RestClient>(),
-					authRepository: sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>()(connection),
-					config: sp.GetRequiredService<SfmcConnectionConfiguration>(),
-					logger: restApiLogger
-				);
+					var objectApi = new DataExtensionSoapApi
+					(
+						restClientAsync: restClient,
+						authRepository: sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>()(connection),
+						config: sp.GetRequiredService<SfmcConnectionConfiguration>(),
+						logger: objectApiLogger
+					);
+					var dataExtensionRestApi = new DataExtensionRestApi
+					(
+						restClientAsync: sp.GetRequiredService<RestClient>(),
+						authRepository: sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>()(connection),
+						config: sp.GetRequiredService<SfmcConnectionConfiguration>(),
+						logger: restApiLogger
+					);
 
-				return new SfmcDataExtensionListViewModel
-				(
-					sfmcConnection:connection,
-					logger:logger,
-					folderApi:folderApi,
-					contentResourceApi: objectApi,
-					deRestApi: dataExtensionRestApi
-				);
-			}
+					return new SfmcDataExtensionListViewModel
+					(
+						navigationService: sp.GetRequiredService<INavigationService>(),
+						sfmcConnection: connection,
+						logger: logger,
+						folderApi: folderApi,
+						contentResourceApi: objectApi,
+						deRestApi: dataExtensionRestApi
+					);
+				}
+			);
+
+			// Data Extension File Import Page with factory for SfmcConnection dependency
+			builder.Services.AddTransient<Func<SfmcConnection, SfmcDataExtensionFileImportPage>>
+			(
+				sp => connection =>
+				{
+					var viewModelFactory = sp.GetRequiredService<Func<SfmcConnection, SfmcDataExtensionFileImportViewModel>>();
+					var viewModel = viewModelFactory(connection);
+					return new SfmcDataExtensionFileImportPage
+					(
+						viewModel: viewModel,
+						navigationService: sp.GetRequiredService<INavigationService>()
+					);
+				}
+			);
+
+			// Data Extension File Import View Model
+			builder.Services.AddTransient<Func<SfmcConnection, SfmcDataExtensionFileImportViewModel>>
+			(
+				sp => connection =>
+				{
+					var serializer = new SoapSerializer();
+
+					var logger = sp.GetRequiredService<ILogger<SfmcDataExtensionFileImportViewModel>>();
+					var folderApiLogger = sp.GetRequiredService<ILogger<DataExtensionFolderSoapApi>>();
+					var objectApiLogger = sp.GetRequiredService<ILogger<DataExtensionSoapApi>>();
+					var restApiLogger = sp.GetRequiredService<ILogger<DataExtensionRestApi>>();
+
+					var sfmcConnectionConfiguration = sp.GetRequiredService<SfmcConnectionConfiguration>();
+
+					// Get the RestClient once, pass in the SoapSerializer
+					var restClient = new RestClient
+					(
+						serializer: serializer,
+						deserializer: serializer
+					);
+
+
+					var folderApi = new DataExtensionFolderSoapApi
+					(
+						restClientAsync: restClient,
+						authRepository: sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>()(connection),
+						config: sp.GetRequiredService<SfmcConnectionConfiguration>(),
+						logger: folderApiLogger
+					);
+
+					var objectApi = new DataExtensionSoapApi
+					(
+						restClientAsync: restClient,
+						authRepository: sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>()(connection),
+						config: sp.GetRequiredService<SfmcConnectionConfiguration>(),
+						logger: objectApiLogger
+					);
+					var dataExtensionRestApi = new DataExtensionRestApi
+					(
+						restClientAsync: sp.GetRequiredService<RestClient>(),
+						authRepository: sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>()(connection),
+						config: sp.GetRequiredService<SfmcConnectionConfiguration>(),
+						logger: restApiLogger
+					);
+
+					return new SfmcDataExtensionFileImportViewModel
+					(
+						navigationService: sp.GetRequiredService<INavigationService>(),
+						sfmcConnection: connection,
+						logger: logger,
+						folderApi: folderApi,
+						contentResourceApi: objectApi,
+						deRestApi: dataExtensionRestApi
+					);
+				}
 			);
 #if DEBUG
 			builder.Logging.AddDebug();
