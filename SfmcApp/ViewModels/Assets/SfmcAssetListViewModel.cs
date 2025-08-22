@@ -44,7 +44,7 @@ public partial class SfmcAssetListViewModel
         )
     {
         FolderTappedCommand = new Command<FolderViewModel>(folder => SelectedFolder = folder);
-        SearchCommand = new Command(() => OnSearchButtonClicked());
+        SearchCommand = new Command(OnSearchButtonClicked);
         OpenDownloadDirectoryCommand = new Command(OpenDownloadDirectory);
     }
 
@@ -140,8 +140,8 @@ public partial class SfmcAssetListViewModel
     {
         try
         {
-            //var contentResources = await PerformSearchAsync();
-            //PopulateContentResources(contentResources);
+            var contentResources = await PerformSearchAsync();
+            PopulateContentResources(contentResources);
         }
         catch (Exception ex)
         {
@@ -149,7 +149,7 @@ public partial class SfmcAssetListViewModel
         }
     }
 
-    /*
+    
     private async Task<List<AssetViewModel>> PerformSearchAsync()
     {
         SelectedFolder = new FolderViewModel() { Name = $"Search for %{SearchText}% | No Folder Selected" };
@@ -166,7 +166,7 @@ public partial class SfmcAssetListViewModel
         switch (searchType)
         {
             case "Starts With":
-                contentResources = await ContentResourceApi.GetDataExtensionsNameStartsWithAsync(SearchText);
+                contentResources = await ContentResourceApi.GetAssetsStartsWithAsync(SearchText);
                 break;
             case "Like":
                 contentResources = await ContentResourceApi.GetDataExtensionsNameLikeAsync(SearchText);
@@ -180,7 +180,7 @@ public partial class SfmcAssetListViewModel
         }
 
         return contentResources.ToViewModel();
-    }*/
+    }
 
     public ICommand DownloadCommand => new Command<AssetViewModel>(async asset =>
     {
