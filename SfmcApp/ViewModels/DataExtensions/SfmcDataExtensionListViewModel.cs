@@ -51,41 +51,52 @@ public partial class SfmcDataExtensionListViewModel
         FolderTappedCommand = new Command<FolderViewModel>(folder => SelectedFolder = folder);
         SearchCommand = new Command(OnSearchButtonClicked);
         OpenDownloadDirectoryCommand = new Command(OpenDownloadDirectory);
+        FileDroppedCommand = new Command<List<string>>(OnFileDropped);
+
+    }
+    public ICommand FileDroppedCommand { get; }
+
+    private async void OnFileDropped(List<string> filePaths)
+    {
+        // Open modal import page with the file
+        //var importPage = new FileImportPage(filePath);
+        //await Application.Current.MainPage.Navigation.PushModalAsync(importPage);
+        // TODO: Implement
     }
 
 /*
-    public async Task LoadFoldersAsync()
-    {
-        try
-        {
-            _logger.LogTrace("Loading Base folders...");
-            IsFoldersLoaded = false;
-            IsFoldersLoading = true;
-            _logger.LogTrace("Set Booleans");
-            _logger.LogTrace("Calling GetFolderTreeAsync...");
-            _logger.LogTrace($"FolderAPI: {FolderApi != null} {FolderApi.GetType().Name}");
-            var folderTree = await FolderApi.GetFolderTreeAsync();
-            _logger.LogTrace("Set Booleans");
-            Folders.Clear();
-            _logger.LogTrace("Cleared Folders collection.");
-            foreach (var folder in folderTree.ToViewModel())
+            public async Task LoadFoldersAsync()
             {
-                _logger.LogTrace($"Adding folder: {folder.Name}");
-                Folders.Add(folder);
+                try
+                {
+                    _logger.LogTrace("Loading Base folders...");
+                    IsFoldersLoaded = false;
+                    IsFoldersLoading = true;
+                    _logger.LogTrace("Set Booleans");
+                    _logger.LogTrace("Calling GetFolderTreeAsync...");
+                    _logger.LogTrace($"FolderAPI: {FolderApi != null} {FolderApi.GetType().Name}");
+                    var folderTree = await FolderApi.GetFolderTreeAsync();
+                    _logger.LogTrace("Set Booleans");
+                    Folders.Clear();
+                    _logger.LogTrace("Cleared Folders collection.");
+                    foreach (var folder in folderTree.ToViewModel())
+                    {
+                        _logger.LogTrace($"Adding folder: {folder.Name}");
+                        Folders.Add(folder);
+                    }
+                    _logger.LogTrace("Folders loaded successfully.");
+                    _logger.LogTrace($"Total folders loaded: {Folders.Count}");
+                    IsFoldersLoaded = true;
+                    IsFoldersLoading = false;
+                    _logger.LogTrace("Set Booleans");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"View Model: Error loading Data Extension folders. {Environment.NewLine}Stack Trace ----------{Environment.NewLine} {ex.StackTrace}");
+                }
             }
-            _logger.LogTrace("Folders loaded successfully.");
-            _logger.LogTrace($"Total folders loaded: {Folders.Count}");
-            IsFoldersLoaded = true;
-            IsFoldersLoading = false;
-            _logger.LogTrace("Set Booleans");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"View Model: Error loading Data Extension folders. {Environment.NewLine}Stack Trace ----------{Environment.NewLine} {ex.StackTrace}");
-        }
-    }
-    */
-    
+            */
+
     #region Search
 
     private async void OnSearchButtonClicked()

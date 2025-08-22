@@ -35,6 +35,12 @@
         RowDefinitions="Auto, *"
         VerticalOptions="FillAndExpand"        
         >
+        <Grid.GestureRecognizers>
+            <DropGestureRecognizer 
+                AllowDrop="True"
+                DragOver="OnDragOver"
+                Drop="OnFileDrop" />
+        </Grid.GestureRecognizers>
 
         <!-- Header -->
         <Grid
