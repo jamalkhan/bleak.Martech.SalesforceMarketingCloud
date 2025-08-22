@@ -136,7 +136,7 @@ public static class MauiProgram
 
 			// Asset List Page - Simplified registration
 			builder.Services.AddTransient<SfmcAssetListPage>();
-			builder.Services.AddTransient<SfmcDataExtensionListPage2>();
+			builder.Services.AddTransient<SfmcDataExtensionListPage>();
 
 			// Asset List Page with factory for SfmcConnection dependency
 			builder.Services.AddTransient<Func<SfmcConnection, SfmcAssetListPage>>
@@ -150,13 +150,13 @@ public static class MauiProgram
 			);
 
 			// Data Extension List Page with factory for SfmcConnection dependency
-			builder.Services.AddTransient<Func<SfmcConnection, SfmcDataExtensionListPage2>>
+			builder.Services.AddTransient<Func<SfmcConnection, SfmcDataExtensionListPage>>
 			(
 				sp => connection =>
 				{
 					var viewModelFactory = sp.GetRequiredService<Func<SfmcConnection, SfmcDataExtensionListViewModel>>();
 					var viewModel = viewModelFactory(connection);
-					return new SfmcDataExtensionListPage2(viewModel);
+					return new SfmcDataExtensionListPage(viewModel);
 				}
 			);
 

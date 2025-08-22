@@ -58,26 +58,26 @@ public partial class SfmcDataExtensionListViewModel
     {
         try
         {
-            _logger.LogInformation("Loading Base folders...");
+            _logger.LogTrace("Loading Base folders...");
             IsFoldersLoaded = false;
             IsFoldersLoading = true;
-            _logger.LogInformation("Set Booleans");
-            _logger.LogInformation("Calling GetFolderTreeAsync...");
-            _logger.LogInformation($"FolderAPI: {FolderApi != null} {FolderApi.GetType().Name}");
+            _logger.LogTrace("Set Booleans");
+            _logger.LogTrace("Calling GetFolderTreeAsync...");
+            _logger.LogTrace($"FolderAPI: {FolderApi != null} {FolderApi.GetType().Name}");
             var folderTree = await FolderApi.GetFolderTreeAsync();
-            _logger.LogInformation("Set Booleans");
+            _logger.LogTrace("Set Booleans");
             Folders.Clear();
-            _logger.LogInformation("Cleared Folders collection.");
+            _logger.LogTrace("Cleared Folders collection.");
             foreach (var folder in folderTree.ToViewModel())
             {
-                _logger.LogInformation($"Adding folder: {folder.Name}");
+                _logger.LogTrace($"Adding folder: {folder.Name}");
                 Folders.Add(folder);
             }
-            _logger.LogInformation("Folders loaded successfully.");
-            _logger.LogInformation($"Total folders loaded: {Folders.Count}");
+            _logger.LogTrace("Folders loaded successfully.");
+            _logger.LogTrace($"Total folders loaded: {Folders.Count}");
             IsFoldersLoaded = true;
             IsFoldersLoading = false;
-            _logger.LogInformation("Set Booleans");
+            _logger.LogTrace("Set Booleans");
         }
         catch (Exception ex)
         {
@@ -142,7 +142,7 @@ public partial class SfmcDataExtensionListViewModel
         try
         {
             // Optional: Show loading UI
-            _logger.LogInformation($"Starting download of {dataExtension.Name} to {filePath}...", "OK");
+            _logger.LogTrace($"Starting download of {dataExtension.Name} to {filePath}...", "OK");
 
 
             IFileWriter fileWriter = new DelimitedFileWriter
@@ -185,15 +185,15 @@ public partial class SfmcDataExtensionListViewModel
     {
          try
         {
-            _logger.LogInformation("Calling FolderApi.GetFolderTreeAsync()");
+            _logger.LogTrace("Calling FolderApi.GetFolderTreeAsync()");
             
             // Add timeout to prevent infinite waiting
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             var folders = await FolderApi.GetFolderTreeAsync().WaitAsync(cts.Token);
             
-            _logger.LogInformation($"Received {folders?.Count() ?? 0} folders from API");
+            _logger.LogTrace($"Received {folders?.Count() ?? 0} folders from API");
             var viewModels = folders?.ToViewModel();
-            _logger.LogInformation($"Converted to {viewModels?.Count() ?? 0} view models");
+            _logger.LogTrace($"Converted to {viewModels?.Count() ?? 0} view models");
             return viewModels ?? Enumerable.Empty<FolderViewModel>();
         }
         catch (OperationCanceledException)

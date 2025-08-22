@@ -3,45 +3,152 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:local="clr-namespace:SfmcApp.Pages.DataExtensions"
-             xmlns:localbase="clr-namespace:SfmcApp.Pages.BasePages"
+             xmlns:converters="clr-namespace:SfmcApp.Converters"
+             xmlns:viewmodels="clr-namespace:SfmcApp.Models.ViewModels"
              x:Class="SfmcApp.Pages.DataExtensions.SfmcDataExtensionListPage"
-             Title="Data Extension Navigator">
-    <Grid 
+             Title="{Binding Title}">
+    <ContentPage.Resources>
+        <DataTemplate x:Key="FolderTemplate">
+            <toolkit:Expander>
+                <toolkit:Expander.Header>
+                    <HorizontalStackLayout Spacing="5">
+                        <Image Source="folder_icon.png" HeightRequest="18" WidthRequest="18" />
+                        <Label Text="{Binding Name}">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcDataExtensionListPage}}, Path=BindingContext.FolderTappedCommand}"
+                                    CommandParameter="{Binding .}" />
+                            </Label.GestureRecognizers>
+                        </Label>
+                    </HorizontalStackLayout>
+                </toolkit:Expander.Header>
+
+                <VerticalStackLayout Padding="20,0,0,0">
+                    <CollectionView ItemsSource="{Binding SubFolders}"
+                                    ItemTemplate="{StaticResource FolderTemplate}" />
+                </VerticalStackLayout>
+            </toolkit:Expander>
+        </DataTemplate>
+    </ContentPage.Resources>
+   <Grid 
         ColumnDefinitions="*, 2*"
         RowDefinitions="Auto, *"
         VerticalOptions="FillAndExpand"        
         >
 
         <!-- Header -->
-        <HorizontalStackLayout Grid.Row="0"
-                              Spacing="10"
-                              Padding="10"
-                              VerticalOptions="Center"
-                              HorizontalOptions="StartAndExpand">
-            <SearchBar
-                Placeholder="Search Data Extensions"
-                WidthRequest="200"
-                x:Name="SearchBarText"
-                VerticalOptions="Center"
-                BackgroundColor="White"
-                TextColor="Black"
-                PlaceholderColor="Gray"
-                HeightRequest="40"
-                >
-            </SearchBar>
+        <Grid
+            Grid.Row="0"
+            ColumnSpacing="10"
+            RowSpacing="5"
+            Padding="10"
+            HorizontalOptions="StartAndExpand"
+            VerticalOptions="Center">
 
-            <Picker Title="Select Search Type"
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <!-- Row 0 -->
+            <HorizontalStackLayout Grid.Row="0" Spacing="10" VerticalOptions="Center">
+                <SearchBar
+                    Placeholder="Search Data Extensions"
+                    WidthRequest="200"
+                    x:Name="SearchBarText"
+                    VerticalOptions="Center"
+                    BackgroundColor="White"
+                    TextColor="Black"
+                    Text="{Binding SearchText}"
+                    PlaceholderColor="Gray"
+                    HeightRequest="40" />
+                
+                <Picker
+                    Title="Select Search Type"
                     WidthRequest="150"
                     ItemsSource="{Binding SearchOptions}"
+                    SelectedItem="{Binding SelectedSearchOption}"
                     x:Name="SearchTypePicker"
                     SelectedIndex="0"
-                    VerticalOptions="Center">
-            </Picker>
-            <Button Text="Search"
+                    VerticalOptions="Center" />
+                
+                <Button
+                    Text="Search"
                     VerticalOptions="Center"
-                    x:Name="SearchButton"
-                    Clicked="OnSearchButtonClicked" />
-        </HorizontalStackLayout>
+                    Command="{Binding SearchCommand}" />
+            </HorizontalStackLayout>
+
+            <!-- Row 1 -->
+            <HorizontalStackLayout Grid.Row="1" Spacing="5" VerticalOptions="Center">
+                <Label Text="Selected SFMC Folder:" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
+                <Label Text="{Binding SelectedFolderName}" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
+
+                <Label Text="Folders:" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
+                <Label Text="{Binding Folders.Count}" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
+                
+                <Label Text="Data Extensions:" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
+                <Label Text="{Binding ContentResources.Count}" FontSize="Medium" FontAttributes="Bold" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
+            <!-- Row 2 -->
+            <Grid Grid.Row="2" ColumnSpacing="10" VerticalOptions="Center">
+                <!-- Define 5 columns: Label | Editor | Button | Label | Switch -->
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Download Folder Label -->
+                <Label 
+                    Grid.Column="0"
+                    Text="Download Folder:" 
+                    FontSize="Medium" 
+                    FontAttributes="Bold" 
+                    VerticalOptions="Center" />
+
+                <!-- Read-only Editor (for displaying folder path) -->
+                <Editor
+                    Grid.Column="1"
+                    Text="{Binding DownloadDirectory}"
+                    IsReadOnly="True"
+                    FontSize="Small"
+                    VerticalOptions="Center"
+                    BackgroundColor="#f0f0f0"
+                    TextColor="Black"
+                    AutoSize="TextChanges"
+                    HeightRequest="40"
+                    HorizontalOptions="FillAndExpand"
+                    />
+
+                <!-- Open Button -->
+                <Button
+                    Grid.Column="2"
+                    Text="Open"
+                    Command="{Binding OpenDownloadDirectoryCommand}"
+                    VerticalOptions="Center" />
+
+                <!-- Expand Ampscript Label -->
+                <Label 
+                    Grid.Column="3"
+                    Text="Expand Ampscript:" 
+                    FontSize="Medium" 
+                    FontAttributes="Bold" 
+                    VerticalOptions="Center" />
+
+                <!-- Switch 
+                <Switch 
+                    Grid.Column="4"
+                    IsToggled="{Binding ExpandAmpscript, Mode=TwoWay}" 
+                    VerticalOptions="Center" />
+                    -->
+            </Grid>
+            
+        </Grid>
+
+
 
         <!-- Left Column -->
         <Border 
@@ -62,78 +169,14 @@
                        VerticalOptions="Center"
                        IsVisible="{Binding IsFoldersLoading}" />
                 <CollectionView
-                            ItemsSource="{Binding Folders}"
-                            SelectionMode="Single"
-                            SelectedItem="{Binding SelectedFolder}"
-                            IsVisible="{Binding IsFoldersLoaded}"
-                            >
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate>
-                            <toolkit:Expander>
-                                <!-- Folder -->
-                                <toolkit:Expander.Header>
-                                    <HorizontalStackLayout Spacing="5">
-                                        <Image Source="folder_icon.png" HeightRequest="20" WidthRequest="20" />
-                                        <Label Text="{Binding Name}">
-                                            <Label.GestureRecognizers>
-                                                <TapGestureRecognizer
-                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcDataExtensionListPage}}, Path=BindingContext.FolderTappedCommand}"
-                                                    CommandParameter="{Binding .}" />
-                                            </Label.GestureRecognizers>
-                                        </Label>
-                                    </HorizontalStackLayout>
-                                </toolkit:Expander.Header>
-
-                                <!-- Subfolders -->
-                                <VerticalStackLayout Padding="20,0,0,0">
-                                    <CollectionView ItemsSource="{Binding SubFolders}">
-                                        <CollectionView.ItemTemplate>
-                                            <DataTemplate>
-                                                <toolkit:Expander>
-                                                    <toolkit:Expander.Header>
-                                                        <HorizontalStackLayout Spacing="5">
-                                                            <Image Source="folder_icon.png" HeightRequest="18" WidthRequest="18" />
-                                                            <Label Text="{Binding Name}">
-                                                                <Label.GestureRecognizers>
-                                                                    <TapGestureRecognizer
-                                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcDataExtensionListPage}}, Path=BindingContext.FolderTappedCommand}"
-                                                                        CommandParameter="{Binding .}" />
-                                                                </Label.GestureRecognizers>
-                                                            </Label>
-                                                        </HorizontalStackLayout>
-                                                    </toolkit:Expander.Header>
-
-                                                    <!-- (Optional) Recursive subfolders -->
-                                                    <VerticalStackLayout Padding="20,0,0,0">
-                                                        <CollectionView ItemsSource="{Binding SubFolders}">
-                                                            <CollectionView.ItemTemplate>
-                                                                <DataTemplate>
-                                                                    <HorizontalStackLayout Spacing="5">
-                                                                        <Image Source="folder_icon.png" HeightRequest="18" WidthRequest="18" />
-                                                                        <Label Text="{Binding Name}">
-                                                                            <Label.GestureRecognizers>
-                                                                                <TapGestureRecognizer
-                                                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type local:SfmcDataExtensionListPage}}, Path=BindingContext.FolderTappedCommand}"
-                                                                                    CommandParameter="{Binding .}" />
-                                                                            </Label.GestureRecognizers>
-                                                                        </Label>
-                                                                    </HorizontalStackLayout>
-                                                                </DataTemplate>
-                                                            </CollectionView.ItemTemplate>
-                                                        </CollectionView>
-                                                    </VerticalStackLayout>
-                                                </toolkit:Expander>
-                                            </DataTemplate>
-                                        </CollectionView.ItemTemplate>
-                                    </CollectionView>
-                                </VerticalStackLayout>
-                            </toolkit:Expander>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
+                    ItemsSource="{Binding Folders}"
+                    SelectionMode="Single"
+                    SelectedItem="{Binding SelectedFolder}"
+                    IsVisible="{Binding IsFoldersLoaded}"
+                    ItemTemplate="{StaticResource FolderTemplate}">
                 </CollectionView>
             </Grid>
         </Border>
-        
 
         <!-- Right Column -->
         <Border 
@@ -147,14 +190,14 @@
             StrokeShape="RoundRectangle 8"
             >
             <CollectionView
-                ItemsSource="{Binding DataExtensions}"
-                IsVisible="{Binding IsFoldersLoaded}"
+                ItemsSource="{Binding ContentResources}"
+                IsVisible="{Binding IsContentResourcesLoaded}"
                 >
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout Orientation="Vertical" ItemSpacing="20" />
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
-                    <DataTemplate>
+                    <DataTemplate x:DataType="viewmodels:DataExtensionViewModel">
                         <Border 
                             Stroke="LightGray" 
                             StrokeThickness="1" 
@@ -163,7 +206,7 @@
                             StrokeShape="RoundRectangle 4">
 
                             <Grid ColumnDefinitions="Auto, *, Auto, Auto"
-                                RowDefinitions="Auto, Auto, Auto"
+                                RowDefinitions="Auto, Auto, Auto, Auto"
                                 Padding="10"
                                 ColumnSpacing="10"
                                 VerticalOptions="Center">
@@ -171,7 +214,7 @@
                                 <!-- lemon.gif spanning 3 rows -->
                                 <Image Grid.RowSpan="3"
                                     Grid.Column="0"
-                                    Source="lemon.gif"
+                                    Source="folder_icon.png"
                                     WidthRequest="60"
                                     HeightRequest="60"
                                     VerticalOptions="Center" />
@@ -189,8 +232,20 @@
                                     Grid.Column="1"
                                     Grid.Row="1"
                                     VerticalOptions="Center">
-                                    <Label Text="Customer Key: " />
-                                    <Label Text="{Binding CustomerKey}" />
+                                    <Grid ColumnDefinitions="Auto, *, Auto, Auto"
+                                        RowDefinitions="Auto, Auto"
+                                        Padding="5"
+                                        VerticalOptions="Center">
+                                        <Label Text="Customer Key: " Grid.Row="0" Grid.Column="0"  />
+                                        <Label Text="{Binding CustomerKey}" Grid.Row="0" Grid.Column="1" />
+                                        <Label Text="ID: " Grid.Row="0" Grid.Column="2" />
+                                        <Label Text="{Binding ObjectID}" Grid.Row="0" Grid.Column="3" />
+                                        <Label Text="Type: " Grid.Row="1" Grid.Column="0" />
+                                        <Label Text="{Binding DataExtensionType.Name}" Grid.Row="1" Grid.Column="1" />
+
+                                        <!--<Label Text="ContentType: " Grid.Row="1" Grid.Column="2" IsVisible="{Binding ContentTypeVisible}" />
+                                        <Label Text="{Binding ContentType}" Grid.Row="1" Grid.Column="3" />-->
+                                    </Grid>
                                 </HorizontalStackLayout>
 
                                 <!-- Description -->
@@ -199,9 +254,9 @@
                                     Text="{Binding Description}"
                                     VerticalOptions="Center" />
 
-                                <!-- mail.png, only visible if IsSendable -->
+                                <!-- TODO: do something with this -->
                                 <Image Grid.Column="2"
-                                    Grid.RowSpan="3"
+                                    Grid.RowSpan="4"
                                     Source="mail.png"
                                     WidthRequest="30"
                                     HeightRequest="30"
@@ -211,18 +266,19 @@
                                     SemanticProperties.Description="Is Sendable = true" />
 
                                 <Image Grid.Column="3"
-                                    Grid.RowSpan="3"
-                                    Source="csv_download.png"
+                                    Grid.RowSpan="4"
+                                    Source="download.png"
                                     WidthRequest="30"
                                     HeightRequest="30"
                                     VerticalOptions="Center"
                                     HorizontalOptions="End"
-                                    SemanticProperties.Description="Download CSV"
-                                >
-                                <Image.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnDownloadCsvTapped" />
-                                </Image.GestureRecognizers>
-                            </Image>
+                                    SemanticProperties.Description="Download Image">
+                                    <Image.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding BindingContext.DownloadCommand, Source={RelativeSource AncestorType={x:Type local:SfmcDataExtensionListPage}}}"
+                                            CommandParameter="{Binding .}" />
+                                    </Image.GestureRecognizers>
+                                </Image>
                             </Grid>
                         </Border>
                     </DataTemplate>

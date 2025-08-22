@@ -16,23 +16,10 @@
                 Clicked="OnShowDataExtensionsClicked"
                 HorizontalOptions="Fill" />
             <Button
-                x:Name="ShowDataExtensions2Btn"
-                Text="Show Data Extensions 2" 
-                SemanticProperties.Hint="Show Data Extensions 2"
-                Clicked="OnShowDataExtensions2Clicked"
-                HorizontalOptions="Fill" />
-            <Button
                 x:Name="ShowAssetsBtn"
                 Text="Show Assets" 
                 SemanticProperties.Hint="Show Assets"
                 Clicked="OnShowAssetClicked"
-                HorizontalOptions="Fill" />
-
-            <Button
-                x:Name="TestNetworkBtn"
-                Text="Test Network Connectivity" 
-                SemanticProperties.Hint="Test Network Connectivity"
-                Clicked="OnNetworkTestClicked"
                 HorizontalOptions="Fill" />
         </VerticalStackLayout>
     </ScrollView>

@@ -29,15 +29,6 @@ public partial class SfmcInstanceMenuPage : ContentPage
 		BindingContext = connection;
 	}
 
-	public async void OnShowDataExtensionsClicked(object sender, EventArgs e)
-	{
-		await Navigation.PushAsync(new SfmcDataExtensionListPage
-		(
-			restClientAsync: _restClientAsync,
-			authRepository: _authRepository,
-			logger: null
-		));
-	}
 	public async void OnShowAssetClicked(object sender, EventArgs e)
 	{
 		if (App.Current?.Services is IServiceProvider services)
@@ -56,13 +47,13 @@ public partial class SfmcInstanceMenuPage : ContentPage
 		}
 	}
 
-	public async void OnShowDataExtensions2Clicked(object sender, EventArgs e)
+	public async void OnShowDataExtensionsClicked(object sender, EventArgs e)
 	{
 		if (App.Current?.Services is IServiceProvider services)
 		{
 			if (BindingContext is SfmcConnection connection)
 			{
-				var factory = services.GetRequiredService<Func<SfmcConnection, SfmcDataExtensionListPage2>>();
+				var factory = services.GetRequiredService<Func<SfmcConnection, SfmcDataExtensionListPage>>();
 				_logger.LogInformation("Creating SfmcDataExtensionListPage with connection");
 				var page = factory(connection);
 				await Navigation.PushAsync(page);
@@ -71,31 +62,6 @@ public partial class SfmcInstanceMenuPage : ContentPage
 			{
 				_logger.LogError("BindingContext is not SfmcConnection");
 			}
-		}
-	}
-
-
-	public async void OnNetworkTestClicked(object sender, EventArgs e)
-	{
-		try
-		{
-			_logger.LogInformation("Executing TestNetworkCommand...");
-			//bool isConnected = await ((MauiAuthRepository)_authRepository).TestNetworkConnectivityAsync();
-			//_logger.LogInformation($"Network test result: {isConnected}");
-			// Update UI on main thread
-			MainThread.BeginInvokeOnMainThread(() =>
-			{
-				// Update UI-bound properties here, e.g., ObservableProperty
-				DisplayAlert("Success", $"Networking TEST A-OK", "OK");
-			});
-		}
-		catch (Exception ex)
-		{
-			_logger.LogError(ex, "Network command failed: {Message}\n{StackTrace}", ex.Message, ex.StackTrace);
-			MainThread.BeginInvokeOnMainThread(() =>
-			{
-				DisplayAlert("Error", $"Network command failed: {ex.Message}", "OK");
-			});
 		}
 	}
 }

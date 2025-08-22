@@ -41,7 +41,7 @@ public partial class DataExtensionFolderSoapApi
 
         do
         {
-            _logger?.LogInformation($"Loading Data Extension Folder Page {page}");
+            _logger?.LogTrace($"Loading Data Extension Folder Page {page}");
 
             // If LoadFolder can be made async, call await LoadFolderAsync(...)
             requestId = await LoadFolderAsync(wsdlFolders, requestId);
@@ -61,7 +61,7 @@ public partial class DataExtensionFolderSoapApi
     {
         try
         {
-            _logger.LogInformation($"Invoking SOAP Call. URL: {url}");
+            _logger.LogTrace($"Invoking SOAP Call. URL: {url}");
 
             var serializedPayload = await BuildRequestAsync(requestId);
             var results = await _restClientAsync.ExecuteRestMethodAsync<SoapEnvelope<Wsdl.DataFolder>, string>(
@@ -74,22 +74,22 @@ public partial class DataExtensionFolderSoapApi
             if (results?.Error != null) _logger.LogError($"results.Error = {results.Error}");
 
             // Process Results
-            //_logger.LogInformation($"Overall Status: {results!.Results.Body.RetrieveResponse.OverallStatus}");
-            _logger.LogInformation($"results: {results}");
-            _logger.LogInformation($"results.Value = {results?.Results}");
-            _logger.LogInformation($"results.SerializedResponse = {results?.SerializedResponse}");
-            _logger.LogInformation($"results.Results: {results?.Results}");
-            _logger.LogInformation($"Body: {results?.Results?.Body}");
-            _logger.LogInformation($"RetrieveResponse: {results?.Results?.Body?.RetrieveResponse}");
-            _logger.LogInformation($"Overall Results: {results?.Results?.Body?.RetrieveResponse?.Results.Count()}");
-            _logger.LogInformation($"Overall Status: {results?.Results?.Body?.RetrieveResponse?.OverallStatus}");
+            //_logger.LogTrace($"Overall Status: {results!.Results.Body.RetrieveResponse.OverallStatus}");
+            _logger.LogTrace($"results: {results}");
+            _logger.LogTrace($"results.Value = {results?.Results}");
+            _logger.LogTrace($"results.SerializedResponse = {results?.SerializedResponse}");
+            _logger.LogTrace($"results.Results: {results?.Results}");
+            _logger.LogTrace($"Body: {results?.Results?.Body}");
+            _logger.LogTrace($"RetrieveResponse: {results?.Results?.Body?.RetrieveResponse}");
+            _logger.LogTrace($"Overall Results: {results?.Results?.Body?.RetrieveResponse?.Results.Count()}");
+            _logger.LogTrace($"Overall Status: {results?.Results?.Body?.RetrieveResponse?.OverallStatus}");
             int currentPageSize = 0;
             foreach (var result in results?.Results?.Body?.RetrieveResponse?.Results ?? Enumerable.Empty<Wsdl.DataFolder>())
             {
                 wsdlFolders.Add(result);
                 currentPageSize++;
             }
-            _logger.LogInformation($"Current Page had {currentPageSize} records. There are now {wsdlFolders.Count()} Total Folders Identified.");
+            _logger.LogTrace($"Current Page had {currentPageSize} records. There are now {wsdlFolders.Count()} Total Folders Identified.");
 
             if (results?.Results?.Body?.RetrieveResponse?.OverallStatus == "MoreDataAvailable"
                 &&
@@ -97,7 +97,7 @@ public partial class DataExtensionFolderSoapApi
             )
             {
                 string subrequestId = results?.Results?.Body?.RetrieveResponse?.RequestID ?? string.Empty;
-                _logger.LogInformation($"More Data Available. Request ID: {subrequestId}");
+                _logger.LogTrace($"More Data Available. Request ID: {subrequestId}");
                 var retval = await LoadFolderAsync(wsdlFolders, subrequestId);
                 return retval;
 
@@ -114,7 +114,7 @@ public partial class DataExtensionFolderSoapApi
     private async Task< StringBuilder> BuildRequestAsync(string requestId)
     {
         var token = await _authRepository.GetTokenAsync();
-        _logger.LogInformation("Building SOAP Request for Data Extension Folders");
+        _logger.LogTrace("Building SOAP Request for Data Extension Folders");
         var sb = new StringBuilder();
         sb.AppendLine($"<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:a=\"http://schemas.xmlsoap.org/ws/2004/08/addressing\" xmlns:u=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd\">");
         sb.AppendLine($"    <s:Header>");
@@ -127,7 +127,7 @@ public partial class DataExtensionFolderSoapApi
         sb.AppendLine($"            <RetrieveRequest>");
         if (!string.IsNullOrEmpty(requestId))
         {
-            _logger.LogInformation($"Continuing request with ID: {requestId}");
+            _logger.LogTrace($"Continuing request with ID: {requestId}");
             sb.AppendLine($"                <ContinueRequest>{requestId}</ContinueRequest>");
         }
         sb.AppendLine($"                <ObjectType>DataFolder</ObjectType>");
@@ -149,8 +149,8 @@ public partial class DataExtensionFolderSoapApi
         sb.AppendLine($"        </RetrieveRequestMsg>");
         sb.AppendLine($"    </s:Body>");
         sb.AppendLine($"</s:Envelope>");
-        _logger.LogInformation("SOAP Request for Data Extension Folders built successfully.");
-        _logger.LogInformation($"SOAP Request: {sb.ToString()}");
+        _logger.LogTrace("SOAP Request for Data Extension Folders built successfully.");
+        _logger.LogTrace($"SOAP Request: {sb.ToString()}");
         return sb;
 
     }

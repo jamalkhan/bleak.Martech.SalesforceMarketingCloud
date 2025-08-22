@@ -37,7 +37,7 @@ public partial class SharedDataExtensionFolderSoapApi
         string requestId = string.Empty;
         do
         {
-            _logger.LogInformation($"Loading Shared Data Extension Folder Page {page}");
+            _logger.LogTrace($"Loading Shared Data Extension Folder Page {page}");
 
             requestId = await LoadFolderAsync(wsdlFolders, requestId);
             page++;
@@ -56,7 +56,7 @@ public partial class SharedDataExtensionFolderSoapApi
     {
         try
         {
-            _logger.LogInformation($"Invoking SOAP Call. URL: {url}");
+            _logger.LogTrace($"Invoking SOAP Call. URL: {url}");
             var serializedPayload = await BuildRequestAsync(requestId);
 
             var results = await _restClientAsync.ExecuteRestMethodAsync<SoapEnvelope<Wsdl.DataFolder>, string>(
@@ -66,22 +66,22 @@ public partial class SharedDataExtensionFolderSoapApi
                 headers: BuildHeaders()
             );
 
-            _logger.LogInformation($"results.Value = {results?.Results}");
+            _logger.LogTrace($"results.Value = {results?.Results}");
             if (results?.Error != null) _logger.LogError($"results.Error = {results.Error}");
 
             // Process Results
-            _logger.LogInformation($"Overall Status: {results!.Results.Body.RetrieveResponse.OverallStatus}");
+            _logger.LogTrace($"Overall Status: {results!.Results.Body.RetrieveResponse.OverallStatus}");
             int currentPageSize = 0;
             foreach (var result in results.Results.Body.RetrieveResponse.Results)
             {
                 wsdlFolders.Add(result);
                 currentPageSize++;
             }
-            _logger.LogInformation($"Current Page had {currentPageSize} records. There are now {wsdlFolders.Count()} Total Folders Identified.");
+            _logger.LogTrace($"Current Page had {currentPageSize} records. There are now {wsdlFolders.Count()} Total Folders Identified.");
 
             if (results.Results.Body.RetrieveResponse.OverallStatus == "MoreDataAvailable")
             {
-                _logger.LogInformation($"More Data Available. Request ID: {results.Results.Body.RetrieveResponse.RequestID}");
+                _logger.LogTrace($"More Data Available. Request ID: {results.Results.Body.RetrieveResponse.RequestID}");
                 var retval = await LoadFolderAsync(wsdlFolders, results.Results.Body.RetrieveResponse.RequestID);
                 return retval;
 

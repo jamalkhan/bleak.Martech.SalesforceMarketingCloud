@@ -49,9 +49,10 @@ public class DataExtensionRestApi
     {
         int currentPageSize;
         long totalRecords = 0;
+        int currentPage = 1;
         try
         {
-            _logger.LogInformation($"writing file to {fileName}");
+            _logger.LogTrace($"writing file to {fileName}");
 
             Directory.CreateDirectory(Path.GetDirectoryName(fileName)!);
 
@@ -59,14 +60,14 @@ public class DataExtensionRestApi
             string url = $"{baseUrl}/v1/customobjectdata/key/{dataExtensionCustomerKey}/rowset?$page=1&$pageSize=2500";
             do
             {
-                _logger.LogInformation($"Downloading Data Extension[{dataExtensionCustomerKey}] from  {url}");
+                _logger.LogTrace($"Downloading Data Extension[{dataExtensionCustomerKey}] from  {url}");
                 var results = await LoadApiWithRetryAsync<DataExtensionDataDto>(
                     loadApiCallAsync: LoadApiCallAsync,
                     url: url,
                     authenticationError: "401",
                     resolveAuthenticationAsync: _authRepository.ResolveAuthenticationAsync
                 );
-                
+
                 if (results?.Error != null)
                 {
                     throw new Exception($"Error: {results.Error}");
@@ -83,11 +84,17 @@ public class DataExtensionRestApi
                 // add data to return value.
                 fileWriter.WriteToFile(fileName, results.Results.ToDictionaryList());
 
-                _logger.LogInformation($"Current Page had {currentPageSize} records. There are now {totalRecords} Records Identified.");
-
+                if (currentPage++ % 10 == 0)
+                {
+                    _logger.LogInformation($"Downloaded {totalRecords} records so far...");
+                }
+                else
+                { 
+                    _logger.LogTrace($"Current Page had {currentPageSize} records. There are now {totalRecords} Records Identified.");
+                }
                 if (results == null || results.Results == null || results.Results.links == null || results.Results.links == null || string.IsNullOrEmpty(results.Results.links.next))
                 {
-                    _logger.LogInformation($"No more pages to process. Exiting loop.");
+                    _logger.LogTrace($"No more pages to process. Exiting loop.");
                     break;
                 }
 
@@ -109,7 +116,7 @@ public class DataExtensionRestApi
         string url
     )
     {
-        _logger.LogInformation($"Attempting to {verb} to {url}");
+        _logger.LogTrace($"Attempting to {verb} to {url}");
 
         await SetAuthHeaderAsync();
         return await _restClientAsync.ExecuteRestMethodAsync<DataExtensionDataDto, string>(

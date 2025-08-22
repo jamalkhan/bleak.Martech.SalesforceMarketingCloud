@@ -86,7 +86,7 @@ public class DataExtensionFolderRestApi
     {
         try
         {
-            _logger.LogInformation($"Loading Folder Page #{page}");
+            _logger.LogTrace($"Loading Folder Page #{page}");
 
 
             ///legacy/v1/beta/object/
@@ -98,12 +98,12 @@ public class DataExtensionFolderRestApi
                 resolveAuthenticationAsync: _authRepository.ResolveAuthenticationAsync
             );
 
-            _logger.LogInformation($"results.Value = {results?.Results}");
+            _logger.LogTrace($"results.Value = {results?.Results}");
             if (results?.Error != null) _logger.LogError($"results.Error = {results.Error}");
 
             var currentPageSize = results!.Results.items.Count();
             sfmcFolders.AddRange(results.Results.items);
-            _logger.LogInformation($"Current Page had {currentPageSize} records. There are now {sfmcFolders.Count()} Total Folders Identified.");
+            _logger.LogTrace($"Current Page had {currentPageSize} records. There are now {sfmcFolders.Count()} Total Folders Identified.");
 
             return currentPageSize;
         }
@@ -118,7 +118,7 @@ public class DataExtensionFolderRestApi
         string url
     )
     {
-        _logger.LogInformation($"Attempting to {verb} to {url}");
+        _logger.LogTrace($"Attempting to {verb} to {url}");
         await SetAuthHeaderAsync();
         return await _restClientAsync.ExecuteRestMethodAsync<SfmcRestWrapper<SfmcFolder>, string>(
             uri: new Uri(url),
