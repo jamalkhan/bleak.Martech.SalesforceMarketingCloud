@@ -1,4 +1,4 @@
-name: Build & Package SfmcApp for macOS (.NET 9, arm64 & x64)
+name: Build & Package SfmcApp for macOS (.NET 9 DMG)
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-mac:
-    runs-on: macos-15
+    runs-on: macos-15   # Xcode 16.4 required by .NET 9 MacCatalyst
     steps:
       - name: Show macOS version
         run: sw_vers
@@ -51,9 +51,7 @@ jobs:
           NEW_VERSION="$major.$minor.$patch"
           echo "New version: $NEW_VERSION"
 
-          # Replace version in .csproj
           sed -i '' "s|<Version>$CURRENT_VERSION</Version>|<Version>$NEW_VERSION</Version>|" "$FILE"
-
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
       - name: Commit updated version (only on workflow_dispatch)
@@ -68,59 +66,73 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore SfmcApp/SfmcApp.csproj
 
-      # Build ARM64
-      - name: Build arm64
-        run: dotnet publish SfmcApp/SfmcApp.csproj -c Release -f net9.0-maccatalyst -p:RuntimeIdentifier=maccatalyst-arm64 -o publish/arm64
+      # Build arm64 .app bundle
+      - name: Build arm64 .app
+        run: |
+          dotnet publish SfmcApp/SfmcApp.csproj \
+            -c Release \
+            -f net9.0-maccatalyst \
+            -p:RuntimeIdentifier=maccatalyst-arm64 \
+            -p:BuildAppBundle=true \
+            -p:CreatePackage=false \
+            -o publish/arm64
 
-      - name: List ARM64 publish output
-        run: ls -R publish/arm64
+      - name: Build x64 .app
+        run: |
+          dotnet publish SfmcApp/SfmcApp.csproj \
+            -c Release \
+            -f net9.0-maccatalyst \
+            -p:RuntimeIdentifier=maccatalyst-x64 \
+            -p:BuildAppBundle=true \
+            -p:CreatePackage=false \
+            -o publish/x64
 
+      # Create DMG for arm64
       - name: Create arm64 DMG
         run: |
           VERSION=${{ steps.versioning.outputs.version || '0.0.0-CI' }}
-          DMG_NAME="SfmcApp-macOS-arm64-${VERSION}.dmg"
-          mkdir -p output
           APP_PATH=$(find publish/arm64 -type d -name "*.app" | head -n 1)
           if [ -z "$APP_PATH" ]; then
             echo "ERROR: No .app bundle found in publish/arm64"
             ls -R publish/arm64
             exit 1
           fi
+          mkdir -p output
+          DMG_NAME="SfmcApp-macOS-arm64-${VERSION}.dmg"
           echo "Found app at $APP_PATH"
           hdiutil create -volname "SfmcApp Installer (arm64)" \
-              -srcfolder "$APP_PATH" \
-              -ov -format UDZO "output/$DMG_NAME"
+            -srcfolder "$APP_PATH" \
+            -ov -format UDZO "output/$DMG_NAME"
 
-
-      # Build x64
-      - name: Build x64
-        run: dotnet publish SfmcApp/SfmcApp.csproj -c Release -f net9.0-maccatalyst -p:RuntimeIdentifier=maccatalyst-x64 -o publish/x64
-
-      - name: List ARM64 publish output
-        run: ls -R publish/x64
-
+      # Create DMG for x64
       - name: Create x64 DMG
         run: |
           VERSION=${{ steps.versioning.outputs.version || '0.0.0-CI' }}
+          APP_PATH=$(find publish/x64 -type d -name "*.app" | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "ERROR: No .app bundle found in publish/x64"
+            ls -R publish/x64
+            exit 1
+          fi
           DMG_NAME="SfmcApp-macOS-x64-${VERSION}.dmg"
-          mkdir -p output
-          APP_PATH=$(find publish/x64 -name "*.app" -type d | head -n 1)
           echo "Found app at $APP_PATH"
           hdiutil create -volname "SfmcApp Installer (x64)" \
-              -srcfolder "$APP_PATH" \
-              -ov -format UDZO "output/$DMG_NAME"
+            -srcfolder "$APP_PATH" \
+            -ov -format UDZO "output/$DMG_NAME"
 
+      # Upload DMGs as artifacts
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: SfmcApp-DMGs
-          path: output/*.dmg
+          path: output/*
 
+      # Create GitHub Release with DMGs attached
       - name: Create GitHub Release
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
         with:
-          files: output/*.dmg
+          files: output/*
           tag_name: v${{ steps.versioning.outputs.version || '0.0.0-CI' }}
           name: "SfmcApp macOS v${{ steps.versioning.outputs.version || '0.0.0-CI' }}"
           draft: false
