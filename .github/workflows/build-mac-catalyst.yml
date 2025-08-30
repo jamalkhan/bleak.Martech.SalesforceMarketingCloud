@@ -74,8 +74,10 @@ jobs:
           VERSION=${{ steps.versioning.outputs.version || '0.0.0-CI' }}
           DMG_NAME="SfmcApp-macOS-arm64-${VERSION}.dmg"
           mkdir -p output
+          APP_PATH=$(find publish/arm64 -name "*.app" -type d | head -n 1)
+          echo "Found app at $APP_PATH"
           hdiutil create -volname "SfmcApp Installer (arm64)" \
-              -srcfolder "publish/arm64/SfmcApp.app" \
+              -srcfolder "$APP_PATH" \
               -ov -format UDZO "output/$DMG_NAME"
 
       # Build x64
@@ -87,8 +89,10 @@ jobs:
           VERSION=${{ steps.versioning.outputs.version || '0.0.0-CI' }}
           DMG_NAME="SfmcApp-macOS-x64-${VERSION}.dmg"
           mkdir -p output
+          APP_PATH=$(find publish/x64 -name "*.app" -type d | head -n 1)
+          echo "Found app at $APP_PATH"
           hdiutil create -volname "SfmcApp Installer (x64)" \
-              -srcfolder "publish/x64/SfmcApp.app" \
+              -srcfolder "$APP_PATH" \
               -ov -format UDZO "output/$DMG_NAME"
 
       - name: Upload artifacts
