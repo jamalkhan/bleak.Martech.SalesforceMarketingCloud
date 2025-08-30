@@ -27,12 +27,13 @@ jobs:
       - name: Install MAUI workload
         run: dotnet workload install maui
 
-      - name: Auto-increment version number
+      - name: Auto-increment version number (only on workflow_dispatch)
+        if: github.event_name == 'workflow_dispatch'
         id: versioning
         run: |
           FILE="SfmcApp/SfmcApp.csproj"
-          CURRENT_VERSION=$(xmllint --xpath "string(//Project/PropertyGroup/Version)" "$FILE")
-          
+          CURRENT_VERSION=$(xmllint --xpath "string(//Project/PropertyGroup[Version]/Version)" "$FILE" 2>/dev/null)
+
           if [ -z "$CURRENT_VERSION" ]; then
             echo "No <Version> tag found. Adding default 1.0.0"
             sed -i '' '/<PropertyGroup>/a\
@@ -52,32 +53,55 @@ jobs:
 
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Commit updated version
+      - name: Commit updated version (only on workflow_dispatch)
+        if: github.event_name == 'workflow_dispatch'
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add SfmcApp/SfmcApp.csproj
-          git commit -m "CI: Bump version to ${{ steps.versioning.outputs.version }}"
+          git commit -m "CI: Bump version to ${{ steps.versioning.outputs.version }} [skip ci]"
           git push
 
       - name: Restore dependencies
         run: dotnet restore SfmcApp/SfmcApp.csproj
 
-      - name: Build Universal Binary (macOS)
-        run: |
-          dotnet publish SfmcApp/SfmcApp.csproj -c Release -f net9.0-maccatalyst -p:RuntimeIdentifier=maccatalyst-arm64 -p:UseMaui=true
+      - name: Build arm64
+        run: dotnet publish SfmcApp/SfmcApp.csproj -c Release -f net9.0-maccatalyst -p:RuntimeIdentifier=maccatalyst-arm64 -p:UseMaui=true -o publish/arm64
 
-      - name: Package .app bundle into zip
+      - name: Build x64
+        run: dotnet publish SfmcApp/SfmcApp.csproj -c Release -f net9.0-maccatalyst -p:RuntimeIdentifier=maccatalyst-x64 -p:UseMaui=true -o publish/x64
+
+      - name: Merge into Universal Binary
         run: |
+          mkdir -p publish/universal
+          cp -R publish/arm64/SfmcApp.app publish/universal/
+          lipo -create -output publish/universal/SfmcApp.app/Contents/MacOS/SfmcApp \
+              publish/arm64/SfmcApp.app/Contents/MacOS/SfmcApp \
+              publish/x64/SfmcApp.app/Contents/MacOS/SfmcApp
+          echo "Universal app created at publish/universal/SfmcApp.app"
+
+      - name: Create DMG
+        run: |
+          VERSION=${{ steps.versioning.outputs.version || '0.0.0-CI' }}
+          DMG_NAME="SfmcApp-macOS-${VERSION}.dmg"
           mkdir -p output
-          APP_PATH=$(find . -name "*.app" -type d | head -n 1)
-          echo "Found app bundle at: $APP_PATH"
-          cp -R "$APP_PATH" output/
-          cd output
-          zip -r SfmcApp-macOS-${{ steps.versioning.outputs.version }}.zip *.app
+          hdiutil create -volname "SfmcApp Installer" \
+              -srcfolder "publish/universal/SfmcApp.app" \
+              -ov -format UDZO "output/$DMG_NAME"
+          echo "DMG created at output/$DMG_NAME"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SfmcApp-macOS-${{ steps.versioning.outputs.version }}
-          path: output/SfmcApp-macOS-${{ steps.versioning.outputs.version }}.zip
+          name: SfmcApp-DMG
+          path: output/*.dmg
+
+      - name: Create GitHub Release
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: output/*.dmg
+          tag_name: v${{ steps.versioning.outputs.version || '0.0.0-CI' }}
+          name: "SfmcApp macOS v${{ steps.versioning.outputs.version || '0.0.0-CI' }}"
+          draft: false
+          prerelease: false
