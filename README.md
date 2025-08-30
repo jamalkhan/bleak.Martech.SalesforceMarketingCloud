@@ -4,8 +4,8 @@
 
 Choose your architecture:
 
-- **Apple Silicon (M1/M2, ARM64):** [Download DMG](ARM64_DMG_URL)
-- **Intel (x64):** [Download DMG](X64_DMG_URL)
+- **Apple Silicon (M1/M2, ARM64):** [Download DMG](https://github.com/jamalkhan/bleak.Martech.SalesforceMarketingCloud/releases/download/v1.0.22/SfmcApp-macOS-arm64-1.0.22.dmg)
+- **Intel (x64):** [Download DMG](https://github.com/jamalkhan/bleak.Martech.SalesforceMarketingCloud/releases/download/v1.0.22/SfmcApp-macOS-x64-1.0.22.dmg)
 
 
 ## ConsoleApp
