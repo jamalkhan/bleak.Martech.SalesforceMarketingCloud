@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-mac:
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - name: Check Xcode version
         run: xcodebuild -version
