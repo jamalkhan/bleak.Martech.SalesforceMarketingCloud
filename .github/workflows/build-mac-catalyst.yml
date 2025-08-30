@@ -1,4 +1,4 @@
-name: Build & Package SfmcApp for macOS (.NET 9 Universal)
+name: Build & Package SfmcApp for macOS (.NET 9, arm64 & x64)
 
 on:
   push:
@@ -65,35 +65,36 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore SfmcApp/SfmcApp.csproj
 
+      # Build ARM64
       - name: Build arm64
-        run: dotnet publish SfmcApp/SfmcApp.csproj -c Release -f net9.0-maccatalyst -p:RuntimeIdentifier=maccatalyst-arm64 -p:UseMaui=true -o publish/arm64
+        run: dotnet publish SfmcApp/SfmcApp.csproj -c Release -f net9.0-maccatalyst -p:RuntimeIdentifier=maccatalyst-arm64 -o publish/arm64
 
-      - name: Build x64
-        run: dotnet publish SfmcApp/SfmcApp.csproj -c Release -f net9.0-maccatalyst -p:RuntimeIdentifier=maccatalyst-x64 -p:UseMaui=true -o publish/x64
-
-      - name: Merge into Universal Binary
-        run: |
-          mkdir -p publish/universal
-          cp -R publish/arm64/SfmcApp.app publish/universal/
-          lipo -create -output publish/universal/SfmcApp.app/Contents/MacOS/SfmcApp \
-              publish/arm64/SfmcApp.app/Contents/MacOS/SfmcApp \
-              publish/x64/SfmcApp.app/Contents/MacOS/SfmcApp
-          echo "Universal app created at publish/universal/SfmcApp.app"
-
-      - name: Create DMG
+      - name: Create arm64 DMG
         run: |
           VERSION=${{ steps.versioning.outputs.version || '0.0.0-CI' }}
-          DMG_NAME="SfmcApp-macOS-${VERSION}.dmg"
+          DMG_NAME="SfmcApp-macOS-arm64-${VERSION}.dmg"
           mkdir -p output
-          hdiutil create -volname "SfmcApp Installer" \
-              -srcfolder "publish/universal/SfmcApp.app" \
+          hdiutil create -volname "SfmcApp Installer (arm64)" \
+              -srcfolder "publish/arm64/SfmcApp.app" \
               -ov -format UDZO "output/$DMG_NAME"
-          echo "DMG created at output/$DMG_NAME"
 
-      - name: Upload artifact
+      # Build x64
+      - name: Build x64
+        run: dotnet publish SfmcApp/SfmcApp.csproj -c Release -f net9.0-maccatalyst -p:RuntimeIdentifier=maccatalyst-x64 -o publish/x64
+
+      - name: Create x64 DMG
+        run: |
+          VERSION=${{ steps.versioning.outputs.version || '0.0.0-CI' }}
+          DMG_NAME="SfmcApp-macOS-x64-${VERSION}.dmg"
+          mkdir -p output
+          hdiutil create -volname "SfmcApp Installer (x64)" \
+              -srcfolder "publish/x64/SfmcApp.app" \
+              -ov -format UDZO "output/$DMG_NAME"
+
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: SfmcApp-DMG
+          name: SfmcApp-DMGs
           path: output/*.dmg
 
       - name: Create GitHub Release
