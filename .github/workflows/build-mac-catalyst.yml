@@ -30,7 +30,7 @@ jobs:
       - name: Install MAUI workload
         run: dotnet workload install maui
 
-      - name: Auto-increment version number (only on workflow_dispatch)
+      - name: Auto-increment version number and update README (workflow_dispatch only)
         if: github.event_name == 'workflow_dispatch'
         id: versioning
         run: |
@@ -51,8 +51,27 @@ jobs:
           NEW_VERSION="$major.$minor.$patch"
           echo "New version: $NEW_VERSION"
 
+          # Update project file version
           sed -i '' "s|<Version>$CURRENT_VERSION</Version>|<Version>$NEW_VERSION</Version>|" "$FILE"
+
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+          # Update README placeholders
+          ARM64_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/v$NEW_VERSION/SfmcApp-macOS-arm64-$NEW_VERSION.dmg"
+          X64_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/v$NEW_VERSION/SfmcApp-macOS-x64-$NEW_VERSION.dmg"
+
+          sed -i '' "s|ARM64_DMG_URL|$ARM64_URL|" README.md
+          sed -i '' "s|X64_DMG_URL|$X64_URL|" README.md
+
+          # Stage both project file and README changes
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add SfmcApp/SfmcApp.csproj README.md
+          git commit -m "CI: Bump version to $NEW_VERSION and update README DMG links [skip ci]"
+          git push
+
+      - name: Restore dependencies
+        run: dotnet restore SfmcApp/SfmcApp.csproj
 
       # Build arm64 .app bundle
       - name: Build arm64 .app
@@ -128,12 +147,3 @@ jobs:
           name: "SfmcApp macOS v${{ steps.versioning.outputs.version || '0.0.0-CI' }}"
           draft: false
           prerelease: false
-
-      - name: Commit updated version (only on workflow_dispatch)
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add SfmcApp/SfmcApp.csproj
-          git commit -m "CI: Bump version to ${{ steps.versioning.outputs.version }} [skip ci]"
-          git push

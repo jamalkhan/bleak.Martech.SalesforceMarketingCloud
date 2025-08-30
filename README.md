@@ -1,5 +1,13 @@
 # bleak.Martech.SalesforceMarketingCloud
 
+## Download SfmcApp for macOS
+
+Choose your architecture:
+
+- **Apple Silicon (M1/M2, ARM64):** [Download DMG](ARM64_DMG_URL)
+- **Intel (x64):** [Download DMG](X64_DMG_URL)
+
+
 ## ConsoleApp
 
 This is the bread and butter of this application.
