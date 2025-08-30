@@ -76,7 +76,7 @@ jobs:
             -p:BuildAppBundle=true \
             -p:CreatePackage=false \
             -o publish/arm64
-
+      
       - name: Build x64 .app
         run: |
           dotnet publish SfmcApp/SfmcApp.csproj \
@@ -86,6 +86,10 @@ jobs:
             -p:BuildAppBundle=true \
             -p:CreatePackage=false \
             -o publish/x64
+            
+      - name: ls publish
+        run: ls -R publish
+
 
       # Create DMG for arm64
       - name: Create arm64 DMG
