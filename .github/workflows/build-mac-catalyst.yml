@@ -90,6 +90,11 @@ jobs:
       - name: ls publish
         run: ls -R publish
 
+      - name: ls publish/arm64
+        run: ls -R publish/arm64
+
+      - name: ls publish/x64
+        run: ls -R publish/x64
 
       # Create DMG for arm64
       - name: Create arm64 DMG
