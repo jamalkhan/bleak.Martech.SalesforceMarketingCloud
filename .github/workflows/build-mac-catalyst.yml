@@ -2,9 +2,11 @@ name: Build & Package SfmcApp for macOS (.NET 9 DMG)
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - prod
   pull_request:
-    branches: [ main ]
+    branches:
+      - prod
   workflow_dispatch:
 
 jobs:
@@ -144,7 +146,7 @@ jobs:
 
       # Create GitHub Release with DMGs attached
       - name: Create GitHub Release
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/prod' && github.event_name != 'push'
         uses: softprops/action-gh-release@v2
         with:
           files: output/*
