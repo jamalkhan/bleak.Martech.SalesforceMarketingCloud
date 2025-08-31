@@ -1,28 +1,41 @@
-name: Build and Release macOS DMGs
+name: Build & Package SfmcApp for macOS (.NET 9 DMG)
 
 on:
   push:
-    branches: ["prod"]
+    branches:
+      - prod
   pull_request:
-    branches: ["prod"]
+    branches:
+      - prod
+  workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: macos-latest
-
+  build-mac:
+    runs-on: macos-15   # Xcode 16.4 required by .NET 9 MacCatalyst
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Show macOS version
+        run: sw_vers
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "9.0.x"
-
-      - name: Setup Xcode
+      - name: Set up Xcode 16.4
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: latest
+          xcode-version: '16.4'
+
+      - name: Check Xcode version
+        run: xcodebuild -version
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup .NET 9 SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Install MAUI workload
+        run: dotnet workload install maui
 
       - name: Versioning
         id: versioning
