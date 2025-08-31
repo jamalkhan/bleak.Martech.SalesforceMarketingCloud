@@ -64,13 +64,28 @@ jobs:
           cp -R SfmcApp/bin/Release/net9.0-maccatalyst/maccatalyst-x64/SfmcApp.app output/SfmcApp-x64.app
           hdiutil create -volname SfmcApp -srcfolder output/SfmcApp-x64.app -ov -format UDZO output/SfmcApp-macOS-x64-${{ steps.versioning.outputs.version }}.dmg
 
-      - name: Commit version bump
+      - name: Commit version bump and update README
         run: |
+          # Configure git
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add VERSION.txt
-          git commit -m "Bump version to ${{ steps.versioning.outputs.version }}" || echo "No changes to commit"
+
+          VERSION=${{ steps.versioning.outputs.version }}
+
+          # Update README.md with new download links
+          # Assuming lines 6 and 7 are the ones with previous download links
+          sed -i '' "6s|.*|- **Apple Silicon (M1/M2, ARM64):** [Download DMG](https://github.com/jamalkhan/bleak.Martech.SalesforceMarketingCloud/releases/download/v$VERSION/SfmcApp-macOS-arm64-$VERSION.dmg)|" README.md
+          sed -i '' "7s|.*|- **Intel (x64):** [Download DMG](https://github.com/jamalkhan/bleak.Martech.SalesforceMarketingCloud/releases/download/v$VERSION/SfmcApp-macOS-x64-$VERSION.dmg)|" README.md
+
+          # Stage changes
+          git add VERSION.txt README.md
+
+          # Commit if there are changes
+          git commit -m "Bump version to $VERSION and update README" || echo "No changes to commit"
+
+          # Push to branch
           git push
+
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
