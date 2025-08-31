@@ -144,13 +144,24 @@ jobs:
           name: SfmcApp-DMGs
           path: output/*
 
-      # Create GitHub Release with DMGs attached
       - name: Create GitHub Release
-        if: github.ref == 'refs/heads/prod' && github.event_name != 'push'
         uses: softprops/action-gh-release@v2
         with:
-          files: output/*
-          tag_name: v${{ steps.versioning.outputs.version || '0.0.0-CI' }}
-          name: "SfmcApp macOS v${{ steps.versioning.outputs.version || '0.0.0-CI' }}"
-          draft: false
-          prerelease: false
+          tag_name: v${{ env.VERSION }}
+          name: "Release ${{ env.VERSION }}"
+          body: |
+            🚀 New release of SfmcApp
+            - macOS arm64 DMG
+            - macOS x64 DMG
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload DMGs to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          files: |
+            output/SfmcApp-macOS-arm64-${{ env.VERSION }}.dmg
+            output/SfmcApp-macOS-x64-${{ env.VERSION }}.dmg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
