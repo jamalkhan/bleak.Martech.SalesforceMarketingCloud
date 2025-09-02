@@ -105,7 +105,7 @@ jobs:
         run: dotnet workload install maui
 
       - name: Build Windows app
-        run: dotnet publish SfmcApp/SfmcApp.csproj -c Release -f net9.0-windows10.0.19041.0 -p:RuntimeIdentifier=win-x64 -p:SelfContained=true -o output
+        run: dotnet publish SfmcApp/SfmcApp.csproj -c Release -f net9.0-windows10.0.19041.0 -p:SelfContained=true -o output
 
       - name: Rename EXE with version
         run: ren output\SfmcApp.exe SfmcApp-${{ needs.versioning.outputs.version }}.exe
