@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-   generate-version:
+  generate-version:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.set-version.outputs.version }}
@@ -62,8 +62,6 @@ jobs:
 
           # Push to branch
           git push
-
-
 
   build-mac:
     needs: generate-version
