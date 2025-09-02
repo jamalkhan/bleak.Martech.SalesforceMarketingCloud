@@ -51,6 +51,7 @@ public partial class SfmcDataExtensionListPage : ContentPage
     {
         var files = new List<string>();
 
+/*
 #if WINDOWS
         var args = e.PlatformArgs?.DragEventArgs;
         if (args != null && args.DataView.Contains(StandardDataFormats.StorageItems))
@@ -91,9 +92,7 @@ public partial class SfmcDataExtensionListPage : ContentPage
                 return await LoadItemAsync(provider, ids);
             }
         }
-#endif
-
-#if ANDROID
+#elif ANDROID
         // Dragging from other apps to MAUI is not supported on Android.
 #endif
 
@@ -104,6 +103,7 @@ public partial class SfmcDataExtensionListPage : ContentPage
             // or ((SfmcDataExtensionListViewModel)BindingContext).OpenImportModalCommand.Execute(files);
             ((SfmcDataExtensionListViewModel)BindingContext).FileDroppedCommand.Execute(files);
         }
+        */
     }
 
 
