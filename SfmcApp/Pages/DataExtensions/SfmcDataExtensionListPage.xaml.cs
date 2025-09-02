@@ -90,21 +90,22 @@ public partial class SfmcDataExtensionListPage : ContentPage
                 ids.RemoveAt(0);
                 return await LoadItemAsync(provider, ids);
             }
+        }
 #endif
 
 #if ANDROID
         // Dragging from other apps to MAUI is not supported on Android.
 #endif
 
-            if (files.Count > 0)
-            {
-                // Open your import modal (replace with your own page/service/VM command)
-                /* await Shell.Current.Navigation.PushModalAsync(new ImportCsvTsvPage(files)); */
-                // or ((SfmcDataExtensionListViewModel)BindingContext).OpenImportModalCommand.Execute(files);
-                ((SfmcDataExtensionListViewModel)BindingContext).FileDroppedCommand.Execute(files);
-            }
+        if (files.Count > 0)
+        {
+            // Open your import modal (replace with your own page/service/VM command)
+            /* await Shell.Current.Navigation.PushModalAsync(new ImportCsvTsvPage(files)); */
+            // or ((SfmcDataExtensionListViewModel)BindingContext).OpenImportModalCommand.Execute(files);
+            ((SfmcDataExtensionListViewModel)BindingContext).FileDroppedCommand.Execute(files);
         }
     }
+
 
 
     protected async override void OnNavigatedTo(NavigatedToEventArgs args)
