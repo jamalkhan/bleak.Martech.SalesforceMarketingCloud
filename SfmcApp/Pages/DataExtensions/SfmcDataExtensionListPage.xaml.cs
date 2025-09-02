@@ -99,7 +99,7 @@ public partial class SfmcDataExtensionListPage : ContentPage
         if (files.Count > 0)
         {
             // Open your import modal (replace with your own page/service/VM command)
-            /* await Shell.Current.Navigation.PushModalAsync(new ImportCsvTsvPage(files)); */
+            // await Shell.Current.Navigation.PushModalAsync(new ImportCsvTsvPage(files)); 
             // or ((SfmcDataExtensionListViewModel)BindingContext).OpenImportModalCommand.Execute(files);
             ((SfmcDataExtensionListViewModel)BindingContext).FileDroppedCommand.Execute(files);
         }
