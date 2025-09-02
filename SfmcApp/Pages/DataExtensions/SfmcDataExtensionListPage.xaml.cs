@@ -15,8 +15,7 @@ using Foundation;
 using CoreGraphics;
 using UniformTypeIdentifiers;
 #elif WINDOWS
-using Windows.ApplicationModel.DataTransfer;
-using Windows.Storage;
+//using Windows.Storage;
 #elif IOS
 using UIKit;
 using Foundation;
