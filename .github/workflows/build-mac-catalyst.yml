@@ -10,19 +10,35 @@ on:
   workflow_dispatch:
 
 jobs:
-  generate-version:
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.set-version.outputs.version }}
+  build-mac:
+    runs-on: macos-15   # Xcode 16.4 required by .NET 9 MacCatalyst
     steps:
+      - name: Show macOS version
+        run: sw_vers
 
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Set up Xcode 16.4
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.4'
+
+      - name: Check Xcode version
+        run: xcodebuild -version
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Generate SemVer
-        id: set-version
+      - name: Setup .NET 9 SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Install MAUI workload
+        run: dotnet workload install maui
+
+      - name: Versioning
+        id: versioning
         run: |
           VERSION_FILE=VERSION.txt
           if [ ! -f $VERSION_FILE ]; then
@@ -34,12 +50,19 @@ jobs:
           echo "$NEW_VERSION" > $VERSION_FILE
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Upload version artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: version
-          path: VERSION.txt
-          retention-days: 1
+      - name: Build arm64 app bundle
+        run: |
+          dotnet build SfmcApp/SfmcApp.csproj -c Release -f net9.0-maccatalyst -p:RuntimeIdentifier=maccatalyst-arm64
+          mkdir -p output
+          cp -R SfmcApp/bin/Release/net9.0-maccatalyst/maccatalyst-arm64/SfmcApp.app output/SfmcApp-arm64.app
+          hdiutil create -volname SfmcApp -srcfolder output/SfmcApp-arm64.app -ov -format UDZO output/SfmcApp-macOS-arm64-${{ steps.versioning.outputs.version }}.dmg
+
+      - name: Build x64 app bundle
+        run: |
+          dotnet build SfmcApp/SfmcApp.csproj -c Release -f net9.0-maccatalyst -p:RuntimeIdentifier=maccatalyst-x64
+          mkdir -p output
+          cp -R SfmcApp/bin/Release/net9.0-maccatalyst/maccatalyst-x64/SfmcApp.app output/SfmcApp-x64.app
+          hdiutil create -volname SfmcApp -srcfolder output/SfmcApp-x64.app -ov -format UDZO output/SfmcApp-macOS-x64-${{ steps.versioning.outputs.version }}.dmg
 
       - name: Commit version bump and update README
         run: |
@@ -63,58 +86,6 @@ jobs:
           # Push to branch
           git push
 
-  build-mac:
-    needs: generate-version
-    runs-on: macos-15   # Xcode 16.4 required by .NET 9 MacCatalyst
-    steps:
-      - name: Show macOS version
-        run: sw_vers
-
-      - name: Set up Xcode 16.4
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: '16.4'
-
-      - name: Check Xcode version
-        run: xcodebuild -version
-
-      - name: Download version artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: version
-
-      - name: Read version
-        id: read-version
-        run: |
-          VERSION=$(cat VERSION.txt)
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Setup .NET 9 SDK
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '9.0.x'
-
-      - name: Install MAUI workload
-        run: dotnet workload install maui
-
-      - name: Build arm64 app bundle
-        run: |
-          dotnet build SfmcApp/SfmcApp.csproj -c Release -f net9.0-maccatalyst -p:RuntimeIdentifier=maccatalyst-arm64
-          mkdir -p output
-          cp -R SfmcApp/bin/Release/net9.0-maccatalyst/maccatalyst-arm64/SfmcApp.app output/SfmcApp-arm64.app
-          hdiutil create -volname SfmcApp -srcfolder output/SfmcApp-arm64.app -ov -format UDZO output/SfmcApp-macOS-arm64-${{ steps.versioning.outputs.version }}.dmg
-
-      - name: Build x64 app bundle
-        run: |
-          dotnet build SfmcApp/SfmcApp.csproj -c Release -f net9.0-maccatalyst -p:RuntimeIdentifier=maccatalyst-x64
-          mkdir -p output
-          cp -R SfmcApp/bin/Release/net9.0-maccatalyst/maccatalyst-x64/SfmcApp.app output/SfmcApp-x64.app
-          hdiutil create -volname SfmcApp -srcfolder output/SfmcApp-x64.app -ov -format UDZO output/SfmcApp-macOS-x64-${{ steps.versioning.outputs.version }}.dmg
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
