@@ -99,8 +99,7 @@ jobs:
 
       - name: Show Windows version
         run: |
-          systeminfo | findstr /B /C:"OS Name" /C:"OS Version"
-          ver
+          Get-ComputerInfo | Select-Object WindowsProductName, WindowsVersion, OsBuildNumber
 
       - name: Install MAUI workload
         run: dotnet workload install maui
