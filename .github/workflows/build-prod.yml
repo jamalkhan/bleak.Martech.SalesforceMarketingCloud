@@ -117,7 +117,7 @@ jobs:
           path: output/*.exe
 
   release:
-    needs: [build-mac, build-windows]
+    needs: [versioning, build-mac, build-windows]
     runs-on: ubuntu-latest
     steps:
       - name: Download artifacts
