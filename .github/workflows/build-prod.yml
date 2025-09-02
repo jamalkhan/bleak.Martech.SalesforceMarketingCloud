@@ -80,6 +80,8 @@ jobs:
           name: macOS-builds
           path: output/*.dmg
 
+
+
   build-windows:
     needs: versioning
     runs-on: windows-latest
@@ -94,9 +96,14 @@ jobs:
       - name: Install MAUI workload
         run: dotnet workload install maui
 
-      - name: Build Windows EXE
+      - name: Build Windows app
         run: |
-          dotnet publish SfmcApp/SfmcApp.csproj -c Release -f net9.0-windows10.0.19041.0 -p:RuntimeIdentifier=win-x64 -p:SelfContained=true -o output
+          dotnet publish SfmcApp/SfmcApp.csproj ^
+            -c Release ^
+            -f net9.0-windows10.0.19041.0 ^
+            -p:RuntimeIdentifier=win10-x64 ^
+            -p:SelfContained=true ^
+            -o output
           ren output\SfmcApp.exe SfmcApp-${{ needs.versioning.outputs.version }}.exe
 
       - name: Upload Windows artifacts
@@ -104,6 +111,9 @@ jobs:
         with:
           name: windows-builds
           path: output/*.exe
+
+
+
 
   release:
     needs: [build-mac, build-windows]
