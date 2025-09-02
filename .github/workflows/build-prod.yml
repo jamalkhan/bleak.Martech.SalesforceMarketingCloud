@@ -1,0 +1,122 @@
+name: Build & Package SfmcApp (.NET 9 for macOS + Windows)
+
+on:
+  push:
+    branches:
+      - prod
+  pull_request:
+    branches:
+      - prod
+  workflow_dispatch:
+
+jobs:
+  versioning:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.versioning.outputs.version }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Versioning
+        id: versioning
+        run: |
+          VERSION_FILE=VERSION.txt
+          if [ ! -f $VERSION_FILE ]; then
+            echo "0.1.0" > $VERSION_FILE
+          fi
+          OLD_VERSION=$(cat $VERSION_FILE)
+          IFS='.' read -r major minor patch <<< "$OLD_VERSION"
+          NEW_VERSION="$major.$minor.$((patch+1))"
+          echo "$NEW_VERSION" > $VERSION_FILE
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Commit version bump
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          VERSION=${{ steps.versioning.outputs.version }}
+          git add VERSION.txt
+          git commit -m "Bump version to $VERSION" || echo "No changes"
+          git push
+
+  build-mac:
+    needs: versioning
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Xcode 16.4
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.4'
+
+      - name: Setup .NET 9 SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Install MAUI workload
+        run: dotnet workload install maui
+
+      - name: Build arm64 app bundle
+        run: |
+          dotnet build SfmcApp/SfmcApp.csproj -c Release -f net9.0-maccatalyst -p:RuntimeIdentifier=maccatalyst-arm64
+          mkdir -p output
+          cp -R SfmcApp/bin/Release/net9.0-maccatalyst/maccatalyst-arm64/SfmcApp.app output/SfmcApp-arm64.app
+          hdiutil create -volname SfmcApp -srcfolder output/SfmcApp-arm64.app -ov -format UDZO output/SfmcApp-macOS-arm64-${{ needs.versioning.outputs.version }}.dmg
+
+      - name: Build x64 app bundle
+        run: |
+          dotnet build SfmcApp/SfmcApp.csproj -c Release -f net9.0-maccatalyst -p:RuntimeIdentifier=maccatalyst-x64
+          mkdir -p output
+          cp -R SfmcApp/bin/Release/net9.0-maccatalyst/maccatalyst-x64/SfmcApp.app output/SfmcApp-x64.app
+          hdiutil create -volname SfmcApp -srcfolder output/SfmcApp-x64.app -ov -format UDZO output/SfmcApp-macOS-x64-${{ needs.versioning.outputs.version }}.dmg
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macOS-builds
+          path: output/*.dmg
+
+  build-windows:
+    needs: versioning
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET 9 SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Install MAUI workload
+        run: dotnet workload install maui
+
+      - name: Build Windows EXE
+        run: |
+          dotnet publish SfmcApp/SfmcApp.csproj -c Release -f net9.0-windows10.0.19041.0 -p:RuntimeIdentifier=win-x64 -p:SelfContained=true -o output
+          ren output\SfmcApp.exe SfmcApp-${{ needs.versioning.outputs.version }}.exe
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-builds
+          path: output/*.exe
+
+  release:
+    needs: [build-mac, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.versioning.outputs.version }}
+          name: "Release ${{ needs.versioning.outputs.version }}"
+          files: release/**
