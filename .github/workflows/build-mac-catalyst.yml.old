@@ -11,7 +11,7 @@ on:
 
 jobs:
   build-mac:
-    runs-on: macos-15   # Xcode 16.4 required by .NET 9 MacCatalyst
+    runs-on: macos-15
     steps:
       - name: Show macOS version
         run: sw_vers
