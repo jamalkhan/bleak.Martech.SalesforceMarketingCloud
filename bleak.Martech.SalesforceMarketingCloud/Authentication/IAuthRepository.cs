@@ -4,6 +4,5 @@ namespace bleak.Martech.SalesforceMarketingCloud.Authentication
     {
         string Subdomain { get; }
         Task<SfmcAuthToken> GetTokenAsync();
-        Task ResolveAuthenticationAsync();
     }
 }

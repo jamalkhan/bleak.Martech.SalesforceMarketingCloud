@@ -1,14 +1,10 @@
 using bleak.Api.Rest;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Authentication;
-using bleak.Martech.SalesforceMarketingCloud.Models;
-using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
+using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
-using System.Diagnostics;
-using System;
-using System.IO;
+using bleak.Martech.SalesforceMarketingCloud.Models;
 using bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
-using System.Threading.Tasks;
+using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 {
@@ -167,11 +163,13 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
             {
                 try
                 {
+                    var token = await _authRepository.GetTokenAsync();
+                    // Console.WriteLine($"Token: {token.access_token}");
                     if (AppConfiguration.Instance.Debug) Console.WriteLine($"Loading Assets Page #{page}");
                     //string url = $"https://{AppConfiguration.Instance.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/assets?$page=1&$pagesize=100&$orderBy=name asc&$filter=category.id=5843
                     string uri = $"https://{AppConfiguration.Instance.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/assets?$page={page}&$pagesize={AppConfiguration.Instance.PageSize}&$orderBy=name&$filter=category.id eq {folderObject.Id}";
 
-                    if (AppConfiguration.Instance.Debug) Console.WriteLine($"Trying to download to {uri} with {_authRepository.Token.access_token}");
+                    if (AppConfiguration.Instance.Debug) Console.WriteLine($"Trying to download to {uri} with {token.access_token}");
 
                     var results = await _restClientAsync.ExecuteRestMethodAsync<SfmcRestWrapper<SfmcAsset>, string>(
                         uri: new Uri(uri),
@@ -180,14 +178,14 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                             new List<Header>()
                             { 
                                 new Header() { Name = "Content-Type", Value = "application/json" } ,
-                                new Header() { Name = "Authorization", Value = $"Bearer {_authRepository.Token.access_token}" }
+                                new Header() { Name = "Authorization", Value = $"Bearer {token.access_token}" }
                             }
                         );
 
                     if (results != null && results.UnhandledError != null && results.UnhandledError.Contains("401"))
                     {
                         Console.WriteLine($"Unauthenticated: {results.UnhandledError}");
-                        await _authRepository.ResolveAuthenticationAsync();
+                        token = await _authRepository.GetTokenAsync();
 
                         results = await _restClientAsync.ExecuteRestMethodAsync<SfmcRestWrapper<SfmcAsset>, string>(
                             uri: new Uri(uri),
@@ -196,7 +194,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                                 new List<Header>()
                                 { 
                                     new Header() { Name = "Content-Type", Value = "application/json" } ,
-                                    new Header() { Name = "Authorization", Value = $"Bearer {_authRepository.Token.access_token}" }
+                                    new Header() { Name = "Authorization", Value = $"Bearer {token.access_token}" }
                                 }
                             );
                     }

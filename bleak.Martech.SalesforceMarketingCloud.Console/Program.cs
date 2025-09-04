@@ -6,17 +6,15 @@ using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using System.Diagnostics;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication;
-using Microsoft.Extensions.Logging;
-using NLog;
 using bleak.Martech.SalesforceMarketingCloud.Api.Soap;
+using bleak.Martech.SalesforceMarketingCloud.Models.Sfmc.Dtos.Soap;
+using Microsoft.Extensions.Logging;
+
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp;
 
 public static class Program
 {
-    private static ILogger<Process> _logger = (ILogger<Process>)LogManager.GetCurrentClassLogger();
-
-
     static JsonSerializer serializer = new JsonSerializer();
     static IRestClientAsync _restClient = new RestClient();
     static IAuthRepository _authRepository = new AuthRepository(
@@ -26,27 +24,17 @@ public static class Program
         clientSecret: AppConfiguration.Instance.ClientSecret,
         memberId: AppConfiguration.Instance.MemberId
     );
-    
+    static ILoggerFactory _loggerFactory = LoggerFactory.Create(builder =>
+    {
+        builder
+            .SetMinimumLevel(LogLevel.Information)
+            .AddConsole();
+    });
 
     private async static Task Main(string[] args)
     {
-
         try
         {
-            _logger.LogInformation("Application starting...");
-
-            await Task.Delay(500); // Simulate async work
-
-
-
-            // See https://aka.ms/new-console-template for more information
-            Console.WriteLine($"Getting Auth Token");
-            await _authRepository.ResolveAuthenticationAsync();
-
-            if (AppConfiguration.Instance.Debug) Console.WriteLine($"Gotten Auth Token {_authRepository.Token.access_token}");
-
-
-
             bool cont = true;
             while (cont)
             {
@@ -61,6 +49,8 @@ public static class Program
                 Console.WriteLine("8. Download Clicks for last 180 days");
                 Console.WriteLine("9. Download Sents for last 180 days");
                 Console.WriteLine("10. Download Images");
+                Console.WriteLine("11. Desribe Object");
+                Console.WriteLine("Any other key to exit");
                 var input = Console.ReadLine();
 
                 var stopwatch = new Stopwatch();
@@ -129,6 +119,28 @@ public static class Program
                         var downloadImages = new DownloadImagesApp(_restClient, _authRepository);
                         await downloadImages.Execute();
                         break;
+                    case "11":
+                        Console.WriteLine("Enter Object Type to Describe (e.g. DataExtension, DataExtensionFolder, etc.)");
+                        var objectType = Console.ReadLine();
+                        ILogger<DescribeSoapApi> logger = _loggerFactory.CreateLogger<DescribeSoapApi>();
+                        if (string.IsNullOrEmpty(objectType))
+                        {
+                            Console.WriteLine("Object Type is required");
+                            break;
+                        }
+                        var describeApi = new DescribeSoapApi(
+                            restClientAsync: _restClient,
+                            authRepository: _authRepository,
+                            config: new SfmcConnectionConfiguration(),
+                            logger: logger
+                        );
+                        ObjectDefinition objectDefinition = await describeApi.GetObjectDefinitionAsync(objectType);
+                        Console.WriteLine($"Object Type: {objectDefinition.ObjectType}");
+                        foreach (var prop in objectDefinition.Properties)
+                        {
+                            Console.WriteLine($"Property: {prop.Name}; DataType: {prop.DataType}; IsUpdatable: {prop.IsUpdatable}; IsRetrievable: {prop.IsRetrievable}; MaxLength: {prop.MaxLength}; IsRequired: {prop.IsRequired}");
+                        }
+                        break;
 
                     default:
                         {
@@ -144,20 +156,11 @@ public static class Program
                 // Display the elapsed time
                 Console.WriteLine($"Execution Time: {stopwatch.ElapsedMilliseconds} ms");
             }
-        
-
-
-            _logger.LogInformation("Application finished successfully.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unhandled exception occurred.");
+            Console.WriteLine($"An unhandled exception occurred. {ex.Message}");
             throw;
-        }
-        finally
-        {
-            // Ensure logs are flushed before app exits
-            LogManager.Shutdown();
         }
     }
 
@@ -167,7 +170,7 @@ public static class Program
             restClientAsync: _restClient,
             authRepository: _authRepository,
             config: new SfmcConnectionConfiguration(),
-            logger: (ILogger<DataExtensionFolderSoapApi>)LogManager.GetLogger("DataExtensionFolderSoapApi")
+            logger: _loggerFactory.CreateLogger<DataExtensionFolderSoapApi>()
         );
         var ft2 = await lf2.GetFolderTreeAsync();
 
@@ -180,7 +183,7 @@ public static class Program
             restClientAsync: _restClient,
             authRepository: _authRepository,
             config: new SfmcConnectionConfiguration(),
-            logger: (ILogger<DataExtensionSoapApi>)LogManager.GetLogger("DataExtensionFolderSoapApi")
+            logger:  _loggerFactory.CreateLogger<DataExtensionSoapApi>()
             );
         var des = await deapi.GetAllDataExtensionsAsync();
         foreach (var de in des)
@@ -196,7 +199,7 @@ public static class Program
             restClientAsync: _restClient,
             authRepository: _authRepository,
             config: new SfmcConnectionConfiguration(),
-            logger: (ILogger<DataExtensionFolderSoapApi>)LogManager.GetLogger("DataExtensionFolderSoapApi")
+            logger:  _loggerFactory.CreateLogger<DataExtensionFolderSoapApi>()
         );
 
         var folderTree = await lf.GetFolderTreeAsync();
@@ -205,7 +208,7 @@ public static class Program
             restClientAsync: _restClient,
             authRepository: _authRepository,
             config: new SfmcConnectionConfiguration(),
-            logger: (ILogger<DataExtensionSoapApi>)LogManager.GetLogger("DataExtensionSoapApi")
+            logger:  _loggerFactory.CreateLogger<DataExtensionSoapApi>()
         );
         var dataExtensions = await deapi.GetAllDataExtensionsAsync();
 
@@ -219,7 +222,7 @@ public static class Program
             restClientAsync: _restClient,
             authRepository: _authRepository,
             config: new SfmcConnectionConfiguration(),
-            logger: (ILogger<SharedDataExtensionFolderSoapApi>)LogManager.GetLogger("SharedDataExtensionFolderSoapApi")
+            logger:  _loggerFactory.CreateLogger<SharedDataExtensionFolderSoapApi>()
         );
         var folderTree = await lf.GetFolderTreeAsync();
 
@@ -227,7 +230,7 @@ public static class Program
             restClientAsync: _restClient,
             authRepository: _authRepository,
             config: new SfmcConnectionConfiguration(),
-            logger: (ILogger<DataExtensionSoapApi>)LogManager.GetLogger("DataExtensionSoapApi")
+            logger:  _loggerFactory.CreateLogger<DataExtensionSoapApi>()
         );
         var dataExtensions = await deapi.GetAllDataExtensionsAsync();
 

@@ -55,8 +55,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Rest
         protected async Task<RestResults<T2, string>> LoadApiWithRetryAsync<T2>(
             Func<string, Task<RestResults<T2, string>>> loadApiCallAsync,
             string url,
-            string authenticationError,
-            Func<Task> resolveAuthenticationAsync
+            string authenticationError
             )
         {
             var results = await loadApiCallAsync(url);
@@ -64,14 +63,10 @@ namespace bleak.Martech.SalesforceMarketingCloud.Rest
             // Check if an error occurred and it matches the specified errorText
             if (results != null && results.UnhandledError != null && results.UnhandledError.Contains(authenticationError))
             {
-            _logger.LogWarning($"Unauthenticated: {results.UnhandledError}");
+                _logger.LogWarning($"Unauthenticated: {results.UnhandledError}");
 
-            // Resolve authentication
-            await resolveAuthenticationAsync();
-            _logger.LogTrace("Authentication Header has been reset");
-
-            // Retry the REST method
-            results = await loadApiCallAsync(url);
+                // Retry the REST method
+                results = await loadApiCallAsync(url);
             }
 
             return results!;

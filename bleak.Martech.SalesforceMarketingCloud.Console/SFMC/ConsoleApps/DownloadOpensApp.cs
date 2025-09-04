@@ -1,16 +1,9 @@
 using bleak.Api.Rest;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Authentication;
-using bleak.Martech.SalesforceMarketingCloud.Models;
-using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
+using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
-using System.Diagnostics;
-using System;
-using System.IO;
 using bleak.Martech.SalesforceMarketingCloud.Fileops;
 using Microsoft.Extensions.Logging;
-using NLog;
-using System.Threading.Tasks;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 {
@@ -102,7 +95,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                 (
                     options: new DelimitedFileWriterOptions { Delimiter = "," }
                 ),
-                logger: (ILogger<OpenEventSoapApi>)LogManager.GetLogger(typeof(OpenEventSoapApi).FullName ?? "OpenEventSoapApi"),
+                logger: null,
                 startDate: startTime,
                 endDate: endTime
             );

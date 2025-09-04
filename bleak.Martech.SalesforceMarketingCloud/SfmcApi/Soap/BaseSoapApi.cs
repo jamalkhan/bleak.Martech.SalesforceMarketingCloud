@@ -3,10 +3,6 @@ using bleak.Martech.SalesforceMarketingCloud.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using Microsoft.Extensions.Logging;
-using NLog;
-using NLog.Config;
-using NLog.Extensions.Logging;
-using NLog.Targets;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Api.Soap;
 
@@ -24,35 +20,9 @@ public abstract partial class BaseSoapApi<T>
         SfmcConnectionConfiguration sfmcConnectionConfiguration,
         ILogger<T> logger)
     {
-        if (logger == null)
-        {
-            var config = new LoggingConfiguration();
-
-            var logfile = new FileTarget("logfile")
-            {
-                FileName = "app.log", // or use a full path
-                Layout = "${longdate} | ${level:uppercase=true} | ${logger} | ${message} ${exception:format=ToString}"
-            };
-
-            config.AddTarget(logfile);
-            config.AddRule(NLog.LogLevel.Debug, NLog.LogLevel.Fatal, logfile);
-
-            LogManager.Configuration = config;
-            var loggerFactory = LoggerFactory.Create(builder =>
-            {
-                builder.ClearProviders();
-                builder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Debug);
-                builder.AddNLog();
-            });
-            _logger = loggerFactory.CreateLogger<T>();
-            _logger.LogInformation("Logger initialized with NLog.");
-        }
-        else
-        {
-            _logger = logger;
-            _logger.LogInformation("Logger provided to BaseSoapApi.");
-        }
-        
+        _logger = logger;
+        _logger.LogInformation("Logger provided to BaseSoapApi.");
+    
         _sfmcConnectionConfiguration = sfmcConnectionConfiguration;
         _authRepository = authRepository;
         _restClientAsync = restClientAsync;

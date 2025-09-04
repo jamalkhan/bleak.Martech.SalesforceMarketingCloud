@@ -3,7 +3,6 @@ using bleak.Martech.SalesforceMarketingCloud.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.Fileops;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using bleak.Api.Rest;
-using NLog;
 using Microsoft.Extensions.Logging;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
@@ -83,7 +82,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                 (
                     options: new DelimitedFileWriterOptions { Delimiter = "," }
                 ), 
-                logger: (ILogger<ClickEventSoapApi>)LogManager.GetLogger(typeof(ClickEventSoapApi).FullName ?? "ClickEventSoapApi"),
+                logger: null,
                 startDate: startTime,
                 endDate: endTime
             );

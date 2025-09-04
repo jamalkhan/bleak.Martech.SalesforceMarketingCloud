@@ -1,12 +1,10 @@
-using bleak.Api.Rest;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
-using bleak.Martech.SalesforceMarketingCloud.Authentication;
 using System.Text;
-using bleak.Martech.SalesforceMarketingCloud.Configuration;
+using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.Api.Soap;
+using bleak.Martech.SalesforceMarketingCloud.Authentication;
+using bleak.Martech.SalesforceMarketingCloud.Configuration;
+using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
-using NLog;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 
@@ -62,10 +60,11 @@ public partial class QueryDefinitionSoapApi : BaseSoapApi<QueryDefinitionSoapApi
         {
             if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Invoking SOAP Call. URL: {url}"); }
 
+            var payload = await BuildRequestAsync(requestId);
             var results = await _restClientAsync.ExecuteRestMethodAsync<SoapEnvelope<Wsdl.QueryDefinition>, string>(
                 uri: new Uri(url),
                 verb: HttpVerbs.POST,
-                serializedPayload: BuildRequest(requestId).ToString(),
+                serializedPayload: payload,
                 headers: BuildHeaders()
             );
 
@@ -99,15 +98,16 @@ public partial class QueryDefinitionSoapApi : BaseSoapApi<QueryDefinitionSoapApi
     }
 
 
-    private StringBuilder BuildRequest(string requestId)
+    private async Task<string> BuildRequestAsync(string requestId)
     {
+        var token = await _authRepository.GetTokenAsync();
         var sb = new StringBuilder();
         sb.AppendLine($"<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         sb.AppendLine($"<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:a=\"http://schemas.xmlsoap.org/ws/2004/08/addressing\" xmlns:u=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd\">");
         sb.AppendLine($"    <s:Header>");
         sb.AppendLine($"        <a:Action s:mustUnderstand=\"1\">Retrieve</a:Action>");
         sb.AppendLine($"        <a:To s:mustUnderstand=\"1\">https://{AppConfiguration.Instance.Subdomain}.soap.marketingcloudapis.com/Service.asmx</a:To>");
-        sb.AppendLine($"        <fueloauth xmlns=\"http://exacttarget.com\">{_authRepository.Token.access_token}</fueloauth>");
+        sb.AppendLine($"        <fueloauth xmlns=\"http://exacttarget.com\">{token.access_token}</fueloauth>");
         sb.AppendLine($"    </s:Header>");
         sb.AppendLine($"    <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">");
         sb.AppendLine($"        <RetrieveRequestMsg xmlns=\"http://exacttarget.com/wsdl/partnerAPI\">");
@@ -128,6 +128,6 @@ public partial class QueryDefinitionSoapApi : BaseSoapApi<QueryDefinitionSoapApi
         sb.AppendLine($"        </RetrieveRequestMsg>");
         sb.AppendLine($"    </s:Body>");
         sb.AppendLine($"</s:Envelope>");
-        return sb;
+        return sb.ToString();
     }
 }

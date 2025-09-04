@@ -94,8 +94,7 @@ public class DataExtensionFolderRestApi
             var results = await LoadApiWithRetryAsync<SfmcRestWrapper<SfmcFolder>>(
                 loadApiCallAsync: LoadFolderApiCallAsync,
                 url: url,
-                authenticationError: "401",
-                resolveAuthenticationAsync: _authRepository.ResolveAuthenticationAsync
+                authenticationError: "401"
             );
 
             _logger.LogTrace($"results.Value = {results?.Results}");

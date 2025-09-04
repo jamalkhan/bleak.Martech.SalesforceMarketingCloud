@@ -47,16 +47,20 @@ public abstract class BaseDataSetSoapApi<TApiImplementation, TAPIObject, TPoco> 
                 _logger.LogInformation(
                     $"[{GetType().Name} {DateTime.Now:yyyy-MM-dd HH:mm:ss}] Invoking SOAP Call. URL: {url}");
 
-                RestResults<SoapEnvelope<TAPIObject>, string> results =
-                    await ExecuteWithReauthAsync(
-                        apiCallAsync: () => _restClientAsync.ExecuteRestMethodAsync<SoapEnvelope<TAPIObject>, string>(
-                            uri: new Uri(url),
-                            verb: HttpVerbs.POST,
-                            serializedPayload: BuildRequest(),
-                            headers: BuildHeaders()
-                        ),
-                        errorConditionAsync: HandleError,
-                        reauthenticateAsync: _authRepository.ResolveAuthenticationAsync
+                string requestPayload = await BuildRequestAsync();
+
+                var results =
+                    await ExecuteWithReauthAsync
+                    (
+                        apiCallAsync: ()
+                            => _restClientAsync.ExecuteRestMethodAsync<SoapEnvelope<TAPIObject>, string>
+                            (
+                                uri: new Uri(url),
+                                verb: HttpVerbs.POST,
+                                serializedPayload: requestPayload,
+                                headers: BuildHeaders()
+                            ),
+                        errorConditionAsync: HandleError
                     ).ConfigureAwait(false);
 
                 _logger.LogInformation(
@@ -153,17 +157,14 @@ public abstract class BaseDataSetSoapApi<TApiImplementation, TAPIObject, TPoco> 
     private async Task<RestResults<TResponse, string>> ExecuteWithReauthAsync<TResponse>
     (
         Func<Task<RestResults<TResponse, string>>> apiCallAsync,
-        Func<RestResults<TResponse, string>, bool> errorConditionAsync,
-        Func<Task> reauthenticateAsync
+        Func<RestResults<TResponse, string>, bool> errorConditionAsync
     )
     {
         var results = await apiCallAsync().ConfigureAwait(false);
 
         if (errorConditionAsync(results))
         {
-            _logger.LogInformation($"Unauthenticated: {results.UnhandledError}");
-            await reauthenticateAsync().ConfigureAwait(false);
-            _logger.LogInformation($"Reauthenticated!");
+            _logger.LogInformation($"Unauthenticated: {results.UnhandledError}. Trying Again...");
             results = await apiCallAsync().ConfigureAwait(false);
         }
 
@@ -171,5 +172,5 @@ public abstract class BaseDataSetSoapApi<TApiImplementation, TAPIObject, TPoco> 
     }
     public abstract TPoco ConvertToPoco(TAPIObject wsdlObject);
 
-    public abstract string BuildRequest();
+    public abstract Task<string> BuildRequestAsync();
 }

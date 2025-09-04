@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using System.Xml.Serialization;
 using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.Wsdl;
@@ -7,7 +8,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
 {
     [XmlRoot("Envelope", Namespace = "http://www.w3.org/2003/05/soap-envelope")]
     public class SoapEnvelope<T>
-        where T :  bleak.Martech.SalesforceMarketingCloud.Wsdl.APIObject
+        where T : bleak.Martech.SalesforceMarketingCloud.Wsdl.APIObject
     {
         [XmlElement("Header", Namespace = "http://www.w3.org/2003/05/soap-envelope")]
         public SoapHeader Header { get; set; } = new SoapHeader();
@@ -53,13 +54,14 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
     }
 
     public class SoapBody<T>
-     where T :  bleak.Martech.SalesforceMarketingCloud.Wsdl.APIObject
+     where T : bleak.Martech.SalesforceMarketingCloud.Wsdl.APIObject
     {
         [XmlElement("RetrieveResponseMsg", Namespace = "http://exacttarget.com/wsdl/partnerAPI")]
         public RetrieveResponse<T> RetrieveResponse { get; set; } = new RetrieveResponse<T>();
     }
 
     
+
     /*
     [XmlRoot("RetrieveResponseMsg", Namespace = "http://exacttarget.com/wsdl/partnerAPI")]
     public class RetrieveResponseMsg

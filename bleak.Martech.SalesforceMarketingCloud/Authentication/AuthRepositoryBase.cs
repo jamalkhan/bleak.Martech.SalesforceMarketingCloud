@@ -10,31 +10,34 @@ namespace bleak.Martech.SalesforceMarketingCloud.Authentication
         protected string MemberId { get; set; }
         protected const double Threshold = 600.07;
         private static Lazy<SfmcAuthToken>? _cachedToken;
-        public SfmcAuthToken Token => _cachedToken != null ? _cachedToken.Value : throw new InvalidOperationException("_cachedToken is not initialized.");
         protected readonly IRestClientAsync _restClientAsync;
         private static readonly object _lock = new();
         public async Task<SfmcAuthToken> GetTokenAsync()
         {
-            throw new NotImplementedException();
-            /*
-            if (!IsTokenValid())
+            if (IsTokenValid())
             {
-                await _semaphore.WaitAsync();
-                try
-                {
-                    if (!IsTokenValid())
-                    {
-                        _token = await AuthenticateAsync().ConfigureAwait(false);
-                        _lastWriteTime = DateTime.Now;
-                    }
-                }
-                finally
-                {
-                    _semaphore.Release();
-                }
+                Console.WriteLine("Using cached authentication file.");
+                return _cachedToken!.Value;
             }
 
-            return _token ?? throw new InvalidOperationException("Authentication failed.");*/
+            // Ensure only one thread reauthenticates at a time
+            // Use SemaphoreSlim for async compatibility
+            await _semaphore.WaitAsync();
+            try
+            {
+                if (!IsTokenValid()) // Double-check after acquiring the lock
+                {
+                    Console.WriteLine("Authentication expired or not found. Re-authenticating...");
+                    var newToken = await AuthenticateAsync();
+                    await SaveTokenAsync(newToken);
+                    _cachedToken = new Lazy<SfmcAuthToken>(() => newToken, true);
+                }
+                return _cachedToken.Value;
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
         }
 
 
@@ -70,19 +73,6 @@ namespace bleak.Martech.SalesforceMarketingCloud.Authentication
             throw new NotImplementedException();
         }
 
-        protected SfmcAuthToken Authenticate()
-        {
-            try
-            {
-                return AuthenticateAsync().GetAwaiter().GetResult();
-            }
-            catch (AggregateException ae)
-            {
-                // Unwrap AggregateException for better error reporting
-                throw ae.InnerException ?? ae;
-            }
-        }
-
         protected async Task<SfmcAuthToken> AuthenticateAsync()
         {
             Console.WriteLine("Authenticating...");
@@ -111,48 +101,8 @@ namespace bleak.Martech.SalesforceMarketingCloud.Authentication
 
             return authResults.Results;
         }
-
-
-        public virtual void ResolveAuthentication()
-        {
-            try
-            {
-                ResolveAuthenticationAsync().GetAwaiter().GetResult();
-            }
-            catch (AggregateException ae)
-            {
-                // Optional: unwrap for clearer error messages
-                throw ae.InnerException ?? ae;
-            }
-        }
         
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
-        public virtual async Task ResolveAuthenticationAsync()
-        {
-            if (IsTokenValid())
-            {
-                Console.WriteLine("Using cached authentication file.");
-                return;
-            }
-
-            // Ensure only one thread reauthenticates at a time
-            // Use SemaphoreSlim for async compatibility
-            await _semaphore.WaitAsync();
-            try
-            {
-                if (!IsTokenValid()) // Double-check after acquiring the lock
-                {
-                    Console.WriteLine("Authentication expired or not found. Re-authenticating...");
-                    var newToken = await AuthenticateAsync();
-                    await SaveTokenAsync(newToken);
-                    _cachedToken = new Lazy<SfmcAuthToken>(() => newToken, true);
-                }
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
-        }
     }
 }

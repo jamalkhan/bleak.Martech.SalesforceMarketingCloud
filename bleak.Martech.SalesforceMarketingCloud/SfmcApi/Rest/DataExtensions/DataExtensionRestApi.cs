@@ -64,8 +64,7 @@ public class DataExtensionRestApi
                 var results = await LoadApiWithRetryAsync<DataExtensionDataDto>(
                     loadApiCallAsync: LoadApiCallAsync,
                     url: url,
-                    authenticationError: "401",
-                    resolveAuthenticationAsync: _authRepository.ResolveAuthenticationAsync
+                    authenticationError: "401"
                 );
 
                 if (results?.Error != null)

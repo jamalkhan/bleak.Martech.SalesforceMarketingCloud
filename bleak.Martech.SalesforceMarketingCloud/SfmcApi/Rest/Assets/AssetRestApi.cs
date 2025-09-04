@@ -234,8 +234,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
                 var results = await ExecuteRestMethodWithRetryAsync(
                     apiCallAsync: LoadFolderApiCallAsync,
                     url: url,
-                    authenticationError: "401",
-                    resolveAuthenticationAsync: _authRepository.ResolveAuthenticationAsync
+                    authenticationError: "401"
                 );
 
                 _logger.LogTrace($"results.Value = {results?.Results}");
@@ -278,7 +277,8 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
 
             await SetAuthHeaderAsync();
 
-            var results = await _restClientAsync.ExecuteRestMethodAsync<SfmcRestWrapper<SfmcAsset>, string>(
+            var results = await _restClientAsync.ExecuteRestMethodAsync<SfmcRestWrapper<SfmcAsset>, string>
+            (
                 uri: new Uri(url),
                 verb: verb,
                 headers: _headers
@@ -301,15 +301,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
         {
             try
             {
-                return ExecuteRestMethodWithRetryAsync(
+                return ExecuteRestMethodWithRetryAsync
+                (
                     apiCallAsync: url => Task.FromResult(apiCall(url)),
                     url: url,
-                    authenticationError: authenticationError,
-                    resolveAuthenticationAsync: () =>
-                    {
-                        resolveAuthentication();
-                        return Task.CompletedTask;
-                    }
+                    authenticationError: authenticationError
                 ).GetAwaiter().GetResult();
             }
             catch (AggregateException ae)
@@ -319,11 +315,12 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
         }
 
         
-        private async Task<RestResults<SfmcRestWrapper<SfmcAsset>, string>> ExecuteRestMethodWithRetryAsync(
+        private async Task<RestResults<SfmcRestWrapper<SfmcAsset>, string>> ExecuteRestMethodWithRetryAsync
+        (
             Func<string, Task<RestResults<SfmcRestWrapper<SfmcAsset>, string>>> apiCallAsync,
             string url,
-            string authenticationError,
-            Func<Task> resolveAuthenticationAsync)
+            string authenticationError
+        )
         {
             var results = await apiCallAsync(url);
 
@@ -331,10 +328,6 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
             if (results != null && results.UnhandledError != null && results.UnhandledError.Contains(authenticationError))
             {
                 _logger.LogTrace($"Unauthenticated: {results.UnhandledError}");
-
-                // Resolve authentication
-                await resolveAuthenticationAsync();
-                _logger.LogTrace($"Authentication Header has been reset");
 
                 // Retry the REST method
                 results = await apiCallAsync(url);

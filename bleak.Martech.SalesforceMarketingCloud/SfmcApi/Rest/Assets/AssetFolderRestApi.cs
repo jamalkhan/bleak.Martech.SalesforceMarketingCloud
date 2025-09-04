@@ -136,8 +136,7 @@ public class AssetFolderRestApi
             results = await ExecuteRestMethodAsyncWithRetry(
                 loadFolderApiCallAsync: LoadFolderApiCallAsync,
                 url: url,
-                authenticationError: "401",
-                resolveAuthenticationAsync: _authRepository.ResolveAuthenticationAsync
+                authenticationError: "401"
             );
             _logger.LogTrace("ExecuteRestMethodAsyncWithRetry completed");
 
@@ -200,8 +199,7 @@ public class AssetFolderRestApi
     private async Task<RestResults<SfmcRestWrapper<SfmcFolder>, string>> ExecuteRestMethodAsyncWithRetry(
         Func<string, Task<RestResults<SfmcRestWrapper<SfmcFolder>, string>>> loadFolderApiCallAsync,
         string url,
-        string authenticationError,
-        Func<Task> resolveAuthenticationAsync
+        string authenticationError
         )
     {
         _logger.LogTrace("Starting ExecuteRestMethodAsyncWithRetry");
@@ -212,10 +210,6 @@ public class AssetFolderRestApi
         if (results != null && results.UnhandledError != null && results.UnhandledError.Contains(authenticationError))
         {
             _logger.LogTrace($"Authentication error detected: {results.UnhandledError}");
-
-            // Resolve authentication
-            await resolveAuthenticationAsync();
-            _logger.LogTrace("Authentication resolved, retrying API call");
 
             // Retry the REST method
             results = await loadFolderApiCallAsync(url);

@@ -80,8 +80,7 @@ public class LoadFolders
             results = await ExecuteRestMethodWithRetryAsync(
                 loadFolderApiCallAsync: LoadFolderApiCallAsync,
                 url: url,
-                authenticationError: "401", 
-                resolveAuthenticationAsync: _authRepository.ResolveAuthenticationAsync
+                authenticationError: "401"
             );
 
             if (AppConfiguration.Instance.Debug) Console.WriteLine($"results.Value = {results?.Results}");
@@ -110,14 +109,15 @@ public class LoadFolders
         string url
     )
     {
+        var token = await _authRepository.GetTokenAsync();
         // string opens = await GetTrackingData($"{baseUri}/messageDefinitionSends/key:{definitionKey}/tracking/opens", accessToken);
         // string clicks = await GetTrackingData($"{baseUri}/messageDefinitionSends/key:{definitionKey}/tracking/clicks", accessToken);
         // string bounces = await GetTrackingData($"{baseUri}/messageDefinitionSends/key:{definitionKey}/tracking/bounces", accessToken);
         // string sends = await GetTrackingData($"{baseUri}/messageDefinitionSends/key:{definitionKey}/tracking", accessToken);
 
-        if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Attempting to {verb} to {url} with accessToken: {_authRepository.Token.access_token}"); }
+        if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Attempting to {verb} to {url} with accessToken: {token.access_token}"); }
 
-        var headersWithAuth = SetAuthHeader(headers);
+        var headersWithAuth = await SetAuthHeaderAsync(headers);
 
         var results = await _restClientAsync.ExecuteRestMethodAsync<SfmcRestWrapper<SfmcFolder>, string>(
             uri: new Uri(url),
@@ -131,8 +131,7 @@ public class LoadFolders
     private async Task<RestResults<SfmcRestWrapper<SfmcFolder>, string>> ExecuteRestMethodWithRetryAsync(
         Func<string, Task<RestResults<SfmcRestWrapper<SfmcFolder>, string>>> loadFolderApiCallAsync,
         string url,
-        string authenticationError,
-        Func<Task> resolveAuthenticationAsync
+        string authenticationError
     )
     {
         var results = await loadFolderApiCallAsync(url).ConfigureAwait(false);
@@ -142,10 +141,6 @@ public class LoadFolders
             results.UnhandledError.Contains(authenticationError))
         {
             Console.WriteLine($"Unauthenticated: {results.UnhandledError}");
-
-            // Resolve authentication
-            await resolveAuthenticationAsync().ConfigureAwait(false);
-            Console.WriteLine("Authentication Header has been reset");
 
             // Retry the REST method
             results = await loadFolderApiCallAsync(url).ConfigureAwait(false);
@@ -159,8 +154,9 @@ public class LoadFolders
     }
 
 
-    private List<Header> SetAuthHeader(List<Header> headers)
+    private async Task<List<Header>> SetAuthHeaderAsync(List<Header> headers)
     {
+        var token = await _authRepository.GetTokenAsync();
         var headersWithAuth = new List<Header>();
 
         foreach (var header in headers)
@@ -169,7 +165,7 @@ public class LoadFolders
         }
 
         headersWithAuth.Add(
-            new Header() { Name = "Authorization", Value = $"Bearer {_authRepository.Token.access_token}" }
+            new Header() { Name = "Authorization", Value = $"Bearer {token.access_token}" }
         );
 
         return headersWithAuth;

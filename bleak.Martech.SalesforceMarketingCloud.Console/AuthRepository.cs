@@ -42,10 +42,4 @@ public partial class AuthRepository : AuthRepositoryBase
         string json = _jsonSerializer.Serialize(token);
         await File.WriteAllTextAsync(AuthFilePath, json);
     }
-
-    protected override void SaveToken(SfmcAuthToken token)
-    {
-        string json = _jsonSerializer.Serialize(token);
-        File.WriteAllText(AuthFilePath, json);
-    }
 }

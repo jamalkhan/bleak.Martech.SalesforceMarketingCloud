@@ -1,14 +1,6 @@
 using bleak.Api.Rest;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Authentication;
-using bleak.Martech.SalesforceMarketingCloud.Models;
-using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
-using System.Diagnostics;
-using System;
-using System.IO;
-using NLog;
-using Microsoft.Extensions.Logging;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 {
@@ -27,7 +19,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
             (
                 restClientAsync: new RestClient(),
                 authRepository: _authRepository,
-                logger: (ILogger<QueryDefinitionSoapApi>)LogManager.GetLogger(typeof(QueryDefinitionSoapApi).FullName ?? "QueryDefinitionSoapApi")
+                logger: null
             );
             var pocos = await lf.GetQueryDefinitionPocosAsync();
             WriteFile(pocos);

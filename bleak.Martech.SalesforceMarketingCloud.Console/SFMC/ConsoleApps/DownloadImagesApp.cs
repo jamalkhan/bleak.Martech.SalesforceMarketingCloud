@@ -283,10 +283,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 
         private async Task<RestResults<SfmcRestWrapper<SfmcAsset>, string>?> LoadPageOfAssetsAsync(int folderId, int page)
         {
+            var token = await _authRepository.GetTokenAsync();
             if (AppConfiguration.Instance.Debug) Console.WriteLine($"Loading Assets Page #{page}");
             string uri = $"https://{AppConfiguration.Instance.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/assets?$page={page}&$pagesize={AppConfiguration.Instance.PageSize}&$orderBy=name&$filter=category.id eq {folderId}";
 
-            if (AppConfiguration.Instance.Debug) Console.WriteLine($"Trying to download to {uri} with {_authRepository.Token.access_token}");
+            if (AppConfiguration.Instance.Debug) Console.WriteLine($"Trying to download to {uri} with {token.access_token}");
 
             var results = await _restClient.ExecuteRestMethodAsync<SfmcRestWrapper<SfmcAsset>, string>(
                 uri: new Uri(uri),
@@ -295,14 +296,14 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                     new List<Header>()
                     {
                         new Header() { Name = "Content-Type", Value = "application/json" } ,
-                        new Header() { Name = "Authorization", Value = $"Bearer {_authRepository.Token.access_token}" }
+                        new Header() { Name = "Authorization", Value = $"Bearer {token.access_token}" }
                     }
                 );
 
             if (results != null && results.UnhandledError != null && results.UnhandledError.Contains("401"))
             {
                 Console.WriteLine($"Unauthenticated: {results.UnhandledError}");
-                await _authRepository.ResolveAuthenticationAsync();
+                token = await _authRepository.GetTokenAsync();
 
                 results = await _restClient.ExecuteRestMethodAsync<SfmcRestWrapper<SfmcAsset>, string>(
                     uri: new Uri(uri),
@@ -311,7 +312,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                         new List<Header>()
                         {
                             new Header() { Name = "Content-Type", Value = "application/json" } ,
-                            new Header() { Name = "Authorization", Value = $"Bearer {_authRepository.Token.access_token}" }
+                            new Header() { Name = "Authorization", Value = $"Bearer {token.access_token}" }
                         }
                     );
             }

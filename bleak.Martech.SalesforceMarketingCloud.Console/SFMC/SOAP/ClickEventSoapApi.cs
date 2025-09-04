@@ -7,6 +7,7 @@ using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.Api.Soap;
 using bleak.Api.Rest;
 using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 
@@ -45,15 +46,17 @@ public partial class ClickEventSoapApi
         return poco;
     }
 
-    public override string BuildRequest()
+    public override async Task<string> BuildRequestAsync()
     {
+        var token = await _authRepository.GetTokenAsync();
+
         var sb = new StringBuilder();
         sb.AppendLine($"<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         sb.AppendLine($"<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:a=\"http://schemas.xmlsoap.org/ws/2004/08/addressing\" xmlns:u=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd\">");
         sb.AppendLine($"    <s:Header>");
         sb.AppendLine($"        <a:Action s:mustUnderstand=\"1\">Retrieve</a:Action>");
         sb.AppendLine($"        <a:To s:mustUnderstand=\"1\">https://{AppConfiguration.Instance.Subdomain}.soap.marketingcloudapis.com/Service.asmx</a:To>");
-        sb.AppendLine($"        <fueloauth xmlns=\"http://exacttarget.com\">{_authRepository.Token.access_token}</fueloauth>");
+        sb.AppendLine($"        <fueloauth xmlns=\"http://exacttarget.com\">{token.access_token}</fueloauth>");
         sb.AppendLine($"    </s:Header>");
         sb.AppendLine($"    <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">");
         sb.AppendLine($"        <RetrieveRequestMsg xmlns=\"http://exacttarget.com/wsdl/partnerAPI\">");
