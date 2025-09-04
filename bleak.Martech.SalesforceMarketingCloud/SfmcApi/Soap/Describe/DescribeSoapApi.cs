@@ -46,32 +46,35 @@ public partial class DescribeSoapApi
     }
 
 
-    public async Task<ObjectDefinition> GetObjectDefinitionAsync(string objectType)
+    public async Task<string> GetObjectDefinitionAsync(string objectType)
     {
         var requestPayload = await BuildRequestAsync(objectType: objectType);
         return await MakeApiCallAsync(requestPayload);
     }
 
-    private async Task<ObjectDefinition> MakeApiCallAsync(string requestPayload)
+    private async Task<string> MakeApiCallAsync(string requestPayload)
     {
         try
         {
             if (_sfmcConnectionConfiguration.Debug) { Console.WriteLine($"Invoking SOAP Call. URL: {url}"); }
 
-            var results = await _restClientAsync.ExecuteRestMethodAsync<SoapEnvelope<ObjectDefinition>, string>(
+            //var results = await _restClientAsync.ExecuteRestMethodAsync<SoapEnvelope<ObjectDefinition>, string>
+            var results = await _restClientAsync.ExecuteRestMethodAsync<string, string>
+            (
                 uri: new Uri(url),
                 verb: HttpVerbs.POST,
                 serializedPayload: requestPayload,
                 headers: BuildHeaders()
             );
 
-            if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"results.Value = {results?.Results}");
-            if (results?.Error != null) Console.WriteLine($"results.Error = {results.Error}");
+            _logger.LogInformation($"results.Value = {results?.Results}");
+            _logger.LogError($"results.Error = {results.Error}");
 
             // Process Results
-            _logger.LogInformation($"Overall Status: {results!.Results.Body.RetrieveResponse.OverallStatus}");
+            //_logger.LogInformation($"Overall Status: {results!.Results.Body.RetrieveResponse.OverallStatus}");
 
-            return results.Results.Body.RetrieveResponse.Results.FirstOrDefault();
+            //return results.Results.Body.RetrieveResponse.Results.FirstOrDefault();
+            return results.Results;
         }
         catch (System.Exception ex)
         {

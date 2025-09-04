@@ -120,25 +120,34 @@ public static class Program
                         await downloadImages.Execute();
                         break;
                     case "11":
-                        Console.WriteLine("Enter Object Type to Describe (e.g. DataExtension, DataExtensionFolder, etc.)");
-                        var objectType = Console.ReadLine();
-                        ILogger<DescribeSoapApi> logger = _loggerFactory.CreateLogger<DescribeSoapApi>();
-                        if (string.IsNullOrEmpty(objectType))
+                        while (true)
                         {
-                            Console.WriteLine("Object Type is required");
-                            break;
-                        }
-                        var describeApi = new DescribeSoapApi(
-                            restClientAsync: _restClient,
-                            authRepository: _authRepository,
-                            config: new SfmcConnectionConfiguration(),
-                            logger: logger
-                        );
-                        ObjectDefinition objectDefinition = await describeApi.GetObjectDefinitionAsync(objectType);
-                        Console.WriteLine($"Object Type: {objectDefinition.ObjectType}");
-                        foreach (var prop in objectDefinition.Properties)
-                        {
-                            Console.WriteLine($"Property: {prop.Name}; DataType: {prop.DataType}; IsUpdatable: {prop.IsUpdatable}; IsRetrievable: {prop.IsRetrievable}; MaxLength: {prop.MaxLength}; IsRequired: {prop.IsRequired}");
+                            Console.WriteLine("Enter Object Type to Describe (e.g. DataExtension, DataExtensionFolder, etc.) or 'q' to quit:");
+                            var objectType = Console.ReadLine();
+
+                            if (string.IsNullOrEmpty(objectType))
+                            {
+                                Console.WriteLine("Object Type is required");
+                                continue;
+                            }
+
+                            if (objectType.Equals("q", StringComparison.OrdinalIgnoreCase))
+                            {
+                                Console.WriteLine("Exiting...");
+                                break;
+                            }
+
+                            ILogger<DescribeSoapApi> logger = _loggerFactory.CreateLogger<DescribeSoapApi>();
+
+                            var describeApi = new DescribeSoapApi(
+                                restClientAsync: _restClient,
+                                authRepository: _authRepository,
+                                config: new SfmcConnectionConfiguration(),
+                                logger: logger
+                            );
+
+                            var results = await describeApi.GetObjectDefinitionAsync(objectType);
+                            Console.WriteLine(results);
                         }
                         break;
 
