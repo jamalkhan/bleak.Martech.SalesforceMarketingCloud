@@ -1,0 +1,39 @@
+name: Validate Master
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: validate-master-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore library
+        run: dotnet restore bleak.Martech.SalesforceMarketingCloud/bleak.Martech.SalesforceMarketingCloud.csproj
+
+      - name: Build library
+        run: dotnet build bleak.Martech.SalesforceMarketingCloud/bleak.Martech.SalesforceMarketingCloud.csproj --configuration Release --no-restore
+
+      - name: Restore tests
+        run: dotnet restore bleak.Martech.SalesforceMarketingCloud.Tests/bleak.Martech.SalesforceMarketingCloud.Tests.csproj
+
+      - name: Run tests
+        run: dotnet test bleak.Martech.SalesforceMarketingCloud.Tests/bleak.Martech.SalesforceMarketingCloud.Tests.csproj --configuration Release --no-restore
