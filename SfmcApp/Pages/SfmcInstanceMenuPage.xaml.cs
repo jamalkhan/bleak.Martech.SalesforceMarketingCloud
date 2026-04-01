@@ -1,6 +1,3 @@
-using bleak.Api.Rest;
-using bleak.Martech.SalesforceMarketingCloud.Authentication;
-using bleak.Martech.SalesforceMarketingCloud.Sfmc.Models;
 using SfmcApp.Models;
 using Microsoft.Extensions.Logging;
 using SfmcApp.Pages.Assets;
@@ -11,20 +8,14 @@ namespace SfmcApp;
 public partial class SfmcInstanceMenuPage : ContentPage
 {
 	private readonly ILogger<SfmcInstanceMenuPage> _logger;
-	private readonly IAuthRepository _authRepository;
-	private readonly IRestClientAsync _restClientAsync;
 
 	public SfmcInstanceMenuPage(
 		SfmcConnection connection,
-		IRestClientAsync restManagerAsync,
-		IAuthRepository authRepository,
 		ILogger<SfmcInstanceMenuPage> logger
 	)
 	{
 		InitializeComponent();
 		_logger = logger ?? throw new ArgumentNullException(nameof(logger));
-		_authRepository = authRepository ?? throw new ArgumentNullException(nameof(authRepository));
-		_restClientAsync = restManagerAsync ?? throw new ArgumentNullException(nameof(restManagerAsync));
 		BindingContext = connection;
 	}
 

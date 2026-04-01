@@ -56,7 +56,6 @@ public static class MauiProgram
 					clientId: connection.ClientId,
 					clientSecret: connection.ClientSecret,
 					memberId: connection.MemberId,
-					jsonSerializer: sp.GetRequiredService<JsonSerializer>(),
 					restClientAsync: sp.GetRequiredService<IRestClientAsync>(),
 					logger: logger
 				);
@@ -137,8 +136,6 @@ public static class MauiProgram
 					return new SfmcInstanceMenuPage
 					(
 						connection: connection,
-						restManagerAsync: sp.GetRequiredService<IRestClientAsync>(),
-						authRepository: sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>()(connection),
 						logger: logger
 					);
 				}

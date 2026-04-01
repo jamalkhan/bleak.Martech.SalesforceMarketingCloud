@@ -6,6 +6,9 @@ using bleak.Martech.SalesforceMarketingCloud.Api;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
+using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
+using System.Security;
+using System.Xml.Linq;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Api.Soap;
 
@@ -16,6 +19,8 @@ public partial class DataExtensionSoapApi
         DataExtensionSoapApi
     >,  IDataExtensionApi
 {
+    private const int RowImportChunkSize = 250;
+
     public DataExtensionSoapApi
     (
         IRestClientAsync restClientAsync,
@@ -62,6 +67,48 @@ public partial class DataExtensionSoapApi
     {
         var requestPayload = await BuildRequestAsync();
         return await IterateAPICallsForRequestAsync(requestPayload: requestPayload);
+    }
+
+    public async Task CreateDataExtensionAsync(DataExtensionImportDefinition definition)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+
+        if (string.IsNullOrWhiteSpace(definition.Name))
+            throw new ArgumentException("Data extension name is required.", nameof(definition));
+
+        if (string.IsNullOrWhiteSpace(definition.CustomerKey))
+            throw new ArgumentException("Customer key is required.", nameof(definition));
+
+        if (definition.CategoryId <= 0)
+            throw new ArgumentException("A target folder is required.", nameof(definition));
+
+        if (definition.Columns.Count == 0)
+            throw new ArgumentException("At least one column is required.", nameof(definition));
+
+        var payload = await BuildCreateDataExtensionRequestAsync(definition);
+        var responseXml = await ExecuteCreateRequestAsync(payload);
+        EnsureCreateSucceeded(responseXml, "create data extension");
+    }
+
+    public async Task<int> AddRowsToDataExtensionAsync(string customerKey, IReadOnlyList<Dictionary<string, string>> rows)
+    {
+        if (string.IsNullOrWhiteSpace(customerKey))
+            throw new ArgumentException("Customer key is required.", nameof(customerKey));
+
+        if (rows.Count == 0)
+            return 0;
+
+        var imported = 0;
+
+        foreach (var chunk in rows.Chunk(RowImportChunkSize))
+        {
+            var payload = await BuildCreateRowsRequestAsync(customerKey, chunk);
+            var responseXml = await ExecuteCreateRequestAsync(payload);
+            EnsureCreateSucceeded(responseXml, "insert data extension rows");
+            imported += chunk.Length;
+        }
+
+        return imported;
     }
 
     private async Task<List<DataExtensionPoco>> IterateAPICallsForRequestAsync(string requestPayload)
@@ -134,6 +181,146 @@ public partial class DataExtensionSoapApi
             throw;
         }
     }
+
+    private async Task<string> ExecuteCreateRequestAsync(string requestPayload)
+    {
+        var rawClient = new RestClient();
+        var results = await rawClient.ExecuteRestMethodAsync<string, string>(
+            uri: new Uri(url),
+            verb: HttpVerbs.POST,
+            serializedPayload: requestPayload,
+            headers: BuildHeaders()
+        );
+
+        if (!string.IsNullOrWhiteSpace(results?.Error))
+            throw new Exception(results.Error);
+
+        return results?.Results ?? throw new InvalidOperationException("SOAP create call returned no response.");
+    }
+
+    private async Task<string> BuildCreateDataExtensionRequestAsync(DataExtensionImportDefinition definition)
+    {
+        var token = await _authRepository.GetTokenAsync();
+        var sb = new StringBuilder();
+
+        sb.AppendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        sb.AppendLine("<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:a=\"http://schemas.xmlsoap.org/ws/2004/08/addressing\" xmlns:u=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd\">");
+        sb.AppendLine("    <s:Header>");
+        sb.AppendLine("        <a:Action s:mustUnderstand=\"1\">Create</a:Action>");
+        sb.AppendLine($"        <a:To s:mustUnderstand=\"1\">https://{_authRepository.Subdomain}.soap.marketingcloudapis.com/Service.asmx</a:To>");
+        sb.AppendLine($"        <fueloauth xmlns=\"http://exacttarget.com\">{Escape(token.access_token)}</fueloauth>");
+        sb.AppendLine("    </s:Header>");
+        sb.AppendLine("    <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">");
+        sb.AppendLine("        <CreateRequest xmlns=\"http://exacttarget.com/wsdl/partnerAPI\">");
+        sb.AppendLine("            <Objects xsi:type=\"DataExtension\">");
+        sb.AppendLine($"                <CustomerKey>{Escape(definition.CustomerKey)}</CustomerKey>");
+        sb.AppendLine($"                <Name>{Escape(definition.Name)}</Name>");
+        sb.AppendLine($"                <Description>{Escape(definition.Description)}</Description>");
+        sb.AppendLine($"                <CategoryID>{definition.CategoryId}</CategoryID>");
+        sb.AppendLine("                <Fields>");
+
+        foreach (var (column, index) in definition.Columns.Select((column, index) => (column, index)))
+        {
+            sb.AppendLine("                    <Field>");
+            sb.AppendLine($"                        <Name>{Escape(column.Name)}</Name>");
+            sb.AppendLine($"                        <FieldType>{MapFieldType(column.DataType)}</FieldType>");
+            sb.AppendLine($"                        <IsRequired>{(!column.IsNullable).ToString().ToLowerInvariant()}</IsRequired>");
+            sb.AppendLine($"                        <IsPrimaryKey>false</IsPrimaryKey>");
+            sb.AppendLine($"                        <Ordinal>{index + 1}</Ordinal>");
+
+            if (MapFieldType(column.DataType) == "Text")
+            {
+                var maxLength = Math.Clamp(column.MaxLength ?? 256, 1, 4000);
+                sb.AppendLine($"                        <MaxLength>{maxLength}</MaxLength>");
+            }
+
+            sb.AppendLine("                    </Field>");
+        }
+
+        sb.AppendLine("                </Fields>");
+        sb.AppendLine("            </Objects>");
+        sb.AppendLine("        </CreateRequest>");
+        sb.AppendLine("    </s:Body>");
+        sb.AppendLine("</s:Envelope>");
+
+        return sb.ToString();
+    }
+
+    private async Task<string> BuildCreateRowsRequestAsync(string customerKey, IReadOnlyList<Dictionary<string, string>> rows)
+    {
+        var token = await _authRepository.GetTokenAsync();
+        var sb = new StringBuilder();
+
+        sb.AppendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        sb.AppendLine("<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:a=\"http://schemas.xmlsoap.org/ws/2004/08/addressing\" xmlns:u=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd\">");
+        sb.AppendLine("    <s:Header>");
+        sb.AppendLine("        <a:Action s:mustUnderstand=\"1\">Create</a:Action>");
+        sb.AppendLine($"        <a:To s:mustUnderstand=\"1\">https://{_authRepository.Subdomain}.soap.marketingcloudapis.com/Service.asmx</a:To>");
+        sb.AppendLine($"        <fueloauth xmlns=\"http://exacttarget.com\">{Escape(token.access_token)}</fueloauth>");
+        sb.AppendLine("    </s:Header>");
+        sb.AppendLine("    <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">");
+        sb.AppendLine("        <CreateRequest xmlns=\"http://exacttarget.com/wsdl/partnerAPI\">");
+
+        foreach (var row in rows)
+        {
+            sb.AppendLine("            <Objects xsi:type=\"DataExtensionObject\">");
+            sb.AppendLine($"                <CustomerKey>{Escape(customerKey)}</CustomerKey>");
+            sb.AppendLine("                <Properties>");
+
+            foreach (var kvp in row.Where(kvp => !string.IsNullOrWhiteSpace(kvp.Value)))
+            {
+                sb.AppendLine("                    <Property>");
+                sb.AppendLine($"                        <Name>{Escape(kvp.Key)}</Name>");
+                sb.AppendLine($"                        <Value>{Escape(kvp.Value)}</Value>");
+                sb.AppendLine("                    </Property>");
+            }
+
+            sb.AppendLine("                </Properties>");
+            sb.AppendLine("            </Objects>");
+        }
+
+        sb.AppendLine("        </CreateRequest>");
+        sb.AppendLine("    </s:Body>");
+        sb.AppendLine("</s:Envelope>");
+
+        return sb.ToString();
+    }
+
+    private static void EnsureCreateSucceeded(string responseXml, string operationName)
+    {
+        var document = XDocument.Parse(responseXml);
+        var ns = XNamespace.Get("http://exacttarget.com/wsdl/partnerAPI");
+
+        var overallStatus = document.Descendants(ns + "OverallStatus").FirstOrDefault()?.Value ?? string.Empty;
+        if (string.Equals(overallStatus, "OK", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        var messages = document
+            .Descendants(ns + "StatusMessage")
+            .Select(x => x.Value?.Trim())
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct()
+            .ToList();
+
+        var details = messages.Count > 0
+            ? string.Join(" | ", messages)
+            : $"SOAP create call returned status '{overallStatus}'.";
+
+        throw new InvalidOperationException($"Failed to {operationName}. {details}");
+    }
+
+    private static string MapFieldType(string dataType)
+        => dataType.ToLowerInvariant() switch
+        {
+            "int" => "Number",
+            "float" => "Decimal",
+            "datetime" => "Date",
+            "bool" => "Boolean",
+            _ => "Text",
+        };
+
+    private static string Escape(string? value)
+        => SecurityElement.Escape(value) ?? string.Empty;
 
 
     private async Task<string> BuildRequestAsync(

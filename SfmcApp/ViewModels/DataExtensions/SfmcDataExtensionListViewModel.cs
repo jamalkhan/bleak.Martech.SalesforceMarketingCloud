@@ -61,10 +61,31 @@ public partial class SfmcDataExtensionListViewModel
 
     private async void OnFileDropped(List<string> filePaths)
     {
-        // Open modal import page with the file
-        //var importPage = new FileImportPage(filePath);
-        //await Application.Current.MainPage.Navigation.PushModalAsync(importPage);
-        // TODO: Implement
+        if (filePaths.Count == 0)
+            return;
+
+        if (SelectedFolder == null)
+        {
+            _logger.LogWarning("Import requested without a selected folder.");
+            return;
+        }
+
+        try
+        {
+            await _navigationService.NavigateToFileImportAsync(_sfmcConnection, filePaths[0], SelectedFolder);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to open import flow for file {FilePath}", filePaths[0]);
+        }
+    }
+
+    public Task OpenImportFlowAsync(string filePath)
+    {
+        if (SelectedFolder == null)
+            throw new InvalidOperationException("Select a target folder before importing.");
+
+        return _navigationService.NavigateToFileImportAsync(_sfmcConnection, filePath, SelectedFolder);
     }
 
 /*

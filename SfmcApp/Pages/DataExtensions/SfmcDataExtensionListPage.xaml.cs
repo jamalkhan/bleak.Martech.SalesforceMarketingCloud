@@ -7,6 +7,7 @@ using Microsoft.Maui.Controls;
 using System;
 using System.Linq;
 using SfmcApp.ViewModels.Services;
+using Microsoft.Maui.Storage;
 
 
 #if MACCATALYST
@@ -137,6 +138,32 @@ public partial class SfmcDataExtensionListPage : ContentPage
             // Log the exception and show a user-friendly message
             System.Diagnostics.Debug.WriteLine($"Error loading folders: {ex}");
             await DisplayAlertAsync("Error", $"Failed to load folders: {ex.Message}", "OK");
+        }
+    }
+
+    private async void OnImportFileClicked(object sender, EventArgs e)
+    {
+        if (_viewModel.SelectedFolder == null)
+        {
+            await DisplayAlertAsync("Select Folder", "Choose a target folder before importing a file.", "OK");
+            return;
+        }
+
+        try
+        {
+            var result = await FilePicker.Default.PickAsync(new PickOptions
+            {
+                PickerTitle = "Select a CSV or TSV file"
+            });
+
+            if (result?.FullPath == null)
+                return;
+
+            await _viewModel.OpenImportFlowAsync(result.FullPath);
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlertAsync("Import Error", $"Failed to start import: {ex.Message}", "OK");
         }
     }
 }

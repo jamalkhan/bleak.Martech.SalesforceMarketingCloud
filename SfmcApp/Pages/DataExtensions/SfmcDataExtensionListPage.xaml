@@ -82,6 +82,11 @@
                     Text="Search"
                     VerticalOptions="Center"
                     Command="{Binding SearchCommand}" />
+
+                <Button
+                    Text="Import File"
+                    VerticalOptions="Center"
+                    Clicked="OnImportFileClicked" />
             </HorizontalStackLayout>
 
             <!-- Row 1 -->

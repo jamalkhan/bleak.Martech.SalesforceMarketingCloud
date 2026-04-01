@@ -12,6 +12,9 @@
         <Label Text="File Name:" FontAttributes="Bold"/>
         <Label Text="{Binding FileName}" />
 
+        <Label Text="Target Folder:" FontAttributes="Bold"/>
+        <Label Text="{Binding TargetFolderName}" />
+
         <Label Text="Data Extension Name:" FontAttributes="Bold"/>
         <Entry Text="{Binding DataExtensionName}" Placeholder="Enter data extension name" />
 
@@ -49,6 +52,16 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
+
+        <Button
+            Text="Create Data Extension and Import Rows"
+            Command="{Binding ImportCommand}" />
+
+        <ActivityIndicator
+            IsRunning="{Binding IsImporting}"
+            IsVisible="{Binding IsImporting}" />
+
+        <Label Text="{Binding ImportStatus}" LineBreakMode="WordWrap" />
 
     </VerticalStackLayout>
 </ContentPage>

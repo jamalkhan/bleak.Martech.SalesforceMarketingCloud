@@ -1,11 +1,13 @@
 using SfmcApp.Pages.DataExtensions;
+using SfmcApp.Models.ViewModels;
+using SfmcApp.Models;
 
 namespace SfmcApp.ViewModels.Services
 {
     public interface INavigationService
     {
         Task NavigateToAsync<TPage>() where TPage : Page;
-        Task NavigateToFileImportAsync(string filePath);
+        Task NavigateToFileImportAsync(SfmcConnection connection, string filePath, FolderViewModel selectedFolder);
     }
 
     public class NavigationService : INavigationService
@@ -33,14 +35,15 @@ namespace SfmcApp.ViewModels.Services
             }
         }
 
-        public async Task NavigateToFileImportAsync(string filePath)
+        public async Task NavigateToFileImportAsync(SfmcConnection connection, string filePath, FolderViewModel selectedFolder)
         {
-            var page = _serviceProvider.GetRequiredService<SfmcDataExtensionFileImportPage>();
+            var factory = _serviceProvider.GetRequiredService<Func<SfmcConnection, SfmcDataExtensionFileImportPage>>();
+            var page = factory(connection);
 
             // pass the parameter to the VM (not to the page ctor)
             if (page.BindingContext is SfmcDataExtensionFileImportViewModel vm)
             {
-                await vm.InitializeAsync(filePath); // implement this in your VM
+                await vm.InitializeAsync(filePath, selectedFolder);
             }
 
             var window = Application.Current?.Windows.FirstOrDefault();

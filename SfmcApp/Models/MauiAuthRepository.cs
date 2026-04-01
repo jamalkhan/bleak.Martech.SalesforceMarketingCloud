@@ -10,7 +10,6 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
         private const double TokenRetentionThreshold = 600.07; // seconds
         private DateTime _lastWriteTime = DateTime.MinValue;
 
-        private readonly JsonSerializer _jsonSerializer;
         private readonly IRestClientAsync _restClientAsync;
         private readonly ILogger<MauiAuthRepository> _logger;
 
@@ -21,11 +20,6 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
         public string ClientSecret { get; }
         public string MemberId { get; }
 
-        /// <summary>
-        /// DO NOT USE TOKEN PROPERTY DIRECTLY. Use GetTokenAsync() method to ensure valid token.
-        /// </summary>
-        public SfmcAuthToken Token => throw new NotImplementedException();
-
         private SfmcAuthToken? _token;
 
         public MauiAuthRepository(
@@ -33,7 +27,6 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
             string clientId,
             string clientSecret,
             string memberId,
-            JsonSerializer jsonSerializer,
             IRestClientAsync restClientAsync,
             ILogger<MauiAuthRepository> logger)
         {
@@ -41,7 +34,6 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
             ClientId = clientId;
             ClientSecret = clientSecret;
             MemberId = memberId;
-            _jsonSerializer = jsonSerializer;
             _restClientAsync = restClientAsync;
             _logger = logger;
         }
@@ -140,27 +132,5 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
             }
         }
 
-        /// <summary>
-        /// Force token refresh regardless of current state.
-        /// </summary>
-        public async Task ResolveAuthenticationAsync()
-        {
-            _logger.LogTrace("Resolving authentication - clearing current token");
-            _token = null;
-            _lastWriteTime = DateTime.MinValue;
-
-            await _semaphore.WaitAsync();
-            try
-            {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-                _token = await AuthenticateAsync().ConfigureAwait(false);
-                _lastWriteTime = DateTime.Now;
-                _logger.LogTrace("Authentication resolved successfully");
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
-        }
     }
 }
