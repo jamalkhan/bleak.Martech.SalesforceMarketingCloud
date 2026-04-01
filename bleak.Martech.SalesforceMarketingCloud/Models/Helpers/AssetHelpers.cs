@@ -4,6 +4,7 @@ using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 using bleak.Martech.SalesforceMarketingCloud.Models.Sfmc;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets;
 using bleak.Martech.SalesforceMarketingCloud.Api;
+using Microsoft.Extensions.Logging;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
 
@@ -81,7 +82,7 @@ public static class AssetHelpers
     /// This method initializes <c>ContentExpanded</c> with the value of <c>Content</c> and iteratively replaces content blocks
     /// found within it. The process stops if no more content blocks are found or after 20 iterations.
     /// </remarks>
-    public static async Task<string> GetExpandedContentAsync(this AssetPoco asset, IAssetRestApi api)
+    public static async Task<string> GetExpandedContentAsync(this AssetPoco asset, IAssetRestApi api, ILogger? logger = null)
     {
         string content = string.Empty;
         if (!string.IsNullOrEmpty(asset.Content))
@@ -99,18 +100,16 @@ public static class AssetHelpers
             i++;
             if (i > 20 || string.IsNullOrEmpty(content))
             {
-                // TODO: logger
-                Console.WriteLine("Breaking out of FillContentExpandedAsync loop after 20 iterations.");
+                logger?.LogDebug("Stopping expanded content resolution. Iteration={Iteration}, HasContent={HasContent}", i, !string.IsNullOrEmpty(content));
                 // Will not do more than 20 levels of recursion.
                 break; // Prevent infinite loop
             }
 
             var subContentBlocks = GetContentBlocksByString(content);
-            Console.WriteLine($"Found {subContentBlocks.Count} content blocks in contentExpanded on iteration {i}.");
+            logger?.LogTrace("Expanded content iteration {Iteration} found {ContentBlockCount} content blocks.", i, subContentBlocks.Count);
             if (subContentBlocks == null || subContentBlocks.Count == 0)
             {
-                // TODO: logger
-                Console.WriteLine("No sub content blocks found in contentExpanded. Breaking out of loop.");
+                logger?.LogTrace("No additional content blocks found during content expansion at iteration {Iteration}.", i);
                 break;
             }
 
@@ -123,7 +122,8 @@ public static class AssetHelpers
                 (
                     api: api,
                     subContentBlock: subContentBlock,
-                    input: content
+                    input: content,
+                    logger: logger
                 );
             }
         }
@@ -146,29 +146,30 @@ public static class AssetHelpers
     public static async Task<string> PerformRegexReplacementAsync(
         IAssetRestApi api,
         ContentBlock subContentBlock,
-        string input
+        string input,
+        ILogger? logger = null
         )
     {
 
         AssetPoco? subAsset = null;
         if (subContentBlock.Id != null)
         {
-            Console.WriteLine($"Performing regex replacement for Id: {subContentBlock.Id.Value}");
+            logger?.LogTrace("Performing regex replacement using content block Id {AssetId}.", subContentBlock.Id.Value);
             subAsset = await api.GetAssetAsync(assetId: subContentBlock.Id.Value);
         }
         else if (!string.IsNullOrEmpty(subContentBlock.Key))
         {
-            Console.WriteLine($"Performing regex replacement for Key: {subContentBlock.Key}");
+            logger?.LogTrace("Performing regex replacement using content block key {CustomerKey}.", subContentBlock.Key);
             subAsset = await api.GetAssetAsync(customerKey: subContentBlock.Key);
         }
         else if (!string.IsNullOrEmpty(subContentBlock.Name))
         {
-            Console.WriteLine($"Performing regex replacement for Name: {subContentBlock.Name}");
+            logger?.LogTrace("Performing regex replacement using content block name {Name}.", subContentBlock.Name);
             subAsset = await api.GetAssetAsync(name: subContentBlock.Name);
         }
         if (subAsset == null)
         {
-            Console.WriteLine($"Sub asset not found for ContentBlock: {subContentBlock}");
+            logger?.LogWarning("Sub asset not found for content block {@ContentBlock}.", subContentBlock);
             return input; // No replacement if sub asset is not found
         }
 
@@ -176,19 +177,14 @@ public static class AssetHelpers
         if (!string.IsNullOrEmpty(subAsset.Content))
         {
             subContent = subAsset.Content;
-            Console.WriteLine($"Using Content from sub asset: {subAsset.Name}. Content: {subAsset.Content}");
+            logger?.LogTrace("Using direct content from sub asset {AssetName} (Id={AssetId}).", subAsset.Name, subAsset.Id);
         }
         else if (subAsset.Views?.Html?.Content != null)
         {
             subContent = subAsset.Views.Html.Content;
-            Console.WriteLine($"Using Views.Html.Content from sub asset: {subAsset.Name}. Views.Html.Content: {subAsset.Views.Html.Content}");
+            logger?.LogTrace("Using HTML view content from sub asset {AssetName} (Id={AssetId}).", subAsset.Name, subAsset.Id);
         }
-        
-        Console.WriteLine("----------********************----------");
-        Console.WriteLine($"input: {input}");
-        Console.WriteLine($"pattern: {subContentBlock.ContentRegex}");
-        Console.WriteLine($"replacement: {subContent}");
-        Console.WriteLine("----------********************----------");
+        logger?.LogTrace("Applying regex replacement. Pattern={Pattern}, InputLength={InputLength}, ReplacementLength={ReplacementLength}", subContentBlock.ContentRegex, input.Length, subContent.Length);
         
         var results = Regex.Replace
                 (
@@ -197,7 +193,7 @@ public static class AssetHelpers
                     replacement: subContent,
                     options: RegexOptions.IgnoreCase | RegexOptions.Singleline
                 );
-        Console.WriteLine($"Replaced content for ContentBlock: {subContentBlock}. Result: {results}");
+        logger?.LogTrace("Regex replacement complete for content block {@ContentBlock}. ResultLength={ResultLength}", subContentBlock, results.Length);
         return results;
 
     }

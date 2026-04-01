@@ -73,6 +73,7 @@ public partial class SfmcDataExtensionListViewModel
 
         try
         {
+            _logger.LogInformation("Opening import flow. FilePath={FilePath}, SelectedFolder={SelectedFolder}", filePaths[0], SelectedFolder.Name);
             await _navigationService.NavigateToFileImportAsync(_sfmcConnection, filePaths[0], SelectedFolder);
         }
         catch (Exception ex)
@@ -128,12 +129,13 @@ public partial class SfmcDataExtensionListViewModel
     {
         try
         {
+            _logger.LogInformation("Executing data extension search. SearchText={SearchText}, SearchOption={SearchOption}", SearchText, SelectedSearchOption);
             var contentResources = await PerformSearchAsync();
             PopulateContentResources(contentResources);
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Failed to perform search: {ex.Message}");
+            _logger.LogError(ex, "Failed to perform data extension search. SearchText={SearchText}", SearchText);
         }
     }
 
@@ -145,7 +147,7 @@ public partial class SfmcDataExtensionListViewModel
         // Check if search text is empty
         if (string.IsNullOrEmpty(searchType))
         {
-            _logger.LogError("Please enter a search term.");
+            _logger.LogWarning("Data extension search requested without a search term.");
             searchType = "Like";
         }
 
@@ -166,6 +168,7 @@ public partial class SfmcDataExtensionListViewModel
                 break;
         }
 
+        _logger.LogInformation("Data extension search completed. SearchText={SearchText}, SearchType={SearchType}, ResultCount={ResultCount}", SearchText, searchType, contentResources.Count);
         return contentResources.ToViewModel();
     }
     #endregion Search
@@ -178,7 +181,7 @@ public partial class SfmcDataExtensionListViewModel
         try
         {
             // Optional: Show loading UI
-            _logger.LogTrace($"Starting download of {dataExtension.Name} to {filePath}...", "OK");
+            _logger.LogInformation("Starting data extension download. DataExtension={DataExtensionName}, CustomerKey={CustomerKey}, FilePath={FilePath}", dataExtension.Name, dataExtension.CustomerKey, filePath);
 
 
             IFileWriter fileWriter = new DelimitedFileWriter
@@ -194,11 +197,11 @@ public partial class SfmcDataExtensionListViewModel
                     fileName: filePath
                 );
 
-            _logger.LogInformation($"Downloaded {records} records to {filePath}", "OK");
+            _logger.LogInformation("Data extension download completed. DataExtension={DataExtensionName}, Records={RecordCount}, FilePath={FilePath}", dataExtension.Name, records, filePath);
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Download failed: {ex.ToString()}", "OK");
+            _logger.LogError(ex, "Data extension download failed. DataExtension={DataExtensionName}, CustomerKey={CustomerKey}", dataExtension.Name, dataExtension.CustomerKey);
         }
 
     });
@@ -208,12 +211,14 @@ public partial class SfmcDataExtensionListViewModel
         if (SelectedFolder == null) return;
         try
         {
+            _logger.LogInformation("Loading data extensions for selected folder {FolderName} ({FolderId}).", SelectedFolder.Name, SelectedFolder.Id);
             var contentResources = await ContentResourceApi.GetDataExtensionsByFolderAsync(SelectedFolder.Id);
             PopulateContentResources(contentResources.ToViewModel());
+            _logger.LogInformation("Loaded {DataExtensionCount} data extensions for folder {FolderName}.", ContentResources.Count, SelectedFolder.Name);
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Failed to load assets. {ex.Message}");
+            _logger.LogError(ex, "Failed to load data extensions for folder {FolderName} ({FolderId}).", SelectedFolder.Name, SelectedFolder.Id);
         }
     }
 
@@ -221,20 +226,20 @@ public partial class SfmcDataExtensionListViewModel
     {
          try
         {
-            _logger.LogTrace("Calling FolderApi.GetFolderTreeAsync()");
+            _logger.LogDebug("Requesting data extension folder tree from API.");
             
             // Add timeout to prevent infinite waiting
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             var folders = await FolderApi.GetFolderTreeAsync().WaitAsync(cts.Token);
             
-            _logger.LogTrace($"Received {folders?.Count() ?? 0} folders from API");
+            _logger.LogInformation("Received {FolderCount} data extension folders from API.", folders?.Count() ?? 0);
             var viewModels = folders?.ToViewModel();
-            _logger.LogTrace($"Converted to {viewModels?.Count() ?? 0} view models");
+            _logger.LogDebug("Converted data extension folders to {ViewModelCount} view models.", viewModels?.Count() ?? 0);
             return viewModels ?? Enumerable.Empty<FolderViewModel>();
         }
         catch (OperationCanceledException)
         {
-            _logger.LogError("API call timed out after 30 seconds");
+            _logger.LogError("Data extension folder API call timed out after 30 seconds.");
             throw new TimeoutException("API call timed out. Please check your connection and try again.");
         }
         catch (Exception ex)

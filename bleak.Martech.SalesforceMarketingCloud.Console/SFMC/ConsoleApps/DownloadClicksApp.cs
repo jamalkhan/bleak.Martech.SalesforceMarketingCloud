@@ -50,11 +50,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
         {
             if (Directory.Exists(Folder))
             {
-                Console.WriteLine($"✅ Folder exists: {Folder}");
+                Logger.LogInformation("Download folder exists. Path={Folder}", Folder);
                 return;
             }
 
-            Console.WriteLine($"❌ Folder does not exist: {Folder}");
+            Logger.LogWarning("Download folder does not exist. Path={Folder}", Folder);
             Console.Write("Would you like to create it? (y/n): ");
             
             string? response = Console.ReadLine()?.Trim().ToLower();
@@ -63,16 +63,16 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                 try
                 {
                     Directory.CreateDirectory(Folder);
-                    Console.WriteLine($"✅ Folder created: {Folder}");
+                    Logger.LogInformation("Download folder created. Path={Folder}", Folder);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"❌ Failed to create folder: {ex.Message}");
+                    Logger.LogError(ex, "Failed to create download folder. Path={Folder}", Folder);
                 }
             }
             else
             {
-                Console.WriteLine("❌ Folder creation skipped.");
+                Logger.LogWarning("Folder creation skipped by user. Path={Folder}", Folder);
             }
         }
 
@@ -80,7 +80,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
         {
             var endTime = startTime.AddDays(1);
             string path = Path.Combine(Folder, $"sends_{startTime:yyyyMMdd}_{endTime:yyyyMMdd}.csv");
-            Console.WriteLine($"Downloading Sends for {startTime:yyyy-MM-dd} through {endTime:yyyy-MM-dd} to file {path}");
+            Logger.LogInformation("Downloading clicks. StartDate={StartDate}, EndDate={EndDate}, Path={Path}", startTime, endTime, path);
             
             var api = new ClickEventSoapApi
             (
@@ -88,7 +88,8 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                 authRepository: _authRepository,
                 fileWriter: new DelimitedFileWriter
                 (
-                    options: new DelimitedFileWriterOptions { Delimiter = "," }
+                    options: new DelimitedFileWriterOptions { Delimiter = "," },
+                    logger: Logger
                 ), 
                 logger: Logger,
                 startDate: startTime,
@@ -97,7 +98,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 
             await api.LoadDataSetAsync(filePath: path);
 
-            Console.WriteLine($"Downloaded Sends for {startTime:yyyy-MM-dd} through {endTime:yyyy-MM-dd}");
+            Logger.LogInformation("Completed clicks download. StartDate={StartDate}, EndDate={EndDate}, Path={Path}", startTime, endTime, path);
         }
     }
 }

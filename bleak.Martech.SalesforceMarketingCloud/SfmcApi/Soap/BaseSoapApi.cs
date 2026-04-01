@@ -3,6 +3,7 @@ using bleak.Martech.SalesforceMarketingCloud.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using Microsoft.Extensions.Logging;
+using System.Text.RegularExpressions;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Api.Soap;
 
@@ -42,5 +43,19 @@ public abstract partial class BaseSoapApi<T>
         headers.Add(new Header() { Name = "Cache-Control", Value = "no-cache" });
         headers.Add(new Header() { Name = "Host", Value = Configuration.SfmcEndpointUrls.GetSoapHost(_authRepository.Subdomain, _sfmcConnectionConfiguration.SoapBaseUrl) });
         return headers;
+    }
+
+    public static string RedactSoapPayload(string payload)
+    {
+        if (string.IsNullOrWhiteSpace(payload))
+        {
+            return string.Empty;
+        }
+
+        return Regex.Replace(
+            payload,
+            @"(<fueloauth[^>]*>)(.*?)(</fueloauth>)",
+            "$1[REDACTED]$3",
+            RegexOptions.Singleline | RegexOptions.IgnoreCase);
     }
 }

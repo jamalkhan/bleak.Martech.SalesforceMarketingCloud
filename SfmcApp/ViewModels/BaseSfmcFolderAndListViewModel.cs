@@ -69,6 +69,7 @@ public abstract class BaseSfmcFolderAndListViewModel
             if (SetProperty(ref _selectedFolder, value))
             {
                 SelectedFolderName = value?.Name ?? string.Empty;
+                _logger.LogInformation("Selected folder changed. FolderName={FolderName}", SelectedFolderName);
                 LoadContentResourcesForSelectedFolderAsync();
             }
         }
@@ -127,6 +128,7 @@ public abstract class BaseSfmcFolderAndListViewModel
     {
         IsContentResourcesLoaded = false;
         IsContentResourcesLoading = true;
+        _logger.LogInformation("Populating content resources. IncomingCount={IncomingCount}", contentResources.Count());
         ContentResources.Clear();
         foreach (var contentResource in contentResources)
         {
@@ -143,6 +145,7 @@ public abstract class BaseSfmcFolderAndListViewModel
         }
         IsContentResourcesLoading = false;
         IsContentResourcesLoaded = true;
+        _logger.LogInformation("Finished populating content resources. LoadedCount={LoadedCount}", ContentResources.Count);
     }
     #endregion ContentResources
 
@@ -156,18 +159,18 @@ public abstract class BaseSfmcFolderAndListViewModel
     {
         try
         {
-            _logger.LogTrace("Loading Base folders...");
+            _logger.LogInformation("Loading folder tree for {ConnectionName}.", ConnectionName);
             IsFoldersLoaded = false;
             IsFoldersLoading = true;
-            _logger.LogTrace("Set Booleans");
+            _logger.LogDebug("Folder loading state updated. IsFoldersLoaded={IsFoldersLoaded}, IsFoldersLoading={IsFoldersLoading}", IsFoldersLoaded, IsFoldersLoading);
 
             // Add timeout to prevent infinite waiting
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             var folderTree = await GetFolderTreeAsync().WaitAsync(cts.Token);
-            _logger.LogTrace($"Retrieved {folderTree?.Count() ?? 0} folders from API");
+            _logger.LogInformation("Retrieved {FolderCount} folders from API.", folderTree?.Count() ?? 0);
 
             Folders.Clear();
-            _logger.LogTrace("Cleared Folders collection.");
+            _logger.LogDebug("Cleared existing folder collection.");
 
             if (folderTree != null)
             {
@@ -179,18 +182,18 @@ public abstract class BaseSfmcFolderAndListViewModel
 
             IsFoldersLoaded = true;
             IsFoldersLoading = false;
-            _logger.LogTrace("Folder loading completed successfully");
+            _logger.LogInformation("Folder loading completed successfully. LoadedCount={FolderCount}", Folders.Count);
         }
         catch (OperationCanceledException)
         {
-            _logger.LogError("Folder loading timed out after 30 seconds");
+            _logger.LogError("Folder loading timed out after 30 seconds for connection {ConnectionName}.", ConnectionName);
             IsFoldersLoaded = false;
             IsFoldersLoading = false;
             throw new TimeoutException("Folder loading timed out. Please check your connection and try again.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error loading Base folders: {ex.Message}");
+            _logger.LogError(ex, "Error loading folders for connection {ConnectionName}.", ConnectionName);
             IsFoldersLoaded = false;
             IsFoldersLoading = false;
             throw; // Re-throw to help with debugging

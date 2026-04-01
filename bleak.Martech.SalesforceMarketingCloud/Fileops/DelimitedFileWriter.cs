@@ -1,4 +1,6 @@
 using System.Reflection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Fileops
 {
@@ -12,12 +14,14 @@ namespace bleak.Martech.SalesforceMarketingCloud.Fileops
     public class DelimitedFileWriter : IFileWriter
     {
         private readonly object _fileLock = new object();
+        private readonly ILogger _logger;
 
         
         public DelimitedFileWriterOptions Options { get; private set; }
-        public DelimitedFileWriter(DelimitedFileWriterOptions? options = null)
+        public DelimitedFileWriter(DelimitedFileWriterOptions? options = null, ILogger? logger = null)
         {
             Options = options ?? new DelimitedFileWriterOptions();
+            _logger = logger ?? NullLogger.Instance;
         }
 
         public void WriteToFile<T>(string filePath, IEnumerable<T> records)
@@ -73,12 +77,12 @@ namespace bleak.Martech.SalesforceMarketingCloud.Fileops
 
                         writer.Flush(); // Ensure data is written
                         writeSuccessful = true; // Mark as successful
-                        Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] {filePath} has been updated");
+                        _logger.LogInformation("Delimited file updated successfully. Path={Path}, RecordCount={RecordCount}", filePath, records.Count());
                     }
                 }
                 catch (IOException ex)
                 {
-                    Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Error writing {filePath}... {ex.Message}");
+                    _logger.LogWarning(ex, "Error writing delimited file. Path={Path}, Attempt={Attempt}, MaxAttempts={MaxAttempts}", filePath, attempt + 1, Options.MaxRetryAttempts);
                     attempt++;
                     if (attempt < Options.MaxRetryAttempts)
                     {
@@ -146,12 +150,12 @@ namespace bleak.Martech.SalesforceMarketingCloud.Fileops
 
                         writer.Flush(); // Ensure data is written
                         writeSuccessful = true; // Mark as successful
-                        Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] {filePath} has been updated");
+                        _logger.LogInformation("Delimited file updated successfully. Path={Path}, RecordCount={RecordCount}", filePath, dictionaries.Count());
                     }
                 }
                 catch (IOException ex)
                 {
-                    Console.WriteLine($"[{this.GetType().Name} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] Error writing {filePath}... {ex.Message}");
+                    _logger.LogWarning(ex, "Error writing delimited dictionary file. Path={Path}, Attempt={Attempt}, MaxAttempts={MaxAttempts}", filePath, attempt + 1, Options.MaxRetryAttempts);
                     attempt++;
                     if (attempt < Options.MaxRetryAttempts)
                     {

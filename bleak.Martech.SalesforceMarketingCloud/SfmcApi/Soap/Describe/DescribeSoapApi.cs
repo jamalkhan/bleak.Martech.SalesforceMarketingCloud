@@ -48,6 +48,7 @@ public partial class DescribeSoapApi
 
     public async Task<string> GetObjectDefinitionAsync(string objectType)
     {
+        _logger.LogInformation("Describing SFMC object type {ObjectType}.", objectType);
         var requestPayload = await BuildRequestAsync(objectType: objectType);
         return await MakeApiCallAsync(requestPayload);
     }
@@ -56,7 +57,8 @@ public partial class DescribeSoapApi
     {
         try
         {
-            if (_sfmcConnectionConfiguration.Debug) { Console.WriteLine($"Invoking SOAP Call. URL: {url}"); }
+            _logger.LogDebug("Invoking describe SOAP call. Url={Url}", url);
+            _logger.LogTrace("Describe SOAP payload: {Payload}", BaseSoapApi<DescribeSoapApi>.RedactSoapPayload(requestPayload));
 
             //var results = await _restClientAsync.ExecuteRestMethodAsync<SoapEnvelope<ObjectDefinition>, string>
             var results = await _restClientAsync.ExecuteRestMethodAsync<string, string>
@@ -67,18 +69,22 @@ public partial class DescribeSoapApi
                 headers: BuildHeaders()
             );
 
-            _logger.LogInformation($"results.Value = {results?.Results}");
-            _logger.LogError($"results.Error = {results?.Error}");
+            _logger.LogDebug("Describe SOAP call completed. HasResults={HasResults}, HasError={HasError}", !string.IsNullOrWhiteSpace(results?.Results), !string.IsNullOrWhiteSpace(results?.Error));
+            if (!string.IsNullOrWhiteSpace(results?.Error))
+            {
+                _logger.LogError("Describe SOAP call returned an error. Error={Error}", results.Error);
+            }
 
             // Process Results
             //_logger.LogInformation($"Overall Status: {results!.Results.Body.RetrieveResponse.OverallStatus}");
 
             //return results.Results.Body.RetrieveResponse.Results.FirstOrDefault();
+            _logger.LogInformation("Describe SOAP call completed successfully.");
             return results?.Results ?? string.Empty;
         }
         catch (System.Exception ex)
         {
-            Console.WriteLine($"Error {ex.Message}");
+            _logger.LogError(ex, "Describe SOAP call failed.");
             throw;
         }
     }

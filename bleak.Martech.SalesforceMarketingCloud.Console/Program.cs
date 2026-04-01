@@ -18,14 +18,6 @@ public static class Program
 {
     static JsonSerializer serializer = new JsonSerializer();
     static IRestClientAsync _restClient = new RestClient();
-    static IAuthRepository _authRepository = new AuthRepository(
-        restClientAsync: _restClient,
-        subdomain: AppConfiguration.Instance.Subdomain,
-        clientId: AppConfiguration.Instance.ClientId,
-        clientSecret: AppConfiguration.Instance.ClientSecret,
-        memberId: AppConfiguration.Instance.MemberId,
-        authBaseUrl: AppConfiguration.Instance.AuthBaseUrl
-    );
     static string _logPath = Path.Combine(AppContext.BaseDirectory, "sfmc-console.log");
     static ILoggerFactory _loggerFactory = LoggerFactory.Create(builder =>
     {
@@ -34,6 +26,15 @@ public static class Program
             .AddConsole()
             .AddProvider(new FileLoggerProvider(_logPath));
     });
+    static IAuthRepository _authRepository = new AuthRepository(
+        restClientAsync: _restClient,
+        subdomain: AppConfiguration.Instance.Subdomain,
+        clientId: AppConfiguration.Instance.ClientId,
+        clientSecret: AppConfiguration.Instance.ClientSecret,
+        memberId: AppConfiguration.Instance.MemberId,
+        authBaseUrl: AppConfiguration.Instance.AuthBaseUrl,
+        logger: _loggerFactory.CreateLogger<AuthRepository>()
+    );
 
     private async static Task Main(string[] args)
     {
@@ -65,7 +66,7 @@ public static class Program
                 switch (input)
                 {
                     case "1":
-                        var downloadContent = new DownloadContentApp(_restClient, _authRepository);
+                        var downloadContent = new DownloadContentApp(_restClient, _authRepository, _loggerFactory.CreateLogger<DownloadContentApp>());
                         await downloadContent.Execute();
                         break;
 
@@ -125,7 +126,7 @@ public static class Program
                         break;
 
                     case "10":
-                        var downloadImages = new DownloadImagesApp(_restClient, _authRepository);
+                        var downloadImages = new DownloadImagesApp(_restClient, _authRepository, _loggerFactory.CreateLogger<DownloadImagesApp>());
                         await downloadImages.Execute();
                         break;
                     case "11":

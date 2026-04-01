@@ -27,18 +27,16 @@ public partial class SfmcAssetListViewModel
             i++;
             if (i > 20 || string.IsNullOrEmpty(content))
             {
-                // TODO: logger
-                Console.WriteLine("Breaking out of FillContentExpandedAsync loop after 20 iterations.");
+                _logger.LogDebug("Stopping expanded content resolution. Iteration={Iteration}, HasContent={HasContent}", i, !string.IsNullOrEmpty(content));
                 // Will not do more than 20 levels of recursion.
                 break; // Prevent infinite loop
             }
 
             var subContentBlocks = GetContentBlocksByString(content);
-            Console.WriteLine($"Found {subContentBlocks.Count} content blocks in contentExpanded on iteration {i}.");
+            _logger.LogTrace("Expanded content iteration {Iteration} found {ContentBlockCount} content blocks.", i, subContentBlocks.Count);
             if (subContentBlocks == null || subContentBlocks.Count == 0)
             {
-                // TODO: logger
-                Console.WriteLine("No sub content blocks found in contentExpanded. Breaking out of loop.");
+                _logger.LogTrace("No additional content blocks found during content expansion at iteration {Iteration}.", i);
                 break;
             }
 

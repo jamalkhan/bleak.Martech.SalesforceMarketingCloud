@@ -52,7 +52,7 @@ public class DataExtensionRestApi
         int currentPage = 1;
         try
         {
-            _logger.LogTrace($"writing file to {fileName}");
+            _logger.LogInformation("Starting data extension download. CustomerKey={CustomerKey}, FileName={FileName}", dataExtensionCustomerKey, fileName);
 
             Directory.CreateDirectory(Path.GetDirectoryName(fileName)!);
 
@@ -60,7 +60,7 @@ public class DataExtensionRestApi
             string url = $"{baseUrl}/v1/customobjectdata/key/{dataExtensionCustomerKey}/rowset?$page=1&$pageSize=2500";
             do
             {
-                _logger.LogTrace($"Downloading Data Extension[{dataExtensionCustomerKey}] from  {url}");
+                _logger.LogDebug("Downloading data extension page {PageNumber}. CustomerKey={CustomerKey}, Url={Url}", currentPage, dataExtensionCustomerKey, url);
                 var results = await LoadApiWithRetryAsync<DataExtensionDataDto>(
                     loadApiCallAsync: LoadApiCallAsync,
                     url: url,
@@ -69,11 +69,13 @@ public class DataExtensionRestApi
 
                 if (results?.Error != null)
                 {
+                    _logger.LogError("Data extension download returned API error. CustomerKey={CustomerKey}, Error={Error}", dataExtensionCustomerKey, results.Error);
                     throw new Exception($"Error: {results.Error}");
                 }
 
                 if (results?.Results?.items == null)
                 {
+                    _logger.LogWarning("Data extension download returned no items. CustomerKey={CustomerKey}, Page={PageNumber}", dataExtensionCustomerKey, currentPage);
                     throw new Exception("API returned no results.");
                 }
 
@@ -85,15 +87,15 @@ public class DataExtensionRestApi
 
                 if (currentPage++ % 10 == 0)
                 {
-                    _logger.LogInformation($"Downloaded {totalRecords} records so far...");
+                    _logger.LogInformation("Data extension download progress. CustomerKey={CustomerKey}, TotalRecords={TotalRecords}", dataExtensionCustomerKey, totalRecords);
                 }
                 else
                 { 
-                    _logger.LogTrace($"Current Page had {currentPageSize} records. There are now {totalRecords} Records Identified.");
+                    _logger.LogDebug("Downloaded page {PageNumber}. CustomerKey={CustomerKey}, PageRecords={PageRecords}, TotalRecords={TotalRecords}", currentPage - 1, dataExtensionCustomerKey, currentPageSize, totalRecords);
                 }
                 if (results == null || results.Results == null || results.Results.links == null || results.Results.links == null || string.IsNullOrEmpty(results.Results.links.next))
                 {
-                    _logger.LogTrace($"No more pages to process. Exiting loop.");
+                    _logger.LogInformation("Completed data extension download. CustomerKey={CustomerKey}, TotalRecords={TotalRecords}, FileName={FileName}", dataExtensionCustomerKey, totalRecords, fileName);
                     break;
                 }
 
@@ -103,7 +105,7 @@ public class DataExtensionRestApi
         }
         catch (System.Exception ex)
         {
-            _logger.LogError($"{ex.Message}");
+            _logger.LogError(ex, "Failed to download data extension. CustomerKey={CustomerKey}, FileName={FileName}", dataExtensionCustomerKey, fileName);
             throw;
         }
         return totalRecords;

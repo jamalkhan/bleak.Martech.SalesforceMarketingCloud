@@ -22,8 +22,11 @@ public abstract class BaseSfmcViewModel<T> : BaseViewModel<T>
         {
             if (string.IsNullOrWhiteSpace(DownloadDirectory))
             {
+                _logger.LogWarning("OpenDownloadDirectory was requested but no download directory is configured.");
                 return;
             }
+
+            _logger.LogInformation("Opening download directory {DownloadDirectory} for connection {ConnectionName}.", DownloadDirectory, ConnectionName);
 
 #if WINDOWS
             var process = new System.Diagnostics.Process();
@@ -46,7 +49,7 @@ public abstract class BaseSfmcViewModel<T> : BaseViewModel<T>
         catch (Exception ex)
         {
             // Optionally log or display an error
-            _logger.LogError($"Failed to open download directory: {ex.Message}");
+            _logger.LogError(ex, "Failed to open download directory {DownloadDirectory}.", DownloadDirectory);
         }
     }
 
@@ -65,6 +68,8 @@ public abstract class BaseSfmcViewModel<T> : BaseViewModel<T>
     {
         _downloadDirectory = Path.Combine(FileSystem.AppDataDirectory, "Downloads", sfmcConnection.DirectoryName, resourceType);
         _sfmcConnection = sfmcConnection;
+        _logger.LogInformation("Initialized {ViewModelName} for connection {ConnectionName}. ResourceType={ResourceType}, DownloadDirectory={DownloadDirectory}", typeof(T).Name, sfmcConnection.Name, resourceType, _downloadDirectory);
+        _logger.LogDebug("Connection state. Subdomain={Subdomain}, AuthBaseUrl={AuthBaseUrl}, RestBaseUrl={RestBaseUrl}, SoapBaseUrl={SoapBaseUrl}", sfmcConnection.Subdomain, sfmcConnection.AuthBaseUrl, sfmcConnection.RestBaseUrl, sfmcConnection.SoapBaseUrl);
     }
 
     protected readonly SfmcConnection _sfmcConnection;

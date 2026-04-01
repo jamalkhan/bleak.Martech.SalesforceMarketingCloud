@@ -43,7 +43,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
 
         public async Task<IEnumerable<AssetPoco>> GetAssetsAsync(int folderId)
         {
-            _logger.LogTrace("GetAssetsAsync() invoked");
+            _logger.LogInformation("Loading assets for folder {FolderId}.", folderId);
             int page = 1;
             int currentPageSize = 0;
             var assets = new List<AssetPoco>();
@@ -74,6 +74,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
             }
             while (true);
 
+            _logger.LogInformation("Loaded {AssetCount} assets for folder {FolderId}.", assets.Count, folderId);
             return assets;
         }
 
@@ -86,13 +87,14 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
         )
         {
             
-
-            _logger.LogTrace("SearchAssetsAsync() invoked");
+            _logger.LogInformation("Searching assets. SearchTerm={SearchTerm}, FolderId={FolderId}", searchTerm, folderId);
 
             var assets = new List<AssetPoco>();
             assets.AddRange(await SearchByAsync("name", searchTerm));
             assets.AddRange(await SearchByAsync("customerKey", searchTerm));
-            return assets.OrderBy(a => a.Name);
+            var orderedAssets = assets.OrderBy(a => a.Name).ToList();
+            _logger.LogInformation("Asset search completed. SearchTerm={SearchTerm}, ResultCount={ResultCount}", searchTerm, orderedAssets.Count);
+            return orderedAssets;
         }
 
         private async Task<List<AssetPoco>> SearchByAsync(string key, string searchTerm)
@@ -137,7 +139,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
             string? name = null
         )
         {
-            _logger.LogTrace("GetAssetAsync() invoked");
+            _logger.LogInformation("Loading single asset. AssetId={AssetId}, CustomerKey={CustomerKey}, Name={Name}", assetId, customerKey, name);
             int page = 1;
             var assets = new List<AssetPoco>();
 
@@ -207,6 +209,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
             }
 
             var asset = loadedAssets.FirstOrDefault();
+            _logger.LogDebug("Single asset load completed. AssetId={AssetId}, ResolvedAssetName={AssetName}", assetId, asset?.Name);
             return asset ?? throw new Exception($"Asset with ID {assetId} not found");
         }
 
@@ -229,7 +232,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
 
             try
             {
-                _logger.LogTrace($"Loading Asset Page #{page} with URL: {url}");
+                _logger.LogDebug("Loading asset page {PageNumber}. Url={Url}", page, url);
 
                 var results = await ExecuteRestMethodWithRetryAsync(
                     apiCallAsync: LoadFolderApiCallAsync,
@@ -237,11 +240,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
                     authenticationError: "401"
                 );
 
-                _logger.LogTrace($"results.Value = {results?.Results}");
+                _logger.LogTrace("Asset API response received. Page={PageNumber}, HasResults={HasResults}", page, results?.Results != null);
 
                 if (results?.Error != null)
                 {
-                    _logger.LogError($"results.Error = {results.Error}");
+                    _logger.LogError("Asset API returned an error for page {PageNumber}. Error={Error}", page, results.Error);
                 }
 
                 if (results?.Results?.items != null)
@@ -249,12 +252,12 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
                     retval.AddRange(results.Results.items);
                 }
 
-                _logger.LogTrace($"Current Page had {retval.Count} records in page {page}");
+                _logger.LogDebug("Asset page {PageNumber} returned {RecordCount} records.", page, retval.Count);
                 return retval;
             }
             catch (Exception ex)
             {
-                _logger.LogError($"{ex.Message}");
+                _logger.LogError(ex, "Failed to load asset page {PageNumber}. Url={Url}", page, url);
                 throw;
             }
         }

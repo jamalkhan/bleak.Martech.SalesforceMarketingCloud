@@ -42,30 +42,35 @@ public partial class DataExtensionSoapApi
 
     public async Task<List<DataExtensionPoco>> GetDataExtensionsByFolderAsync(int folderId)
     {
+        _logger.LogInformation("Loading data extensions for folder {FolderId}.", folderId);
         var requestPayload = await BuildRequestAsync(folderId: folderId);
         return await IterateAPICallsForRequestAsync(requestPayload: requestPayload);
     }
 
     public async Task<List<DataExtensionPoco>> GetDataExtensionsNameLikeAsync(string nameLike)
     {
+        _logger.LogInformation("Searching data extensions with LIKE filter. SearchTerm={SearchTerm}", nameLike);
         var requestPayload = await BuildRequestAsync(nameLike: nameLike);
         return await IterateAPICallsForRequestAsync(requestPayload: requestPayload);
     }
 
     public async Task<List<DataExtensionPoco>> GetDataExtensionsNameStartsWithAsync(string nameStartsWith)
     {
+        _logger.LogInformation("Searching data extensions with starts-with filter. SearchTerm={SearchTerm}", nameStartsWith);
         var requestPayload = await BuildRequestAsync(nameStartsWith: nameStartsWith);
         return await IterateAPICallsForRequestAsync(requestPayload: requestPayload);
     }
 
     public async Task<List<DataExtensionPoco>> GetDataExtensionsNameEndsWithAsync(string nameEndsWith)
     {
+        _logger.LogInformation("Searching data extensions with ends-with filter. SearchTerm={SearchTerm}", nameEndsWith);
         var requestPayload = await BuildRequestAsync(nameEndsWith: nameEndsWith);
         return await IterateAPICallsForRequestAsync(requestPayload: requestPayload);
     }
 
     public async Task<List<DataExtensionPoco>> GetAllDataExtensionsAsync()
     {
+        _logger.LogInformation("Loading all data extensions.");
         var requestPayload = await BuildRequestAsync();
         return await IterateAPICallsForRequestAsync(requestPayload: requestPayload);
     }
@@ -86,9 +91,11 @@ public partial class DataExtensionSoapApi
         if (definition.Columns.Count == 0)
             throw new ArgumentException("At least one column is required.", nameof(definition));
 
+        _logger.LogInformation("Creating data extension. Name={Name}, CustomerKey={CustomerKey}, CategoryId={CategoryId}, ColumnCount={ColumnCount}", definition.Name, definition.CustomerKey, definition.CategoryId, definition.Columns.Count);
         var payload = await BuildCreateDataExtensionRequestAsync(definition);
         var responseXml = await ExecuteCreateRequestAsync(payload);
         EnsureCreateSucceeded(responseXml, "create data extension");
+        _logger.LogInformation("Created data extension successfully. CustomerKey={CustomerKey}", definition.CustomerKey);
     }
 
     public async Task<int> AddRowsToDataExtensionAsync(string customerKey, IReadOnlyList<Dictionary<string, string>> rows)
@@ -100,15 +107,18 @@ public partial class DataExtensionSoapApi
             return 0;
 
         var imported = 0;
+        _logger.LogInformation("Adding rows to data extension. CustomerKey={CustomerKey}, RowCount={RowCount}", customerKey, rows.Count);
 
         foreach (var chunk in rows.Chunk(RowImportChunkSize))
         {
+            _logger.LogDebug("Importing data extension row chunk. CustomerKey={CustomerKey}, ChunkSize={ChunkSize}", customerKey, chunk.Length);
             var payload = await BuildCreateRowsRequestAsync(customerKey, chunk);
             var responseXml = await ExecuteCreateRequestAsync(payload);
             EnsureCreateSucceeded(responseXml, "insert data extension rows");
             imported += chunk.Length;
         }
 
+        _logger.LogInformation("Completed row import. CustomerKey={CustomerKey}, ImportedRows={ImportedRows}", customerKey, imported);
         return imported;
     }
 
@@ -121,7 +131,7 @@ public partial class DataExtensionSoapApi
         string requestId = string.Empty;
         do
         {
-            if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"Loading Data Extension {page}");
+            _logger.LogDebug("Loading data extension SOAP page {PageNumber}.", page);
             requestId = await MakeApiCallAsync(wsdlDataExtensions, requestPayload);
             page++;
         }
@@ -134,9 +144,11 @@ public partial class DataExtensionSoapApi
             {
                 dataExtensions.Add(wsdlDataExtension.ToDataExtensionPoco());
             }
+            _logger.LogInformation("Data extension SOAP load completed. ResultCount={ResultCount}", dataExtensions.Count);
             return dataExtensions;
         }
 
+        _logger.LogWarning("Data extension SOAP load returned no results.");
         throw new Exception("Error Loading Folders");
     }
 
@@ -144,7 +156,8 @@ public partial class DataExtensionSoapApi
     {
         try
         {
-            if (_sfmcConnectionConfiguration.Debug) { Console.WriteLine($"Invoking SOAP Call. URL: {url}"); }
+            _logger.LogDebug("Invoking data extension SOAP call. Url={Url}", url);
+            _logger.LogTrace("Data extension SOAP payload: {Payload}", RedactSoapPayload(requestPayload));
 
             var results = await _restClientAsync.ExecuteRestMethodAsync<SoapEnvelope<Wsdl.DataExtension>, string>(
                 uri: new Uri(url),
@@ -153,22 +166,22 @@ public partial class DataExtensionSoapApi
                 headers: BuildHeaders()
             );
 
-            if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"results.Value = {results?.Results}");
-            if (results?.Error != null) Console.WriteLine($"results.Error = {results.Error}");
+            _logger.LogDebug("Data extension SOAP call completed. HasError={HasError}", !string.IsNullOrWhiteSpace(results?.Error));
+            if (results?.Error != null) _logger.LogError("Data extension SOAP call returned an error. Error={Error}", results.Error);
 
             // Process Results
-            Console.WriteLine($"Overall Status: {results!.Results.Body.RetrieveResponse.OverallStatus}");
+            _logger.LogInformation("Data extension SOAP response status: {OverallStatus}", results!.Results.Body.RetrieveResponse.OverallStatus);
             int currentPageSize = 0;
             foreach (var result in results.Results.Body.RetrieveResponse.Results)
             {
                 wsdlDataExtensions.Add(result);
                 currentPageSize++;
             }
-            if (_sfmcConnectionConfiguration.Debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {wsdlDataExtensions.Count()} Total Data Extensions Identified.");
+            _logger.LogDebug("Data extension SOAP page processed. PageRecords={PageRecords}, AggregateRecords={AggregateRecords}", currentPageSize, wsdlDataExtensions.Count);
 
             if (results.Results.Body.RetrieveResponse.OverallStatus == "MoreDataAvailable")
             {
-                Console.WriteLine($"More DataExtensions Available. Request ID: {results.Results.Body.RetrieveResponse.RequestID}");
+                _logger.LogWarning("More data extensions available. ContinueRequest={RequestId}", results.Results.Body.RetrieveResponse.RequestID);
                 var moreDataRequestPayload = await BuildRequestAsync(requestId: results.Results.Body.RetrieveResponse.RequestID);
                 var retval = await MakeApiCallAsync(wsdlDataExtensions, moreDataRequestPayload.ToString());
                 return retval;
@@ -178,13 +191,15 @@ public partial class DataExtensionSoapApi
         }
         catch (System.Exception ex)
         {
-            Console.WriteLine($"Error {ex.Message}");
+            _logger.LogError(ex, "Data extension SOAP call failed.");
             throw;
         }
     }
 
     private async Task<string> ExecuteCreateRequestAsync(string requestPayload)
     {
+        _logger.LogDebug("Invoking SOAP create request. Url={Url}", url);
+        _logger.LogTrace("SOAP create payload: {Payload}", RedactSoapPayload(requestPayload));
         var rawClient = new RestClient();
         var results = await rawClient.ExecuteRestMethodAsync<string, string>(
             uri: new Uri(url),
@@ -194,8 +209,12 @@ public partial class DataExtensionSoapApi
         );
 
         if (!string.IsNullOrWhiteSpace(results?.Error))
+        {
+            _logger.LogError("SOAP create request returned an error. Error={Error}", results.Error);
             throw new Exception(results.Error);
+        }
 
+        _logger.LogTrace("SOAP create response received. ResponseLength={ResponseLength}", results?.Results?.Length ?? 0);
         return results?.Results ?? throw new InvalidOperationException("SOAP create call returned no response.");
     }
 

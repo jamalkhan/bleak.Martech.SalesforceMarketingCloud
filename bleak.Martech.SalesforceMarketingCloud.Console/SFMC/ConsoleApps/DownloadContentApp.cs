@@ -5,6 +5,7 @@ using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using bleak.Martech.SalesforceMarketingCloud.Models;
 using bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
 using bleak.Martech.SalesforceMarketingCloud.Models.Sfmc;
+using Microsoft.Extensions.Logging;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 {
@@ -17,56 +18,52 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
         private static HashSet<string> assetTypes = new HashSet<string>();
         IRestClientAsync _restClientAsync;
         IAuthRepository _authRepository;
-        public DownloadContentApp(IRestClientAsync restClientAsync, IAuthRepository authRepository)
+        private readonly ILogger<DownloadContentApp> _logger;
+        public DownloadContentApp(IRestClientAsync restClientAsync, IAuthRepository authRepository, ILogger<DownloadContentApp> logger)
         {
             _restClientAsync = restClientAsync;
             _authRepository = authRepository;
+            _logger = logger;
         }
 
         public async Task Execute()
         {
-            Console.WriteLine($"Getting Folder Tree");
-            Console.WriteLine("---------------------");
-            LoadFolders loadFolders = new LoadFolders(restClientAsync: _restClientAsync, authRepository: _authRepository);
+            _logger.LogInformation("Loading content folder tree.");
+            LoadFolders loadFolders = new LoadFolders(restClientAsync: _restClientAsync, authRepository: _authRepository, logger: _logger);
             var folderTree = await loadFolders.GetFolderTreeAsync();
-            Console.WriteLine($"Completed Building Folder Tree");
-            Console.WriteLine("---------------------");
+            _logger.LogInformation("Content folder tree loaded. RootFolderCount={RootFolderCount}", folderTree.Count);
             // PrintChildren(folderTree);
             // PrintFolders(folderTree);
             DownloadAllAssets(folderTree);
         }
 
-        private static void DownloadAllAssets(List<FolderObject> folderTree)
+        private void DownloadAllAssets(List<FolderObject> folderTree)
         {
-            Console.WriteLine("Download All Assets");
-            Console.WriteLine("---------------------");
+            _logger.LogInformation("Starting asset download for {FolderCount} root folders.", folderTree.Count);
 
             var path = AppConfiguration.Instance.OutputFolder;
-            if (AppConfiguration.Instance.Debug) Console.WriteLine($"Creating Directory {path}");
+            _logger.LogDebug("Ensuring output directory exists. Path={Path}", path);
             Directory.CreateDirectory(path);
-            if (AppConfiguration.Instance.Debug) Console.WriteLine($"Directory Created {path}");
+            _logger.LogDebug("Output directory ready. Path={Path}", path);
 
             foreach (var folder in folderTree)
             {
                 assetCounter = DownloadAllAssetsForAFolder(folder);
                 folderCounter++;
-                Console.WriteLine($"Processed {folderCounter} folders...");
+                _logger.LogInformation("Processed folder {FolderNumber}. CurrentAssetCount={AssetCount}", folderCounter, assetCounter);
                 
             }
-            Console.WriteLine("Assets have been downloaded");
-            Console.WriteLine("---------------------");
+            _logger.LogInformation("Asset download complete. TotalFolders={FolderCount}, TotalAssets={AssetCount}", folderCounter, assetCounter);
 
-            Console.WriteLine("---------------------");
-            Console.WriteLine("The following assettypes were found:");
+            _logger.LogInformation("Asset types discovered: {AssetTypes}", string.Join(", ", assetTypes.OrderBy(x => x)));
             foreach (var assetType in assetTypes)
             {
-                Console.WriteLine(assetType);
+                _logger.LogDebug("Discovered asset type {AssetType}.", assetType);
             }
-            Console.WriteLine("---------------------");
             
         }
 
-        private static int DownloadAllAssetsForAFolder(FolderObject folder)
+        private int DownloadAllAssetsForAFolder(FolderObject folder)
         {
             foreach (var asset in folder.Assets)
             {
@@ -75,13 +72,13 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                 // Write Metadata to Named as Customer Key
                 var metaDataCustomerKey = AppConfiguration.Instance.OutputFolder + "/" + asset.FullPath + "/customerkey-" + asset.CustomerKey + ".metadata";
                 Directory.CreateDirectory(Path.GetDirectoryName(metaDataCustomerKey)!);
-                if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Writing Metadata file to to save {metaDataCustomerKey}"); }
+                _logger.LogDebug("Writing asset metadata by customer key. Path={Path}, AssetId={AssetId}, CustomerKey={CustomerKey}", metaDataCustomerKey, asset.Id, asset.CustomerKey);
                 File.WriteAllText(metaDataCustomerKey, serializer.Serialize(asset));
 
                 // Write Metadata to Named as Id
                 var metaDataId = AppConfiguration.Instance.OutputFolder + "/" + asset.FullPath + "/id-" + asset.Id + ".metadata";
                 Directory.CreateDirectory(Path.GetDirectoryName(metaDataId)!);
-                if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Writing Metadata file to to save {metaDataId}"); }
+                _logger.LogDebug("Writing asset metadata by id. Path={Path}, AssetId={AssetId}", metaDataId, asset.Id);
                 File.WriteAllText(metaDataId, serializer.Serialize(asset));
 
                 string outputFileName = string.Empty;
@@ -89,11 +86,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                 {
                     case "codesnippetblock":
                         outputFileName = AppConfiguration.Instance.OutputFolder + "/" + asset.FullPath + "/customerkey-" + asset.CustomerKey + ".ampscript.html";
-                        if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Trying to save {outputFileName}"); }
+                        _logger.LogDebug("Writing asset content file. Path={Path}, AssetId={AssetId}, AssetType={AssetType}", outputFileName, asset.Id, asset.AssetType.Name);
                         File.WriteAllText(outputFileName, asset.Content);
 
                         outputFileName = AppConfiguration.Instance.OutputFolder + "/" + asset.FullPath + "/id-" + asset.Id + ".ampscript.html";
-                        if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Trying to save {outputFileName}"); }
+                        _logger.LogDebug("Writing asset content file. Path={Path}, AssetId={AssetId}, AssetType={AssetType}", outputFileName, asset.Id, asset.AssetType.Name);
                         File.WriteAllText(outputFileName, asset.Content);
                         break;
                     case "webpage":
@@ -101,11 +98,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                     case "htmlblock":
                     case "templatebasedemail":
                         outputFileName = AppConfiguration.Instance.OutputFolder + "/" + asset.FullPath + "/customerkey-" + asset.CustomerKey + ".ampscript.html";
-                        if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Trying to save {outputFileName}"); }
+                        _logger.LogDebug("Writing asset HTML file. Path={Path}, AssetId={AssetId}, AssetType={AssetType}", outputFileName, asset.Id, asset.AssetType.Name);
                         File.WriteAllText(outputFileName, asset.Views.Html.Content);
 
                         outputFileName = AppConfiguration.Instance.OutputFolder + "/" + asset.FullPath + "/id-" + asset.Id + ".ampscript.html";
-                        if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Trying to save {outputFileName}"); }
+                        _logger.LogDebug("Writing asset HTML file. Path={Path}, AssetId={AssetId}, AssetType={AssetType}", outputFileName, asset.Id, asset.AssetType.Name);
                         File.WriteAllText(outputFileName, asset.Views.Html.Content);
                         break;
                     default:
@@ -115,7 +112,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                 assetCounter++;
                 if (assetCounter % AppConfiguration.Instance.PageSize == 0)
                 {
-                    Console.WriteLine($"Wrote {assetCounter} assets to the filesystem...");
+                    _logger.LogInformation("Wrote {AssetCount} assets to the filesystem so far.", assetCounter);
                 }
             }
             if (folder.SubFolders != null && folder.SubFolders.Count > 0)
@@ -165,11 +162,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                 {
                     var token = await _authRepository.GetTokenAsync();
                     // Console.WriteLine($"Token: {token.access_token}");
-                    if (AppConfiguration.Instance.Debug) Console.WriteLine($"Loading Assets Page #{page}");
+                    _logger.LogDebug("Loading asset page {PageNumber} for folder {FolderPath}.", page, folderObject.FullPath);
                     //string url = $"https://{AppConfiguration.Instance.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/assets?$page=1&$pagesize=100&$orderBy=name asc&$filter=category.id=5843
                     string uri = $"{bleak.Martech.SalesforceMarketingCloud.Configuration.SfmcEndpointUrls.GetRestEndpoint(AppConfiguration.Instance.Subdomain, "/asset/v1/content/assets", AppConfiguration.Instance.RestBaseUrl)}?$page={page}&$pagesize={AppConfiguration.Instance.PageSize}&$orderBy=name&$filter=category.id eq {folderObject.Id}";
 
-                    if (AppConfiguration.Instance.Debug) Console.WriteLine($"Trying to download to {uri} with {token.access_token}");
+                    _logger.LogTrace("Requesting assets for folder {FolderPath}. Uri={Uri}", folderObject.FullPath, uri);
 
                     var results = await _restClientAsync.ExecuteRestMethodAsync<SfmcRestWrapper<SfmcAsset>, string>(
                         uri: new Uri(uri),
@@ -184,7 +181,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 
                     if (results != null && results.UnhandledError != null && results.UnhandledError.Contains("401"))
                     {
-                        Console.WriteLine($"Unauthenticated: {results.UnhandledError}");
+                        _logger.LogWarning("Asset request returned unauthenticated response for folder {FolderPath}. Error={Error}", folderObject.FullPath, results.UnhandledError);
                         token = await _authRepository.GetTokenAsync();
 
                         results = await _restClientAsync.ExecuteRestMethodAsync<SfmcRestWrapper<SfmcAsset>, string>(
@@ -199,22 +196,22 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                             );
                     }
 
-                    if (AppConfiguration.Instance.Debug) Console.WriteLine($"results.Value = {results?.Results}");
-                    if (results?.Error != null) Console.WriteLine($"results.Error = {results.Error}");
+                    _logger.LogTrace("Asset request completed for folder {FolderPath}. HasResults={HasResults}", folderObject.FullPath, results?.Results != null);
+                    if (results?.Error != null) _logger.LogWarning("Asset request returned an error for folder {FolderPath}. Error={Error}", folderObject.FullPath, results.Error);
                     
                     currentPageSize = results!.Results.items.Count();
                     sfmcAssets.AddRange(results.Results.items);
-                    if (AppConfiguration.Instance.Debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {sfmcAssets.Count()} Total Assets Identified in {folderObject.FullPath}.");
+                    _logger.LogDebug("Loaded asset page {PageNumber} for folder {FolderPath}. PageCount={PageCount}, AggregateCount={AggregateCount}", page, folderObject.FullPath, currentPageSize, sfmcAssets.Count);
 
                     if (AppConfiguration.Instance.PageSize == currentPageSize)
                     {
-                        if (AppConfiguration.Instance.Debug) Console.WriteLine($"Running Loop Again");
+                        _logger.LogTrace("Additional asset pages remain for folder {FolderPath}.", folderObject.FullPath);
                     }
 
                 }
                 catch (System.Exception ex)
                 {
-                    Console.WriteLine($"{ex.Message}");
+                    _logger.LogError(ex, "Failed loading assets for folder {FolderPath}.", folderObject.FullPath);
 
                     break;
                 }
@@ -225,7 +222,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 
             if (sfmcAssets.Any())
             {
-                Console.WriteLine($"There are {sfmcAssets.Count()} assets in {folderObject.FullPath}");
+                _logger.LogInformation("Loaded {AssetCount} assets for folder {FolderPath}.", sfmcAssets.Count, folderObject.FullPath);
                 foreach (SfmcAsset sfmcAsset in sfmcAssets)
                 {
                     var asset = sfmcAsset.ToPoco();

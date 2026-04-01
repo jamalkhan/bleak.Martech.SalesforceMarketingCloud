@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.ServiceModel;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps;
 
@@ -14,10 +15,12 @@ public class LoadFolders
 {
     IRestClientAsync _restClientAsync;
     IAuthRepository _authRepository;
-    public LoadFolders(IRestClientAsync restClientAsync, IAuthRepository authRepository)
+    private readonly ILogger _logger;
+    public LoadFolders(IRestClientAsync restClientAsync, IAuthRepository authRepository, ILogger logger)
     {
         _restClientAsync = restClientAsync;
         _authRepository = authRepository;
+        _logger = logger;
     }
 
     private HttpVerbs verb = HttpVerbs.GET;
@@ -72,7 +75,7 @@ public class LoadFolders
         int currentPageSize;
         try
         {
-            if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Loading Folder Page #{page}"); }
+            _logger.LogDebug("Loading folder page {PageNumber}.", page);
             
             RestResults<SfmcRestWrapper<SfmcFolder>, string> results;
             string url = $"{bleak.Martech.SalesforceMarketingCloud.Configuration.SfmcEndpointUrls.GetRestEndpoint(AppConfiguration.Instance.Subdomain, "/asset/v1/content/categories", AppConfiguration.Instance.RestBaseUrl)}?$page={page}&$pagesize={AppConfiguration.Instance.PageSize}";
@@ -83,22 +86,22 @@ public class LoadFolders
                 authenticationError: "401"
             );
 
-            if (AppConfiguration.Instance.Debug) Console.WriteLine($"results.Value = {results?.Results}");
-            if (results?.Error != null) Console.WriteLine($"results.Error = {results.Error}");
+            _logger.LogTrace("Folder page {PageNumber} completed. HasResults={HasResults}", page, results?.Results != null);
+            if (results?.Error != null) _logger.LogWarning("Folder page {PageNumber} returned an error. Error={Error}", page, results.Error);
 
             currentPageSize = results!.Results.items.Count();
             sfmcFolders.AddRange(results.Results.items);
-            if (AppConfiguration.Instance.Debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {sfmcFolders.Count()} Total Folders Identified.");
+            _logger.LogDebug("Folder page {PageNumber} loaded {PageCount} records. AggregateCount={AggregateCount}", page, currentPageSize, sfmcFolders.Count);
 
             if (AppConfiguration.Instance.PageSize == currentPageSize)
             {
-                if (AppConfiguration.Instance.Debug) Console.WriteLine($"Running Loop Again");
+                _logger.LogTrace("More folder pages remain after page {PageNumber}.", page);
             }
 
         }
         catch (System.Exception ex)
         {
-            Console.WriteLine($"{ex.Message}");
+            _logger.LogError(ex, "Folder page load failed for page {PageNumber}.", page);
             throw;
         }
 
@@ -115,7 +118,7 @@ public class LoadFolders
         // string bounces = await GetTrackingData($"{baseUri}/messageDefinitionSends/key:{definitionKey}/tracking/bounces", accessToken);
         // string sends = await GetTrackingData($"{baseUri}/messageDefinitionSends/key:{definitionKey}/tracking", accessToken);
 
-        if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Attempting to {verb} to {url} with accessToken: {token.access_token}"); }
+        _logger.LogTrace("Attempting folder request. Verb={Verb}, Url={Url}", verb, url);
 
         var headersWithAuth = await SetAuthHeaderAsync(headers);
 
@@ -140,14 +143,10 @@ public class LoadFolders
         if (results != null && results.UnhandledError != null &&
             results.UnhandledError.Contains(authenticationError))
         {
-            Console.WriteLine($"Unauthenticated: {results.UnhandledError}");
+            _logger.LogWarning("Folder request returned unauthenticated response. Error={Error}", results.UnhandledError);
 
             // Retry the REST method
             results = await loadFolderApiCallAsync(url).ConfigureAwait(false);
-
-            Console.WriteLine("Press Enter to Continue");
-            // You may want to remove or replace this for non-blocking UI scenarios
-            Console.ReadLine();
         }
 
         return results!;

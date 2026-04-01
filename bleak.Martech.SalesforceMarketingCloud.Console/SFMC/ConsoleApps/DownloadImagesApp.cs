@@ -11,6 +11,7 @@ using bleak.Martech.SalesforceMarketingCloud.Wsdl;
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 using bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 {
@@ -22,11 +23,13 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
         private static HashSet<string> assetTypes = new HashSet<string>();
         IRestClientAsync _restClient;
         IAuthRepository _authRepository;
+        private readonly ILogger<DownloadImagesApp> _logger;
         string fullPath = string.Empty;
-        public DownloadImagesApp(IRestClientAsync restClient, IAuthRepository authRepository)
+        public DownloadImagesApp(IRestClientAsync restClient, IAuthRepository authRepository, ILogger<DownloadImagesApp> logger)
         {
             _restClient = restClient;
             _authRepository = authRepository;
+            _logger = logger;
         }
 
         public async Task Execute()
@@ -44,18 +47,18 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
         {
             // Get the path to the user's desktop
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            Console.WriteLine($"desktopPath = {desktopPath}");
+            _logger.LogDebug("Using desktop path for image export. DesktopPath={DesktopPath}", desktopPath);
 
             // Define the name of the new folder
             string newFolderName = "MyNewFolder";
 
             // Combine to get the full path
             fullPath = Path.Combine(desktopPath, newFolderName);
-            Console.WriteLine($"fullPath = {fullPath}");
+            _logger.LogInformation("Preparing image export folder. Path={Path}", fullPath);
 
-            if (AppConfiguration.Instance.Debug) Console.WriteLine($"Creating Directory {fullPath}");
+            _logger.LogDebug("Ensuring image export directory exists. Path={Path}", fullPath);
             Directory.CreateDirectory(fullPath);
-            if (AppConfiguration.Instance.Debug) Console.WriteLine($"Directory Created {fullPath}");
+            _logger.LogDebug("Image export directory ready. Path={Path}", fullPath);
         }
 
 
@@ -63,22 +66,18 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
         {
             CreateFolder();
 
-            Console.WriteLine("Download All Assets");
-            Console.WriteLine("---------------------");
+            _logger.LogInformation("Starting image download for folder {FolderId}.", folderId);
 
             assetCounter = await DownloadAllAssetsForAFolderAsync(folderId);
 
             
-            Console.WriteLine("Assets have been downloaded");
-            Console.WriteLine("---------------------");
+            _logger.LogInformation("Image download complete for folder {FolderId}. TotalAssets={AssetCount}", folderId, assetCounter);
 
-            Console.WriteLine("---------------------");
-            Console.WriteLine("The following assettypes were found:");
+            _logger.LogInformation("Image workflow discovered asset types: {AssetTypes}", string.Join(", ", assetTypes.OrderBy(x => x)));
             foreach (var assetType in assetTypes)
             {
-                Console.WriteLine(assetType);
+                _logger.LogDebug("Discovered asset type {AssetType}.", assetType);
             }
-            Console.WriteLine("---------------------");
             
         }
 
@@ -111,7 +110,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                     case "gif":
                         string metadataFile = fullPath + "/" + asset.FullPath + "/" + asset.FileProperties.FileName + ".metadata.json";
                         Directory.CreateDirectory(Path.GetDirectoryName(metadataFile)!);
-                        if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Trying to save {metadataFile}"); }
+                        _logger.LogDebug("Writing image metadata file. Path={Path}, AssetId={AssetId}", metadataFile, asset.Id);
                         File.WriteAllText(metadataFile, serializer.Serialize(asset));
 
                         var imageUrl = asset.FileProperties.PublishedURL;
@@ -125,11 +124,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                                 var imageFilePath = fullPath + "/" + asset.FullPath + "/" + fileName;
                                 Directory.CreateDirectory(Path.GetDirectoryName(imageFilePath)!);
                                 File.WriteAllBytes(imageFilePath, imageBytes);
-                                if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Image saved to {imageFilePath}"); }
+                                _logger.LogInformation("Image saved. Path={Path}, SourceUrl={SourceUrl}", imageFilePath, imageUrl);
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"Failed to download image from {imageUrl}: {ex.Message}");
+                                _logger.LogError(ex, "Failed to download image. SourceUrl={SourceUrl}", imageUrl);
                             }
                         }
                         break;
@@ -140,7 +139,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                 assetCounter++;
                 if (assetCounter % AppConfiguration.Instance.PageSize == 0)
                 {
-                    Console.WriteLine($"Wrote {assetCounter} assets to the filesystem...");
+                    _logger.LogInformation("Wrote {AssetCount} image assets to the filesystem so far.", assetCounter);
                 }
             }
 
@@ -240,7 +239,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                 }
                 catch (System.Exception ex)
                 {
-                    Console.WriteLine($"{ex.Message}");
+                    _logger.LogError(ex, "Failed loading assets for image download. FolderId={FolderId}", folderId);
                     break;
                 }
                 page++;
@@ -255,13 +254,13 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
             return retval;
         }
 
-        private static int ProcessSfmcAssets(int folderId, List<AssetPoco> retval, RestResults<SfmcRestWrapper<SfmcAsset>, string> results)
+        private int ProcessSfmcAssets(int folderId, List<AssetPoco> retval, RestResults<SfmcRestWrapper<SfmcAsset>, string> results)
         {
             int currentPageSize = results!.Results.items.Count();
             if (currentPageSize > 0)
             {
                 var sfmcAssets = results!.Results.items;
-                Console.WriteLine($"There are {sfmcAssets.Count()} assets in folderId {folderId}");
+                _logger.LogInformation("Loaded {AssetCount} assets for image folder {FolderId}.", sfmcAssets.Count(), folderId);
                 foreach (SfmcAsset sfmcAsset in sfmcAssets)
                 {
                     var asset = sfmcAsset.ToPoco();
@@ -271,11 +270,11 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                 }
             }
 
-            if (AppConfiguration.Instance.Debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {retval.Count()} Total Assets Identified in folderId={folderId}.");
+            _logger.LogDebug("Image asset page processed for folder {FolderId}. PageCount={PageCount}, AggregateCount={AggregateCount}", folderId, currentPageSize, retval.Count);
 
             if (AppConfiguration.Instance.PageSize == currentPageSize)
             {
-                if (AppConfiguration.Instance.Debug) Console.WriteLine($"Running Loop Again");
+                _logger.LogTrace("More image asset pages remain for folder {FolderId}.", folderId);
             }
 
             return currentPageSize;
@@ -284,10 +283,10 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
         private async Task<RestResults<SfmcRestWrapper<SfmcAsset>, string>?> LoadPageOfAssetsAsync(int folderId, int page)
         {
             var token = await _authRepository.GetTokenAsync();
-            if (AppConfiguration.Instance.Debug) Console.WriteLine($"Loading Assets Page #{page}");
+            _logger.LogDebug("Loading image asset page {PageNumber} for folder {FolderId}.", page, folderId);
             string uri = $"{bleak.Martech.SalesforceMarketingCloud.Configuration.SfmcEndpointUrls.GetRestEndpoint(AppConfiguration.Instance.Subdomain, "/asset/v1/content/assets", AppConfiguration.Instance.RestBaseUrl)}?$page={page}&$pagesize={AppConfiguration.Instance.PageSize}&$orderBy=name&$filter=category.id eq {folderId}";
 
-            if (AppConfiguration.Instance.Debug) Console.WriteLine($"Trying to download to {uri} with {token.access_token}");
+            _logger.LogTrace("Requesting image assets. FolderId={FolderId}, Uri={Uri}", folderId, uri);
 
             var results = await _restClient.ExecuteRestMethodAsync<SfmcRestWrapper<SfmcAsset>, string>(
                 uri: new Uri(uri),
@@ -302,7 +301,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 
             if (results != null && results.UnhandledError != null && results.UnhandledError.Contains("401"))
             {
-                Console.WriteLine($"Unauthenticated: {results.UnhandledError}");
+                _logger.LogWarning("Image asset request returned unauthenticated response. FolderId={FolderId}, Error={Error}", folderId, results.UnhandledError);
                 token = await _authRepository.GetTokenAsync();
 
                 results = await _restClient.ExecuteRestMethodAsync<SfmcRestWrapper<SfmcAsset>, string>(
@@ -317,8 +316,8 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                     );
             }
 
-            if (AppConfiguration.Instance.Debug) Console.WriteLine($"results.Value = {results?.Results}");
-            if (results?.Error != null) Console.WriteLine($"results.Error = {results.Error}");
+            _logger.LogTrace("Image asset request completed. FolderId={FolderId}, HasResults={HasResults}", folderId, results?.Results != null);
+            if (results?.Error != null) _logger.LogWarning("Image asset request returned an error. FolderId={FolderId}, Error={Error}", folderId, results.Error);
             return results;
         }
     }

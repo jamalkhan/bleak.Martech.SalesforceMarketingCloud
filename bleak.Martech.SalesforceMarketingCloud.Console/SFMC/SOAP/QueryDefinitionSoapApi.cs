@@ -30,6 +30,7 @@ public partial class QueryDefinitionSoapApi : BaseSoapApi<QueryDefinitionSoapApi
     
     public async Task<List<QueryDefinitionPoco>> GetQueryDefinitionPocosAsync()
     {
+        _logger.LogInformation("Loading query definitions from SFMC.");
         int page = 1;
         int currentPageSize = 0;
 
@@ -37,7 +38,7 @@ public partial class QueryDefinitionSoapApi : BaseSoapApi<QueryDefinitionSoapApi
         string requestId = string.Empty;
         do
         {
-            if (AppConfiguration.Instance.Debug) Console.WriteLine($"Loading QueryDefinition {page}");
+            _logger.LogDebug("Loading query definition SOAP page {PageNumber}.", page);
             requestId = await LoadDataSetAsync(wsdls, requestId);
             page++;
         }
@@ -50,9 +51,11 @@ public partial class QueryDefinitionSoapApi : BaseSoapApi<QueryDefinitionSoapApi
             {
                 pocos.Add(wsdl.ToPoco());
             }
+            _logger.LogInformation("Loaded {QueryDefinitionCount} query definitions.", pocos.Count);
             return pocos;
         }
 
+        _logger.LogWarning("Query definition SOAP load returned no results.");
         throw new Exception("Error Loading Folders");
     }
 
@@ -60,9 +63,10 @@ public partial class QueryDefinitionSoapApi : BaseSoapApi<QueryDefinitionSoapApi
     {
         try
         {
-            if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Invoking SOAP Call. URL: {url}"); }
+            _logger.LogDebug("Invoking query definition SOAP call. Url={Url}", url);
 
             var payload = await BuildRequestAsync(requestId);
+            _logger.LogTrace("Query definition SOAP payload: {Payload}", BaseSoapApi<QueryDefinitionSoapApi>.RedactSoapPayload(payload));
             var results = await _restClientAsync.ExecuteRestMethodAsync<SoapEnvelope<Wsdl.QueryDefinition>, string>(
                 uri: new Uri(url),
                 verb: HttpVerbs.POST,
@@ -70,22 +74,22 @@ public partial class QueryDefinitionSoapApi : BaseSoapApi<QueryDefinitionSoapApi
                 headers: BuildHeaders()
             );
 
-            if (AppConfiguration.Instance.Debug) Console.WriteLine($"results.Value = {results?.Results}");
-            if (results?.Error != null) Console.WriteLine($"results.Error = {results.Error}");
+            _logger.LogDebug("Query definition SOAP call completed. HasError={HasError}", !string.IsNullOrWhiteSpace(results?.Error));
+            if (results?.Error != null) _logger.LogError("Query definition SOAP call returned an error. Error={Error}", results.Error);
 
             // Process Results
-            Console.WriteLine($"Overall Status: {results!.Results.Body.RetrieveResponse.OverallStatus}");
+            _logger.LogInformation("Query definition SOAP response status: {OverallStatus}", results!.Results.Body.RetrieveResponse.OverallStatus);
             int currentPageSize = 0;
             foreach (var result in results.Results.Body.RetrieveResponse.Results)
             {
                 wsdlDataExtensions.Add(result);
                 currentPageSize++;
             }
-            if (AppConfiguration.Instance.Debug) Console.WriteLine($"Current Page had {currentPageSize} records. There are now {wsdlDataExtensions.Count()} Total Data Extensions Identified.");
+            _logger.LogDebug("Query definition SOAP page processed. PageRecords={PageRecords}, AggregateRecords={AggregateRecords}", currentPageSize, wsdlDataExtensions.Count);
 
             if (results.Results.Body.RetrieveResponse.OverallStatus == "MoreDataAvailable")
             {
-                Console.WriteLine($"More DataExtensions Available. Request ID: {results.Results.Body.RetrieveResponse.RequestID}");
+                _logger.LogWarning("More query definitions available. ContinueRequest={RequestId}", results.Results.Body.RetrieveResponse.RequestID);
                 var retval = await LoadDataSetAsync(wsdlDataExtensions, results.Results.Body.RetrieveResponse.RequestID);
                 return retval;
                 
@@ -94,7 +98,7 @@ public partial class QueryDefinitionSoapApi : BaseSoapApi<QueryDefinitionSoapApi
         }
         catch (System.Exception ex)
         {
-            Console.WriteLine($"Error {ex.Message}");
+            _logger.LogError(ex, "Query definition SOAP call failed.");
             throw;
         }
     }
