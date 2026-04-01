@@ -12,14 +12,21 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
     {
         public IRestClientAsync _restClientAsync { get; private set; }
         public IAuthRepository _authRepository { get; private set; }
+        public ILogger<OpenEventSoapApi> Logger { get; }
         public string Folder { get;private set;}
         public int DaysBack { get; private set; }
-        public DownloadOpensApp(IRestClientAsync restClientAsync, IAuthRepository authRepository, string folder, int daysBack = 180)
+        public DownloadOpensApp(
+            IRestClientAsync restClientAsync,
+            IAuthRepository authRepository,
+            string folder,
+            int daysBack = 180,
+            ILogger<OpenEventSoapApi>? logger = null)
         {
             _restClientAsync = restClientAsync;
             _authRepository = authRepository;
             Folder = folder;
             DaysBack = daysBack;
+            Logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task Execute()
@@ -96,7 +103,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
                 (
                     options: new DelimitedFileWriterOptions { Delimiter = "," }
                 ),
-                logger: null,
+                logger: Logger,
                 startDate: startTime,
                 endDate: endTime
             );

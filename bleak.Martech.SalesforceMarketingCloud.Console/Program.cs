@@ -7,6 +7,7 @@ using System.Diagnostics;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.Api.Soap;
+using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Logging;
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 using Microsoft.Extensions.Logging;
 
@@ -25,11 +26,13 @@ public static class Program
         memberId: AppConfiguration.Instance.MemberId,
         authBaseUrl: AppConfiguration.Instance.AuthBaseUrl
     );
+    static string _logPath = Path.Combine(AppContext.BaseDirectory, "sfmc-console.log");
     static ILoggerFactory _loggerFactory = LoggerFactory.Create(builder =>
     {
         builder
             .SetMinimumLevel(LogLevel.Information)
-            .AddConsole();
+            .AddConsole()
+            .AddProvider(new FileLoggerProvider(_logPath));
     });
 
     private async static Task Main(string[] args)
@@ -82,7 +85,9 @@ public static class Program
                         break;
 
                     case "6":
-                        var queryDefinitionApp = new QueryDefinitionApp<QueryDefinitionPoco>(_authRepository);
+                        var queryDefinitionApp = new QueryDefinitionApp<QueryDefinitionPoco>(
+                            _authRepository,
+                            _loggerFactory.CreateLogger<QueryDefinitionSoapApi>());
                         await queryDefinitionApp.Execute();
                         break;
 
@@ -91,7 +96,8 @@ public static class Program
                             restClientAsync: _restClient,
                             authRepository: _authRepository,
                             folder: Path.Combine(AppConfiguration.Instance.OutputFolder, "_SendTracking", "Opens"),
-                            daysBack: 180
+                            daysBack: 180,
+                            logger: _loggerFactory.CreateLogger<OpenEventSoapApi>()
                         );
                         await opensApp.Execute();
                         break;
@@ -101,7 +107,8 @@ public static class Program
                             restClientAsync: _restClient,
                             authRepository: _authRepository,
                             folder: Path.Combine(AppConfiguration.Instance.OutputFolder, "_SendTracking", "Clicks"),
-                            daysBack: 180
+                            daysBack: 180,
+                            logger: _loggerFactory.CreateLogger<ClickEventSoapApi>()
                         );
                         await clicksApp.Execute();
                         break;
@@ -111,7 +118,8 @@ public static class Program
                             restClientAsync: _restClient,
                             authRepository: _authRepository,
                             folder: Path.Combine(AppConfiguration.Instance.OutputFolder, "_SentTracking", "Sents"),
-                            daysBack: 180
+                            daysBack: 180,
+                            logger: _loggerFactory.CreateLogger<SentEventSoapApi>()
                         );
                         await sentsApp.Execute();
                         break;
