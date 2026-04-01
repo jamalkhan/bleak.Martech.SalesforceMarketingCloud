@@ -10,6 +10,8 @@
     <PackageReference Include="System.ServiceModel.Primitives" Version="8.0.0" />
     <PackageReference Include="bleak.Api.Rest" Version="2.3.22" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.5" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.5" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.ServiceModel.Duplex" Version="4.10.*" />

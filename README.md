@@ -1,39 +1,69 @@
 # bleak.Martech.SalesforceMarketingCloud
 
-## Download SfmcApp for macOS
+Tools for working with Salesforce Marketing Cloud content, assets, and data extensions.
 
-Choose your architecture:
-- **Apple Silicon (M1/M2, ARM64):** [Download DMG](https://github.com/jamalkhan/bleak.Martech.SalesforceMarketingCloud/releases/download/v1.1.5/SfmcApp-macOS-arm64-1.1.5.dmg)
-- **Intel (x64):** [Download DMG](https://github.com/jamalkhan/bleak.Martech.SalesforceMarketingCloud/releases/download/v1.1.5/SfmcApp-macOS-x64-1.1.5.dmg)
+This repository currently contains:
 
-## ConsoleApp
+- `bleak.Martech.SalesforceMarketingCloud`: the shared SFMC client library.
+- `bleak.Martech.SalesforceMarketingCloud.Console`: a CLI for bulk exports and metadata pulls.
+- `SfmcApp`: a .NET MAUI desktop app for browsing connections, assets, and data extensions.
+- `bleak.Martech.SalesforceMarketingCloud.Tests`: unit tests around helpers and model conversions.
 
-This is the bread and butter of this application.
+## SfmcApp (.NET MAUI)
 
-In order to run this, you will need to create a file in your application directory called config.json. By Default, the build process will try to copy a config.json.user file to the output directory as config.json; however, config.json.user is .gitignored.
+The MAUI app is the main interactive UI for the project. Right now it supports:
 
-The structure of said config.json file is as follows:
+- saving and reusing SFMC connections locally
+- browsing into an SFMC instance from a saved connection
+- listing asset folders and assets
+- searching assets by name or customer key
+- downloading asset content and binary assets
+- listing data extension folders and data extensions
+- searching data extensions by name
+- downloading data extension rows to CSV
 
-```
+The app currently targets:
+
+- macOS via Mac Catalyst
+- Windows when built on Windows
+
+Release artifacts are published from the GitHub Releases page:
+
+- [GitHub Releases](https://github.com/jamalkhan/bleak.Martech.SalesforceMarketingCloud/releases)
+
+## Console App
+
+The console app is still useful for bulk export workflows and SOAP-heavy operations.
+
+To run it, create a `config.json` file in the console project directory. The build attempts to copy `config.json.user` to the output as `config.json`, but `config.json.user` is gitignored and must be provided locally.
+
+Example `config.json`:
+
+```json
 {
-    "OutputFolder":"/YOURDOWNLOADFOLDER",
-    "Subdomain":"<SFMC-SubDomain>",
-    "ClientId":"<SFMC-ClientID>",
-    "ClientSecret":"<SFMC-ClientSecret>",
-    "MemberId":"123456",
-    "PageSize":500,
-    "Debug":false
+  "OutputFolder": "/YOURDOWNLOADFOLDER",
+  "Subdomain": "<SFMC-SubDomain>",
+  "ClientId": "<SFMC-ClientID>",
+  "ClientSecret": "<SFMC-ClientSecret>",
+  "MemberId": "123456",
+  "PageSize": 500,
+  "MaxDegreeOfParallelism": 4,
+  "Debug": false
 }
 ```
 
-I'll add details on how to get the SFMC API Keys at some point.
+Current console menu options:
 
-There are currently 4 options for this app.
+1. Download content
+2. Enumerate data extension folders
+3. Enumerate data extensions
+4. Write a full-path file for data extensions
+5. Write a full-path file for shared data extensions
+6. Download all query definitions
+7. Download opens for the last 180 days
+8. Download clicks for the last 180 days
+9. Download sents for the last 180 days
+10. Download images
+11. Describe an SFMC object via SOAP
 
-1. Downloading Content
-2. Enumerating the Data Extension Folders
-3. Enumerating the Data Extensions
-4. Creating a file with all of the Data Extensions and the Folders they belong to as seen while browsing SFMC.
-
-#4 is currently the fastest and most useful.
-#1 is slow because of the REST API. *sigh* Scott Dorsey are you reading this? It's time to make things easier for your users.
+The CLI is still best when you want a batch export rather than interactive browsing.

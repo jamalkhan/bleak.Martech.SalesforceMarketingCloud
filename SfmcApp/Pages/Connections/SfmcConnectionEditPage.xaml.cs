@@ -34,7 +34,7 @@ public partial class SfmcConnectionEditPage : ContentPage
         }
         catch (Exception ex)
         {
-            DisplayAlert($"Error Initiatlizing SFMC Connection Edit Page", $"Logger failed..", ex.Message);
+            _ = DisplayAlertAsync("Error Initializing SFMC Connection Edit Page", "Logger initialization failed.", ex.Message);
         }
     }
     
@@ -58,7 +58,7 @@ public partial class SfmcConnectionEditPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert($"FUCK", $"Logger failed.. {ex}", "Fuck");
+            await DisplayAlertAsync("Logging Error", $"Logger failed: {ex.Message}", "OK");
         }
 
         foreach (var conn in connections)

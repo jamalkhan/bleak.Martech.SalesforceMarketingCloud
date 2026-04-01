@@ -10,10 +10,9 @@ namespace SfmcApp;
 
 public partial class SfmcInstanceMenuPage : ContentPage
 {
-	public ILogger<SfmcInstanceMenuPage> _logger { get; private set; }
-	public IAuthRepository _authRepository { get; private set; }
-	public static JsonSerializer _serializer = new JsonSerializer();
-	static IRestClientAsync _restClientAsync { get; set; }
+	private readonly ILogger<SfmcInstanceMenuPage> _logger;
+	private readonly IAuthRepository _authRepository;
+	private readonly IRestClientAsync _restClientAsync;
 
 	public SfmcInstanceMenuPage(
 		SfmcConnection connection,

@@ -87,19 +87,6 @@ public partial class SfmcAssetListViewModel
     }
 
     
-
-    #region Search
-    public ObservableCollection<StringSearchOptions> SearchOptions { get; } =
-        new(Enum.GetValues(typeof(StringSearchOptions)).Cast<StringSearchOptions>());
-
-    private StringSearchOptions _selectedSearchOption = StringSearchOptions.Like;
-    public StringSearchOptions SelectedSearchOption
-    {
-        get => _selectedSearchOption;
-        set => SetProperty(ref _selectedSearchOption, value);
-    }
-    #endregion Search
-
     public override async Task LoadContentResourcesForSelectedFolderAsync()
     {
         if (SelectedFolder == null) return;

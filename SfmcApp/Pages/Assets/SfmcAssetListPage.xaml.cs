@@ -40,25 +40,25 @@ public partial class SfmcAssetListPage : ContentPage
         {
             // Log the exception and show a user-friendly message
             System.Diagnostics.Debug.WriteLine($"Timeout loading folders: {ex.Message}");
-            await DisplayAlert("Connection Timeout", ex.Message, "OK");
+            await DisplayAlertAsync("Connection Timeout", ex.Message, "OK");
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("Authentication failed"))
         {
             // Log the exception and show a user-friendly message
             System.Diagnostics.Debug.WriteLine($"Authentication error: {ex.Message}");
-            await DisplayAlert("Authentication Error", "Failed to authenticate with Salesforce Marketing Cloud. Please check your connection settings.", "OK");
+            await DisplayAlertAsync("Authentication Error", "Failed to authenticate with Salesforce Marketing Cloud. Please check your connection settings.", "OK");
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("Network connectivity test failed"))
         {
             // Log the exception and show a user-friendly message
             System.Diagnostics.Debug.WriteLine($"Network connectivity error: {ex.Message}");
-            await DisplayAlert("Network Error", "Network connectivity test failed. Please check your internet connection and try again.", "OK");
+            await DisplayAlertAsync("Network Error", "Network connectivity test failed. Please check your internet connection and try again.", "OK");
         }
         catch (Exception ex)
         {
             // Log the exception and show a user-friendly message
             System.Diagnostics.Debug.WriteLine($"Error loading folders: {ex}");
-            await DisplayAlert("Error", $"Failed to load folders: {ex.Message}", "OK");
+            await DisplayAlertAsync("Error", $"Failed to load folders: {ex.Message}", "OK");
         }
     }
 }

@@ -104,10 +104,10 @@ public class DataExtensionDataDtoConvertersTest
     [TestMethod]
     public void ToDictionaryList_ShouldHandleNullDto()
     {
-        DataExtensionDataDto dto = null;
+        DataExtensionDataDto? dto = null;
         Assert.ThrowsException<System.NullReferenceException>(() =>
         {
-            DataExtensionDataDtoHelpers.ToDictionaryList(dto);
+            DataExtensionDataDtoHelpers.ToDictionaryList(dto!);
         });
     }
 }

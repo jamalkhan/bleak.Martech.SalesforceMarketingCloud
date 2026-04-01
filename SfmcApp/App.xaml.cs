@@ -8,7 +8,7 @@ public partial class App : Application
 		Services = services;
 	}
 
-	public static new App Current => (App)Application.Current;
+	public static new App Current => (App)Application.Current!;
     public IServiceProvider Services { get; }
 
 	protected override Window CreateWindow(IActivationState? activationState)

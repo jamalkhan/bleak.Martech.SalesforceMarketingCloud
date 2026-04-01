@@ -41,7 +41,7 @@ public partial class SfmcConnectionListPage : ContentPage
             }
             catch
             {
-                DisplayAlert("Error", "Failed to load saved connections.", "OK");
+                _ = DisplayAlertAsync("Error", "Failed to load saved connections.", "OK");
             }
         }
     }

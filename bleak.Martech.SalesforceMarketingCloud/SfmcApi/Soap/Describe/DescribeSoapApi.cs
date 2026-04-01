@@ -68,13 +68,13 @@ public partial class DescribeSoapApi
             );
 
             _logger.LogInformation($"results.Value = {results?.Results}");
-            _logger.LogError($"results.Error = {results.Error}");
+            _logger.LogError($"results.Error = {results?.Error}");
 
             // Process Results
             //_logger.LogInformation($"Overall Status: {results!.Results.Body.RetrieveResponse.OverallStatus}");
 
             //return results.Results.Body.RetrieveResponse.Results.FirstOrDefault();
-            return results.Results;
+            return results?.Results ?? string.Empty;
         }
         catch (System.Exception ex)
         {

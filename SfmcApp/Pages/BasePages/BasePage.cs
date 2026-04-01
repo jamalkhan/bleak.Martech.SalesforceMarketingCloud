@@ -26,8 +26,8 @@ public abstract partial class BasePage : ContentPage, INotifyPropertyChanged
     }
 
     // You can also expose common methods for derived pages
-    protected void ShowError(string message)
+    protected Task ShowErrorAsync(string message)
     {
-        DisplayAlert("Error", message, "OK");
+        return DisplayAlertAsync("Error", message, "OK");
     }
 }

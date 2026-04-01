@@ -15,10 +15,10 @@ namespace SfmcApp.ViewModels;
 
 public class ColumnDefinition
 {
-    public string Name { get; set; }
-    public string DataType { get; set; } // string, int, float, datetime
+    public string Name { get; set; } = string.Empty;
+    public string DataType { get; set; } = string.Empty; // string, int, float, datetime
     public bool IsNullable { get; set; }
-    public string SampleValues { get; set; }
+    public string SampleValues { get; set; } = string.Empty;
 }
 
 public partial class SfmcDataExtensionFileImportViewModel
@@ -37,9 +37,9 @@ public partial class SfmcDataExtensionFileImportViewModel
 
 
     public ObservableCollection<ColumnDefinition> Columns { get; } = new();
-    public string FileName { get; private set; }
-    public string DataExtensionName { get; set; }
-    public string CustomerKey { get; set; }
+    public string FileName { get; private set; } = string.Empty;
+    public string DataExtensionName { get; set; } = string.Empty;
+    public string CustomerKey { get; set; } = string.Empty;
 
     public SfmcDataExtensionFileImportViewModel
     (

@@ -32,7 +32,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Authentication
                     await SaveTokenAsync(newToken);
                     _cachedToken = new Lazy<SfmcAuthToken>(() => newToken, true);
                 }
-                return _cachedToken.Value;
+                return _cachedToken!.Value;
             }
             finally
             {
@@ -99,7 +99,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Authentication
                 throw new Exception($"Authentication failed: {authResults.Error}");
             }
 
-            return authResults.Results;
+            return authResults.Results ?? throw new InvalidOperationException("Authentication returned no token.");
         }
         
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);

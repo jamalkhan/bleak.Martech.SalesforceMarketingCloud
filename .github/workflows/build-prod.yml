@@ -1,4 +1,4 @@
-name: Build & Package SfmcApp (.NET 9 for macOS + Windows)
+name: Build & Package SfmcApp (.NET 10 for macOS + Windows)
 
 on:
   push:
@@ -58,26 +58,26 @@ jobs:
       - name: Check Xcode version
         run: xcodebuild -version
 
-      - name: Setup .NET 9 SDK
+      - name: Setup .NET 10 SDK
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '10.0.x'
 
       - name: Install MAUI workload
         run: dotnet workload install maui
 
       - name: Build arm64 app bundle
         run: |
-          dotnet build SfmcApp/SfmcApp.csproj -c Release -f net9.0-maccatalyst -p:RuntimeIdentifier=maccatalyst-arm64
+          dotnet build SfmcApp/SfmcApp.csproj -c Release -f net10.0-maccatalyst -p:RuntimeIdentifier=maccatalyst-arm64
           mkdir -p output
-          cp -R SfmcApp/bin/Release/net9.0-maccatalyst/maccatalyst-arm64/SfmcApp.app output/SfmcApp-arm64.app
+          cp -R SfmcApp/bin/Release/net10.0-maccatalyst/maccatalyst-arm64/SfmcApp.app output/SfmcApp-arm64.app
           hdiutil create -volname SfmcApp -srcfolder output/SfmcApp-arm64.app -ov -format UDZO output/SfmcApp-macOS-arm64-${{ needs.versioning.outputs.version }}.dmg
 
       - name: Build x64 app bundle
         run: |
-          dotnet build SfmcApp/SfmcApp.csproj -c Release -f net9.0-maccatalyst -p:RuntimeIdentifier=maccatalyst-x64
+          dotnet build SfmcApp/SfmcApp.csproj -c Release -f net10.0-maccatalyst -p:RuntimeIdentifier=maccatalyst-x64
           mkdir -p output
-          cp -R SfmcApp/bin/Release/net9.0-maccatalyst/maccatalyst-x64/SfmcApp.app output/SfmcApp-x64.app
+          cp -R SfmcApp/bin/Release/net10.0-maccatalyst/maccatalyst-x64/SfmcApp.app output/SfmcApp-x64.app
           hdiutil create -volname SfmcApp -srcfolder output/SfmcApp-x64.app -ov -format UDZO output/SfmcApp-macOS-x64-${{ needs.versioning.outputs.version }}.dmg
 
       - name: Upload macOS artifacts
@@ -92,10 +92,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup .NET 9 SDK
+      - name: Setup .NET 10 SDK
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '10.0.x'
 
       - name: Show Windows version
         run: |
@@ -105,7 +105,7 @@ jobs:
         run: dotnet workload install maui
 
       - name: Build Windows app
-        run: dotnet publish SfmcApp/SfmcApp.csproj -c Release -f net9.0-windows10.0.19041.0 -p:SelfContained=true -o output
+        run: dotnet publish SfmcApp/SfmcApp.csproj -c Release -f net10.0-windows10.0.19041.0 -p:SelfContained=true -o output
 
       - name: Rename EXE with version
         run: ren output\SfmcApp.exe SfmcApp-${{ needs.versioning.outputs.version }}.exe

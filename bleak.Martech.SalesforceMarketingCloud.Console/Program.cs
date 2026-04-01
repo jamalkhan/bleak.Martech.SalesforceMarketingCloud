@@ -96,6 +96,16 @@ public static class Program
                         break;
 
                     case "8":
+                        var clicksApp = new DownloadClicksApp(
+                            restClientAsync: _restClient,
+                            authRepository: _authRepository,
+                            folder: Path.Combine(AppConfiguration.Instance.OutputFolder, "_SendTracking", "Clicks"),
+                            daysBack: 180
+                        );
+                        await clicksApp.Execute();
+                        break;
+
+                    case "9":
                         var sentsApp = new DownloadSentsApp(
                             restClientAsync: _restClient,
                             authRepository: _authRepository,
@@ -103,16 +113,6 @@ public static class Program
                             daysBack: 180
                         );
                         await sentsApp.Execute();
-                        break;
-
-                    case "9":
-                        var clicksApp = new DownloadSentsApp(
-                            restClientAsync: _restClient,
-                            authRepository: _authRepository,
-                            folder: Path.Combine(AppConfiguration.Instance.OutputFolder, "_SentTracking", "Sents"),
-                            daysBack: 180
-                        );
-                        await clicksApp.Execute();
                         break;
 
                     case "10":
