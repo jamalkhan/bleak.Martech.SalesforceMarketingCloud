@@ -7,6 +7,7 @@ using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
+using bleak.Martech.SalesforceMarketingCloud.Models.Sfmc.Soap;
 using System.Security;
 using System.Xml.Linq;
 

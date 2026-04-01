@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using bleak.Martech.SalesforceMarketingCloud.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
-using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
+using bleak.Martech.SalesforceMarketingCloud.Models.Sfmc;
 
 namespace bleak.Martech.SalesforceMarketingCloud.MockService;
 

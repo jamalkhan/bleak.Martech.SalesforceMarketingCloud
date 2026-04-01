@@ -8,7 +8,6 @@ using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.Api.Soap;
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
-using bleak.Martech.SalesforceMarketingCloud.Models.Sfmc.Dtos.Soap;
 using Microsoft.Extensions.Logging;
 
 

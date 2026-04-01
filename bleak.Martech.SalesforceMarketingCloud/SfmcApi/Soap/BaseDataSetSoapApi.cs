@@ -5,13 +5,14 @@ using bleak.Martech.SalesforceMarketingCloud.Fileops;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
+using bleak.Martech.SalesforceMarketingCloud.Models.Sfmc.Soap;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Api.Soap;
 
 public abstract class BaseDataSetSoapApi<TApiImplementation, TAPIObject, TPoco> : BaseSoapApi<TApiImplementation>
-    where TAPIObject : APIObject
+    where TAPIObject : APIObject, new()
     where TPoco : IPoco
 {
     protected string RequestID { get; set; } = string.Empty;

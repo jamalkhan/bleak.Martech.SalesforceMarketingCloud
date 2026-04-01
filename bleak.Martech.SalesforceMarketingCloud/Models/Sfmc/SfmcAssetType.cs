@@ -1,4 +1,4 @@
-namespace bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos
+namespace bleak.Martech.SalesforceMarketingCloud.Models.Sfmc
 {
     public class SfmcAssetType
         {

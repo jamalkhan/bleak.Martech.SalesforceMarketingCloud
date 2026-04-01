@@ -1,4 +1,4 @@
-namespace bleak.Martech.SalesforceMarketingCloud.Models.Sfmc.Dtos.Soap;
+namespace bleak.Martech.SalesforceMarketingCloud.Models.Sfmc.Soap;
 
 [System.Diagnostics.DebuggerStepThroughAttribute()]
 [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]

@@ -1,5 +1,5 @@
 using bleak.Martech.SalesforceMarketingCloud.MockService;
-using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
+using bleak.Martech.SalesforceMarketingCloud.Models.Sfmc;
 
 var builder = WebApplication.CreateBuilder(args);
 

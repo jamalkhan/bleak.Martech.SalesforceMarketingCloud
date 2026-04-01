@@ -1,6 +1,6 @@
 using System.Xml.Serialization;
 
-namespace bleak.Martech.SalesforceMarketingCloud.Models.Sfmc.Dtos.Soap;
+namespace bleak.Martech.SalesforceMarketingCloud.Models.Sfmc.Soap;
 
 public class SoapBody<T>
     where T : class, new()

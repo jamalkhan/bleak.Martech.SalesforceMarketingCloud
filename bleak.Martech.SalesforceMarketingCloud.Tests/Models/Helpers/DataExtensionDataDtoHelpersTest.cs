@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using bleak.Martech.SalesforceMarketingCloud.Models.Helpers;
-using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
+using bleak.Martech.SalesforceMarketingCloud.Models.Sfmc;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Tests.Models.Converters;
 
