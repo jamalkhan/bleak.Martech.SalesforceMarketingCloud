@@ -6,11 +6,11 @@ using bleak.Martech.SalesforceMarketingCloud.Api;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using bleak.Martech.SalesforceMarketingCloud.Fileops;
 using bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.DataExtensions;
+using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 using Microsoft.Extensions.Logging;
 using SfmcApp.Models;
 using SfmcApp.Models.ViewModels;
 using SfmcApp.ViewModels.Services;
-using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 using Microsoft.VisualBasic.FileIO;
 
 namespace SfmcApp.ViewModels;

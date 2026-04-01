@@ -12,6 +12,9 @@
             <Entry x:Name="ClientIdEntry" Placeholder="Client ID" />
             <Entry x:Name="ClientSecretEntry" Placeholder="Client Secret" IsPassword="true" />
             <Entry x:Name="MemberIdEntry" Placeholder="Member ID" />
+            <Entry x:Name="AuthBaseUrlEntry" Placeholder="Auth Base URL (optional)" />
+            <Entry x:Name="RestBaseUrlEntry" Placeholder="REST Base URL (optional)" />
+            <Entry x:Name="SoapBaseUrlEntry" Placeholder="SOAP Base URL (optional)" />
             <Button Text="Save Settings" Clicked="OnSaveClicked" />
         </VerticalStackLayout>
     </ScrollView>

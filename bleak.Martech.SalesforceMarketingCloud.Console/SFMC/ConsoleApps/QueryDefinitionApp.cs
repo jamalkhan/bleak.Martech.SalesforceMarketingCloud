@@ -1,6 +1,7 @@
 using bleak.Api.Rest;
 using bleak.Martech.SalesforceMarketingCloud.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
+using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 
 namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.ConsoleApps
 {

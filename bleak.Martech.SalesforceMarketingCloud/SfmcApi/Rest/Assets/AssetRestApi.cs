@@ -39,7 +39,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Rest.Assets
         }
 
 
-        string _baseUrl => $"https://{_authRepository.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/assets";
+        string _baseUrl => Configuration.SfmcEndpointUrls.GetRestEndpoint(_authRepository.Subdomain, "/asset/v1/content/assets", _sfmcConnectionConfiguration.RestBaseUrl);
 
         public async Task<IEnumerable<AssetPoco>> GetAssetsAsync(int folderId)
         {

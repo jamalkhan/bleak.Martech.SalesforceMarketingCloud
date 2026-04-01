@@ -7,6 +7,7 @@ using System.Diagnostics;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Authentication;
 using bleak.Martech.SalesforceMarketingCloud.Api.Soap;
+using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 using bleak.Martech.SalesforceMarketingCloud.Models.Sfmc.Dtos.Soap;
 using Microsoft.Extensions.Logging;
 
@@ -22,7 +23,8 @@ public static class Program
         subdomain: AppConfiguration.Instance.Subdomain,
         clientId: AppConfiguration.Instance.ClientId,
         clientSecret: AppConfiguration.Instance.ClientSecret,
-        memberId: AppConfiguration.Instance.MemberId
+        memberId: AppConfiguration.Instance.MemberId,
+        authBaseUrl: AppConfiguration.Instance.AuthBaseUrl
     );
     static ILoggerFactory _loggerFactory = LoggerFactory.Create(builder =>
     {
@@ -142,7 +144,7 @@ public static class Program
                             var describeApi = new DescribeSoapApi(
                                 restClientAsync: _restClient,
                                 authRepository: _authRepository,
-                                config: new SfmcConnectionConfiguration(),
+                                config: BuildConnectionConfiguration(),
                                 logger: logger
                             );
 
@@ -178,7 +180,7 @@ public static class Program
         var lf2 = new DataExtensionFolderSoapApi(
             restClientAsync: _restClient,
             authRepository: _authRepository,
-            config: new SfmcConnectionConfiguration(),
+            config: BuildConnectionConfiguration(),
             logger: _loggerFactory.CreateLogger<DataExtensionFolderSoapApi>()
         );
         var ft2 = await lf2.GetFolderTreeAsync();
@@ -191,7 +193,7 @@ public static class Program
         var deapi = new DataExtensionSoapApi(
             restClientAsync: _restClient,
             authRepository: _authRepository,
-            config: new SfmcConnectionConfiguration(),
+            config: BuildConnectionConfiguration(),
             logger:  _loggerFactory.CreateLogger<DataExtensionSoapApi>()
             );
         var des = await deapi.GetAllDataExtensionsAsync();
@@ -207,7 +209,7 @@ public static class Program
         (
             restClientAsync: _restClient,
             authRepository: _authRepository,
-            config: new SfmcConnectionConfiguration(),
+            config: BuildConnectionConfiguration(),
             logger:  _loggerFactory.CreateLogger<DataExtensionFolderSoapApi>()
         );
 
@@ -216,7 +218,7 @@ public static class Program
         (
             restClientAsync: _restClient,
             authRepository: _authRepository,
-            config: new SfmcConnectionConfiguration(),
+            config: BuildConnectionConfiguration(),
             logger:  _loggerFactory.CreateLogger<DataExtensionSoapApi>()
         );
         var dataExtensions = await deapi.GetAllDataExtensionsAsync();
@@ -230,7 +232,7 @@ public static class Program
         var lf = new SharedDataExtensionFolderSoapApi(
             restClientAsync: _restClient,
             authRepository: _authRepository,
-            config: new SfmcConnectionConfiguration(),
+            config: BuildConnectionConfiguration(),
             logger:  _loggerFactory.CreateLogger<SharedDataExtensionFolderSoapApi>()
         );
         var folderTree = await lf.GetFolderTreeAsync();
@@ -238,7 +240,7 @@ public static class Program
         var deapi = new DataExtensionSoapApi(
             restClientAsync: _restClient,
             authRepository: _authRepository,
-            config: new SfmcConnectionConfiguration(),
+            config: BuildConnectionConfiguration(),
             logger:  _loggerFactory.CreateLogger<DataExtensionSoapApi>()
         );
         var dataExtensions = await deapi.GetAllDataExtensionsAsync();
@@ -316,5 +318,17 @@ public static class Program
                 RenderFolderTree(folder.SubFolders);
             }
         }
+    }
+
+    private static SfmcConnectionConfiguration BuildConnectionConfiguration()
+    {
+        return new SfmcConnectionConfiguration(
+            maxDegreesOfParallelism: AppConfiguration.Instance.MaxDegreeOfParallelism,
+            pageSize: AppConfiguration.Instance.PageSize,
+            debug: AppConfiguration.Instance.Debug,
+            authBaseUrl: AppConfiguration.Instance.AuthBaseUrl,
+            restBaseUrl: AppConfiguration.Instance.RestBaseUrl,
+            soapBaseUrl: AppConfiguration.Instance.SoapBaseUrl
+        );
     }
 }

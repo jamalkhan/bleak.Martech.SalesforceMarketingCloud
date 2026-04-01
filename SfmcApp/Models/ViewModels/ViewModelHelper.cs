@@ -1,5 +1,4 @@
 using bleak.Martech.SalesforceMarketingCloud;
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
 using bleak.Martech.SalesforceMarketingCloud.Models;
 using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 

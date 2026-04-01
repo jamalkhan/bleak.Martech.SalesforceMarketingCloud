@@ -19,6 +19,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
         public string ClientId { get; }
         public string ClientSecret { get; }
         public string MemberId { get; }
+        public string AuthBaseUrl { get; }
 
         private SfmcAuthToken? _token;
 
@@ -27,6 +28,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
             string clientId,
             string clientSecret,
             string memberId,
+            string? authBaseUrl,
             IRestClientAsync restClientAsync,
             ILogger<MauiAuthRepository> logger)
         {
@@ -34,6 +36,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
             ClientId = clientId;
             ClientSecret = clientSecret;
             MemberId = memberId;
+            AuthBaseUrl = authBaseUrl ?? string.Empty;
             _restClientAsync = restClientAsync;
             _logger = logger;
         }
@@ -77,7 +80,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Sfmc.Models
         {
             _logger.LogTrace("Starting authentication process");
 
-            string tokenUri = $"https://{Subdomain}.auth.marketingcloudapis.com/v2/token";
+            string tokenUri = Configuration.SfmcEndpointUrls.GetAuthTokenUrl(Subdomain, AuthBaseUrl);
             _logger.LogTrace($"Authentication URL: {tokenUri}");
             _logger.LogTrace($"Client ID: {ClientId}");
             _logger.LogTrace($"Member ID: {MemberId}");

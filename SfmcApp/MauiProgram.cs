@@ -56,6 +56,7 @@ public static class MauiProgram
 					clientId: connection.ClientId,
 					clientSecret: connection.ClientSecret,
 					memberId: connection.MemberId,
+					authBaseUrl: connection.AuthBaseUrl,
 					restClientAsync: sp.GetRequiredService<IRestClientAsync>(),
 					logger: logger
 				);
@@ -67,7 +68,7 @@ public static class MauiProgram
 				var logger = sp.GetRequiredService<ILogger<SfmcAssetListViewModel>>();
 				var folderApiLogger = sp.GetRequiredService<ILogger<AssetFolderRestApi>>();
 				var contentResourceApiLogger = sp.GetRequiredService<ILogger<AssetRestApi>>();
-				var sfmcConnectionConfiguration = sp.GetRequiredService<SfmcConnectionConfiguration>();
+				var sfmcConnectionConfiguration = BuildConnectionConfiguration(sp.GetRequiredService<SfmcConnectionConfiguration>(), connection);
 				
 				var folderApi = new AssetFolderRestApi
 				(
@@ -185,7 +186,7 @@ public static class MauiProgram
 					var objectApiLogger = sp.GetRequiredService<ILogger<DataExtensionSoapApi>>();
 					var restApiLogger = sp.GetRequiredService<ILogger<DataExtensionRestApi>>();
 
-					var sfmcConnectionConfiguration = sp.GetRequiredService<SfmcConnectionConfiguration>();
+					var sfmcConnectionConfiguration = BuildConnectionConfiguration(sp.GetRequiredService<SfmcConnectionConfiguration>(), connection);
 
 					// Get the RestClient once, pass in the SoapSerializer
 					var restClient = new RestClient
@@ -199,7 +200,7 @@ public static class MauiProgram
 					(
 						restClientAsync: restClient,
 						authRepository: sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>()(connection),
-						config: sp.GetRequiredService<SfmcConnectionConfiguration>(),
+						config: sfmcConnectionConfiguration,
 						logger: folderApiLogger
 					);
 
@@ -207,14 +208,14 @@ public static class MauiProgram
 					(
 						restClientAsync: restClient,
 						authRepository: sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>()(connection),
-						config: sp.GetRequiredService<SfmcConnectionConfiguration>(),
+						config: sfmcConnectionConfiguration,
 						logger: objectApiLogger
 					);
 					var dataExtensionRestApi = new DataExtensionRestApi
 					(
 						restClientAsync: sp.GetRequiredService<RestClient>(),
 						authRepository: sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>()(connection),
-						config: sp.GetRequiredService<SfmcConnectionConfiguration>(),
+						config: sfmcConnectionConfiguration,
 						logger: restApiLogger
 					);
 
@@ -257,7 +258,7 @@ public static class MauiProgram
 					var objectApiLogger = sp.GetRequiredService<ILogger<DataExtensionSoapApi>>();
 					var restApiLogger = sp.GetRequiredService<ILogger<DataExtensionRestApi>>();
 
-					var sfmcConnectionConfiguration = sp.GetRequiredService<SfmcConnectionConfiguration>();
+					var sfmcConnectionConfiguration = BuildConnectionConfiguration(sp.GetRequiredService<SfmcConnectionConfiguration>(), connection);
 
 					// Get the RestClient once, pass in the SoapSerializer
 					var restClient = new RestClient
@@ -271,7 +272,7 @@ public static class MauiProgram
 					(
 						restClientAsync: restClient,
 						authRepository: sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>()(connection),
-						config: sp.GetRequiredService<SfmcConnectionConfiguration>(),
+						config: sfmcConnectionConfiguration,
 						logger: folderApiLogger
 					);
 
@@ -279,14 +280,14 @@ public static class MauiProgram
 					(
 						restClientAsync: restClient,
 						authRepository: sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>()(connection),
-						config: sp.GetRequiredService<SfmcConnectionConfiguration>(),
+						config: sfmcConnectionConfiguration,
 						logger: objectApiLogger
 					);
 					var dataExtensionRestApi = new DataExtensionRestApi
 					(
 						restClientAsync: sp.GetRequiredService<RestClient>(),
 						authRepository: sp.GetRequiredService<Func<SfmcConnection, IAuthRepository>>()(connection),
-						config: sp.GetRequiredService<SfmcConnectionConfiguration>(),
+						config: sfmcConnectionConfiguration,
 						logger: restApiLogger
 					);
 
@@ -312,5 +313,17 @@ public static class MauiProgram
         	System.Diagnostics.Debug.WriteLine("Startup crash: " + ex);
 			throw;
 		}
+	}
+
+	private static SfmcConnectionConfiguration BuildConnectionConfiguration(SfmcConnectionConfiguration defaults, SfmcConnection connection)
+	{
+		return new SfmcConnectionConfiguration(
+			maxDegreesOfParallelism: defaults.MaxDegreesOfParallelism,
+			pageSize: defaults.PageSize,
+			debug: defaults.Debug,
+			authBaseUrl: connection.AuthBaseUrl,
+			restBaseUrl: connection.RestBaseUrl,
+			soapBaseUrl: connection.SoapBaseUrl
+		);
 	}
 }

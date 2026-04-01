@@ -129,7 +129,7 @@ public class AssetFolderRestApi
             _logger.LogTrace($"Starting LoadFolderAsync for page {page}");
             RestResults<SfmcRestWrapper<SfmcFolder>, string> results;
             //asset/v1/content/categories
-            string url = $"https://{_authRepository.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/categories/?$page={page}&$pagesize={_sfmcConnectionConfiguration.PageSize}";
+            string url = $"{Configuration.SfmcEndpointUrls.GetRestEndpoint(_authRepository.Subdomain, "/asset/v1/content/categories", _sfmcConnectionConfiguration.RestBaseUrl)}/?$page={page}&$pagesize={_sfmcConnectionConfiguration.PageSize}";
             _logger.LogTrace($"Loading Folder Page #{page} with URL: {url}");
             
             _logger.LogTrace("About to call ExecuteRestMethodAsyncWithRetry");

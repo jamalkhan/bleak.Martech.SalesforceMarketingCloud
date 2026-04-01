@@ -8,6 +8,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Authentication
         protected string ClientId { get; set; }
         protected string ClientSecret { get; set; }
         protected string MemberId { get; set; }
+        protected string AuthBaseUrl { get; set; }
         protected const double Threshold = 600.07;
         private static Lazy<SfmcAuthToken>? _cachedToken;
         protected readonly IRestClientAsync _restClientAsync;
@@ -46,13 +47,15 @@ namespace bleak.Martech.SalesforceMarketingCloud.Authentication
             string subdomain,
             string clientId,
             string clientSecret,
-            string memberId)
+            string memberId,
+            string? authBaseUrl = null)
         {
             _restClientAsync = restClientAsync;
             Subdomain = subdomain;
             ClientId = clientId;
             ClientSecret = clientSecret;
             MemberId = memberId;
+            AuthBaseUrl = authBaseUrl ?? string.Empty;
             _cachedToken = new Lazy<SfmcAuthToken>(LoadToken, true); // Thread-safe lazy loading
         }
 
@@ -76,7 +79,7 @@ namespace bleak.Martech.SalesforceMarketingCloud.Authentication
         protected async Task<SfmcAuthToken> AuthenticateAsync()
         {
             Console.WriteLine("Authenticating...");
-            string tokenUri = $"https://{Subdomain}.auth.marketingcloudapis.com/v2/token";
+            string tokenUri = Configuration.SfmcEndpointUrls.GetAuthTokenUrl(Subdomain, AuthBaseUrl);
 
             var authResults = await _restClientAsync.ExecuteRestMethodAsync<SfmcAuthToken, string>(
                 uri: new Uri(tokenUri),

@@ -4,6 +4,9 @@
     "ClientId":"",
     "ClientSecret":"",
     "MemberId":"",
+    "AuthBaseUrl":"",
+    "RestBaseUrl":"",
+    "SoapBaseUrl":"",
     "PageSize":500,
     "MaxDegreeOfParallelism":10,
     "Debug":false

@@ -7,6 +7,7 @@ This repository currently contains:
 - `bleak.Martech.SalesforceMarketingCloud`: the shared SFMC client library.
 - `bleak.Martech.SalesforceMarketingCloud.Console`: a CLI for bulk exports and metadata pulls.
 - `SfmcApp`: a .NET MAUI desktop app for browsing connections, assets, and data extensions.
+- `bleak.Martech.SalesforceMarketingCloud.MockService`: a local ASP.NET Core mock for the SFMC auth, REST, and SOAP endpoints used by this repo.
 - `bleak.Martech.SalesforceMarketingCloud.Tests`: unit tests around helpers and model conversions.
 
 ## SfmcApp (.NET MAUI)
@@ -31,6 +32,39 @@ Release artifacts are published from the GitHub Releases page:
 
 - [GitHub Releases](https://github.com/jamalkhan/bleak.Martech.SalesforceMarketingCloud/releases)
 
+Saved MAUI connections also support optional endpoint overrides:
+
+- `Auth Base URL`
+- `REST Base URL`
+- `SOAP Base URL`
+
+Those are primarily intended for local development against the mock service.
+
+## Mock Service
+
+The mock service lets the existing clients run without real SFMC credentials. It currently covers:
+
+- auth token requests
+- asset folders and asset listing/search
+- data extension folder retrieval
+- data extension retrieval and row downloads
+- data extension create/import via SOAP
+- query definition retrieval
+- open, click, and sent tracking retrieval
+- describe requests
+
+Run it locally with:
+
+```bash
+dotnet run --project bleak.Martech.SalesforceMarketingCloud.MockService/bleak.Martech.SalesforceMarketingCloud.MockService.csproj --urls http://127.0.0.1:5099
+```
+
+To point the MAUI app at it, use a saved connection with any placeholder SFMC credentials and set:
+
+- `Auth Base URL`: `http://127.0.0.1:5099`
+- `REST Base URL`: `http://127.0.0.1:5099`
+- `SOAP Base URL`: `http://127.0.0.1:5099`
+
 ## Console App
 
 The console app is still useful for bulk export workflows and SOAP-heavy operations.
@@ -46,11 +80,16 @@ Example `config.json`:
   "ClientId": "<SFMC-ClientID>",
   "ClientSecret": "<SFMC-ClientSecret>",
   "MemberId": "123456",
+  "AuthBaseUrl": "",
+  "RestBaseUrl": "",
+  "SoapBaseUrl": "",
   "PageSize": 500,
   "MaxDegreeOfParallelism": 4,
   "Debug": false
 }
 ```
+
+To run the console app against the mock service, set the three base URL fields to `http://127.0.0.1:5099`. The credential values can be any non-empty placeholders in that mode.
 
 Current console menu options:
 

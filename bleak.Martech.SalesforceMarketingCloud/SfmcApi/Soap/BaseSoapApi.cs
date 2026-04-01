@@ -10,6 +10,7 @@ public abstract partial class BaseSoapApi<T>
 {
     protected readonly ILogger<T> _logger;
     protected string url { get; private set; }
+    protected string soapToAddress { get; private set; }
     protected IAuthRepository _authRepository { get; private set;}
     protected IRestClientAsync _restClientAsync { get; private set;}
     protected SfmcConnectionConfiguration _sfmcConnectionConfiguration { get; private set; }
@@ -26,7 +27,8 @@ public abstract partial class BaseSoapApi<T>
         _sfmcConnectionConfiguration = sfmcConnectionConfiguration;
         _authRepository = authRepository;
         _restClientAsync = restClientAsync;
-        url = $"https://{_authRepository.Subdomain}.soap.marketingcloudapis.com/Service.asmx";
+        url = Configuration.SfmcEndpointUrls.GetSoapServiceUrl(_authRepository.Subdomain, _sfmcConnectionConfiguration.SoapBaseUrl);
+        soapToAddress = Configuration.SfmcEndpointUrls.GetSoapToAddress(_authRepository.Subdomain, _sfmcConnectionConfiguration.SoapBaseUrl);
     }
 
 
@@ -38,7 +40,7 @@ public abstract partial class BaseSoapApi<T>
         headers.Add(new Header() { Name = "Content-Type", Value = "text/xml" });
         headers.Add(new Header() { Name = "Accept", Value = "/" });
         headers.Add(new Header() { Name = "Cache-Control", Value = "no-cache" });
-        headers.Add(new Header() { Name = "Host", Value = $"{_authRepository.Subdomain}.soap.marketingcloudapis.com" });
+        headers.Add(new Header() { Name = "Host", Value = Configuration.SfmcEndpointUrls.GetSoapHost(_authRepository.Subdomain, _sfmcConnectionConfiguration.SoapBaseUrl) });
         return headers;
     }
 }

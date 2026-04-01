@@ -26,6 +26,9 @@ public partial class SfmcConnectionEditPage : ContentPage
             ClientIdEntry.Text = connection.ClientId;
             ClientSecretEntry.Text = connection.ClientSecret;
             MemberIdEntry.Text = connection.MemberId;
+            AuthBaseUrlEntry.Text = connection.AuthBaseUrl;
+            RestBaseUrlEntry.Text = connection.RestBaseUrl;
+            SoapBaseUrlEntry.Text = connection.SoapBaseUrl;
         }
 
         try
@@ -77,6 +80,9 @@ public partial class SfmcConnectionEditPage : ContentPage
                 conn.ClientId = ClientIdEntry.Text;
                 conn.ClientSecret = ClientSecretEntry.Text;
                 conn.MemberId = MemberIdEntry.Text;
+                conn.AuthBaseUrl = AuthBaseUrlEntry.Text ?? string.Empty;
+                conn.RestBaseUrl = RestBaseUrlEntry.Text ?? string.Empty;
+                conn.SoapBaseUrl = SoapBaseUrlEntry.Text ?? string.Empty;
             }
         }
 
@@ -89,7 +95,10 @@ public partial class SfmcConnectionEditPage : ContentPage
                 Subdomain = SubdomainEntry.Text,
                 ClientId = ClientIdEntry.Text,
                 ClientSecret = ClientSecretEntry.Text,
-                MemberId = MemberIdEntry.Text
+                MemberId = MemberIdEntry.Text,
+                AuthBaseUrl = AuthBaseUrlEntry.Text ?? string.Empty,
+                RestBaseUrl = RestBaseUrlEntry.Text ?? string.Empty,
+                SoapBaseUrl = SoapBaseUrlEntry.Text ?? string.Empty
             };
             connections.Add(newConnection);
         }

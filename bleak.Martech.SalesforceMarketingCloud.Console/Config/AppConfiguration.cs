@@ -10,6 +10,9 @@ namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Configuration
         public string ClientId { get; set; } = string.Empty;
         public string ClientSecret { get; set; } = string.Empty;
         public string MemberId { get; set; } = string.Empty;
+        public string AuthBaseUrl { get; set; } = string.Empty;
+        public string RestBaseUrl { get; set; } = string.Empty;
+        public string SoapBaseUrl { get; set; } = string.Empty;
         public int PageSize { get; set; }
         public int MaxDegreeOfParallelism { get; set; }
         public bool Debug { get; set; } = false;

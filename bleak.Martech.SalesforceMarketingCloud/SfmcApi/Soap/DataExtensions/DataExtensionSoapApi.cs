@@ -207,7 +207,7 @@ public partial class DataExtensionSoapApi
         sb.AppendLine("<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:a=\"http://schemas.xmlsoap.org/ws/2004/08/addressing\" xmlns:u=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd\">");
         sb.AppendLine("    <s:Header>");
         sb.AppendLine("        <a:Action s:mustUnderstand=\"1\">Create</a:Action>");
-        sb.AppendLine($"        <a:To s:mustUnderstand=\"1\">https://{_authRepository.Subdomain}.soap.marketingcloudapis.com/Service.asmx</a:To>");
+        sb.AppendLine($"        <a:To s:mustUnderstand=\"1\">{soapToAddress}</a:To>");
         sb.AppendLine($"        <fueloauth xmlns=\"http://exacttarget.com\">{Escape(token.access_token)}</fueloauth>");
         sb.AppendLine("    </s:Header>");
         sb.AppendLine("    <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">");
@@ -255,7 +255,7 @@ public partial class DataExtensionSoapApi
         sb.AppendLine("<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:a=\"http://schemas.xmlsoap.org/ws/2004/08/addressing\" xmlns:u=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd\">");
         sb.AppendLine("    <s:Header>");
         sb.AppendLine("        <a:Action s:mustUnderstand=\"1\">Create</a:Action>");
-        sb.AppendLine($"        <a:To s:mustUnderstand=\"1\">https://{_authRepository.Subdomain}.soap.marketingcloudapis.com/Service.asmx</a:To>");
+        sb.AppendLine($"        <a:To s:mustUnderstand=\"1\">{soapToAddress}</a:To>");
         sb.AppendLine($"        <fueloauth xmlns=\"http://exacttarget.com\">{Escape(token.access_token)}</fueloauth>");
         sb.AppendLine("    </s:Header>");
         sb.AppendLine("    <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">");
@@ -354,7 +354,7 @@ public partial class DataExtensionSoapApi
         sb.AppendLine($"<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:a=\"http://schemas.xmlsoap.org/ws/2004/08/addressing\" xmlns:u=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd\">");
         sb.AppendLine($"    <s:Header>");
         sb.AppendLine($"        <a:Action s:mustUnderstand=\"1\">Retrieve</a:Action>");
-        sb.AppendLine($"        <a:To s:mustUnderstand=\"1\">https://{_authRepository.Subdomain}.soap.marketingcloudapis.com/Service.asmx</a:To>");
+        sb.AppendLine($"        <a:To s:mustUnderstand=\"1\">{soapToAddress}</a:To>");
         sb.AppendLine($"        <fueloauth xmlns=\"http://exacttarget.com\">{token?.access_token}</fueloauth>");
         sb.AppendLine($"    </s:Header>");
         sb.AppendLine($"    <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">");

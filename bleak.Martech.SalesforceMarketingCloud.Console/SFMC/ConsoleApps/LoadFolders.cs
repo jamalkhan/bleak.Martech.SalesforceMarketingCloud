@@ -75,7 +75,7 @@ public class LoadFolders
             if (AppConfiguration.Instance.Debug) { Console.WriteLine($"Loading Folder Page #{page}"); }
             
             RestResults<SfmcRestWrapper<SfmcFolder>, string> results;
-            string url = $"https://{AppConfiguration.Instance.Subdomain}.rest.marketingcloudapis.com/asset/v1/content/categories?$page={page}&$pagesize={AppConfiguration.Instance.PageSize}";
+            string url = $"{bleak.Martech.SalesforceMarketingCloud.Configuration.SfmcEndpointUrls.GetRestEndpoint(AppConfiguration.Instance.Subdomain, "/asset/v1/content/categories", AppConfiguration.Instance.RestBaseUrl)}?$page={page}&$pagesize={AppConfiguration.Instance.PageSize}";
 
             results = await ExecuteRestMethodWithRetryAsync(
                 loadFolderApiCallAsync: LoadFolderApiCallAsync,

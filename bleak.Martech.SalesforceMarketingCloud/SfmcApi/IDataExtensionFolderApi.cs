@@ -1,4 +1,4 @@
-using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
+using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 
 namespace bleak.Martech.SalesforceMarketingCloud.Api;
 

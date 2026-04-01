@@ -9,8 +9,14 @@ public partial class AuthRepository : AuthRepositoryBase
     
     private static readonly string AuthFilePath = Path.Combine(AppContext.BaseDirectory, "authentication.json");
 
-    public AuthRepository(IRestClientAsync restClientAsync, string subdomain, string clientId, string clientSecret, string memberId)
-        : base(restClientAsync, subdomain, clientId, clientSecret, memberId)
+    public AuthRepository(
+        IRestClientAsync restClientAsync,
+        string subdomain,
+        string clientId,
+        string clientSecret,
+        string memberId,
+        string? authBaseUrl = null)
+        : base(restClientAsync, subdomain, clientId, clientSecret, memberId, authBaseUrl)
     {
     }
 

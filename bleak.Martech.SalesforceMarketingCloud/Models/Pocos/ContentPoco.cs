@@ -1,6 +1,4 @@
-using bleak.Martech.SalesforceMarketingCloud.Models.SfmcDtos;
-
-namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
+namespace bleak.Martech.SalesforceMarketingCloud.Models.Pocos
 {
     
 }

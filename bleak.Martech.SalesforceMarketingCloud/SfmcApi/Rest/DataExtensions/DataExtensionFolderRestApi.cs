@@ -90,7 +90,7 @@ public class DataExtensionFolderRestApi
 
 
             ///legacy/v1/beta/object/
-            string url = $"https://{_authRepository.Subdomain}.rest.marketingcloudapis.com/legacy/v1/beta/object/?$page={page}&$pagesize={_sfmcConnectionConfiguration.PageSize}";
+            string url = $"{Configuration.SfmcEndpointUrls.GetRestEndpoint(_authRepository.Subdomain, "/legacy/v1/beta/object", _sfmcConnectionConfiguration.RestBaseUrl)}/?$page={page}&$pagesize={_sfmcConnectionConfiguration.PageSize}";
             var results = await LoadApiWithRetryAsync<SfmcRestWrapper<SfmcFolder>>(
                 loadApiCallAsync: LoadFolderApiCallAsync,
                 url: url,

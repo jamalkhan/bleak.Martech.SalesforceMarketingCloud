@@ -8,6 +8,7 @@
 
     <ContentPage.ToolbarItems>
         <ToolbarItem Text="+" Clicked="OnAddConnectionClicked" />
+        <ToolbarItem Text="Mock" Clicked="OnAddMockConnectionClicked" />
     </ContentPage.ToolbarItems>
 
     <CollectionView x:Name="ConnectionsListView" ItemsSource="{Binding Connections}">

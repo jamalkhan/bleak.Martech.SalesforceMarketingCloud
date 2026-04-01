@@ -11,6 +11,9 @@ namespace SfmcApp.Models
         public required string ClientId { get; set; }
         public required string ClientSecret { get; set; }
         public required string MemberId { get; set; }
+        public string AuthBaseUrl { get; set; } = string.Empty;
+        public string RestBaseUrl { get; set; } = string.Empty;
+        public string SoapBaseUrl { get; set; } = string.Empty;
 
         public string DirectoryName
         {

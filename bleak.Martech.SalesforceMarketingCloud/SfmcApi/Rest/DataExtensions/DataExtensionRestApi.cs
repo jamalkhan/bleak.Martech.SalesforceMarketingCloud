@@ -56,7 +56,7 @@ public class DataExtensionRestApi
 
             Directory.CreateDirectory(Path.GetDirectoryName(fileName)!);
 
-            string baseUrl = $"https://{_authRepository.Subdomain}.rest.marketingcloudapis.com/data";
+            string baseUrl = Configuration.SfmcEndpointUrls.GetRestEndpoint(_authRepository.Subdomain, "/data", _sfmcConnectionConfiguration.RestBaseUrl);
             string url = $"{baseUrl}/v1/customobjectdata/key/{dataExtensionCustomerKey}/rowset?$page=1&$pageSize=2500";
             do
             {

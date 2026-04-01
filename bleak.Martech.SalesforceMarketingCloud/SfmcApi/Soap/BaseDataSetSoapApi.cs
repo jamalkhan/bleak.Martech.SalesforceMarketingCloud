@@ -4,6 +4,7 @@ using bleak.Martech.SalesforceMarketingCloud.Wsdl;
 using bleak.Martech.SalesforceMarketingCloud.Fileops;
 using bleak.Martech.SalesforceMarketingCloud.Configuration;
 using bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap;
+using bleak.Martech.SalesforceMarketingCloud.Models.Pocos;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 

@@ -1,4 +1,4 @@
-namespace bleak.Martech.SalesforceMarketingCloud.ConsoleApp.Sfmc.Soap
+namespace bleak.Martech.SalesforceMarketingCloud.Models.Pocos
 {
     public abstract class BasePoco : IPoco
     {
